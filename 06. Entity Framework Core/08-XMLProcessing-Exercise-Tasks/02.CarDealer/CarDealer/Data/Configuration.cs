@@ -1,6 +1,7 @@
-﻿namespace CarDealer.Data;
-
-public static class Configuration
+﻿namespace CarDealer.Data
 {
-    public const string ConnectionString = @"Server=ACER\SQLEXPRESS;Database=CarDealer;Integrated Security=True;Encrypt=False";
+    public static class Configuration
+    {
+        public const string ConnectionString = @"Server=ACER\SQLEXPRESS;Database=CarDealer;Integrated Security=True;Encrypt=False";
+    }
 }

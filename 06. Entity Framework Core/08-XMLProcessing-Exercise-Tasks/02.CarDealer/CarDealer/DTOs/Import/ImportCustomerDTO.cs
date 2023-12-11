@@ -3,10 +3,10 @@
 namespace CarDealer.DTOs.Import;
 
 [XmlType("Customer")]
-public class ImportCustomerDTO
+public class ImportCustomerDto
 {
     [XmlElement("name")]
-    public string Name { get; set; } 
+    public string Name { get; set; } = null!;
 
     [XmlElement("birthDate")]
     public DateTime BirthDate { get; set; }

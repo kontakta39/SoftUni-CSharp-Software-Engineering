@@ -1,7 +1,7 @@
 ﻿using System.Text;
 using System.Xml.Serialization;
 
-namespace CarDealer.Utilities;
+namespace ProductShop.Utilities;
 
 public class XmlParser
 {

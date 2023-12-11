@@ -1,14 +1,21 @@
-﻿namespace CarDealer.Models;
+﻿using System.ComponentModel.DataAnnotations.Schema;
 
-public class Sale
+namespace CarDealer.Models
 {
-    public int Id { get; set; }
+    public class Sale
+    {
+        public int Id { get; set; }
 
-    public decimal Discount { get; set; }
+        public decimal Discount { get; set; }
 
-    public int CarId { get; set; }
-    public Car Car { get; set; } = null!;    
+        public int CarId { get; set; }
 
-    public int CustomerId { get; set; }
-    public Customer Customer { get; set; } = null!; 
+        [ForeignKey(nameof(CarId))]
+        public Car Car { get; set; } = null!;    
+
+        public int CustomerId { get; set; }
+
+        [ForeignKey(nameof(CustomerId))]
+        public Customer Customer { get; set; } = null!; 
+    }
 }

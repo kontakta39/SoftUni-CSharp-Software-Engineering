@@ -3,13 +3,13 @@
 namespace CarDealer.DTOs.Export;
 
 [XmlType("car")]
-public class ExportBMWCarsDTO
+public class ExportCarMake
 {
     [XmlAttribute("id")]
     public int Id { get; set; }
 
     [XmlAttribute("model")]
-    public string Model { get; set; }
+    public string Model { get; set; } = null!;
 
     [XmlAttribute("traveled-distance")]
     public long TraveledDistance { get; set; }

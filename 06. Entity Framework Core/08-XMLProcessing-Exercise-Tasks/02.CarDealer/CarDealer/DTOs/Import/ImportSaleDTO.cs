@@ -1,10 +1,9 @@
-﻿using CarDealer.Models;
-using System.Xml.Serialization;
+﻿using System.Xml.Serialization;
 
 namespace CarDealer.DTOs.Import;
 
 [XmlType("Sale")]
-public class ImportSaleDTO
+public class ImportSaleDto
 {
     [XmlElement("carId")]
     public int CarId { get; set; }
@@ -13,5 +12,5 @@ public class ImportSaleDTO
     public int CustomerId { get; set; }
 
     [XmlElement("discount")]
-    public decimal Discount { get; set; }
+    public int Discount { get; set; }
 }

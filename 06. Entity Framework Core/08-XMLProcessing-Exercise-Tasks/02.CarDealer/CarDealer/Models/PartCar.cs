@@ -1,10 +1,20 @@
-﻿namespace CarDealer.Models;
+﻿using System.ComponentModel.DataAnnotations.Schema;
 
-public class PartCar
+namespace CarDealer.Models
 {
-    public int PartId { get; set; }
-    public Part Part { get; set; } = null!; 
+    public class PartCar
+    {
+        //Part
+        public int PartId { get; set; }
 
-    public int CarId { get; set; }
-    public Car Car { get; set; } = null!; 
+        [ForeignKey(nameof(PartId))]
+        public Part Part { get; set; } = null!; 
+
+
+        //Car
+        public int CarId { get; set; }
+
+        [ForeignKey(nameof(CarId))]
+        public Car Car { get; set; } = null!; 
+    }
 }

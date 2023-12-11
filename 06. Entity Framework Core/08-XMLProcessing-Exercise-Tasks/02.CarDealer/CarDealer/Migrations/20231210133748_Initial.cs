@@ -15,8 +15,8 @@ namespace CarDealer.Migrations
                 {
                     Id = table.Column<int>(type: "int", nullable: false)
                         .Annotation("SqlServer:Identity", "1, 1"),
-                    Make = table.Column<string>(type: "nvarchar(max)", nullable: false),
-                    Model = table.Column<string>(type: "nvarchar(max)", nullable: false),
+                    Make = table.Column<string>(type: "nvarchar(max)", nullable: true),
+                    Model = table.Column<string>(type: "nvarchar(max)", nullable: true),
                     TraveledDistance = table.Column<long>(type: "bigint", nullable: false)
                 },
                 constraints: table =>
@@ -30,7 +30,7 @@ namespace CarDealer.Migrations
                 {
                     Id = table.Column<int>(type: "int", nullable: false)
                         .Annotation("SqlServer:Identity", "1, 1"),
-                    Name = table.Column<string>(type: "nvarchar(max)", nullable: false),
+                    Name = table.Column<string>(type: "nvarchar(max)", nullable: true),
                     BirthDate = table.Column<DateTime>(type: "datetime2", nullable: false),
                     IsYoungDriver = table.Column<bool>(type: "bit", nullable: false)
                 },
@@ -45,7 +45,7 @@ namespace CarDealer.Migrations
                 {
                     Id = table.Column<int>(type: "int", nullable: false)
                         .Annotation("SqlServer:Identity", "1, 1"),
-                    Name = table.Column<string>(type: "nvarchar(max)", nullable: false),
+                    Name = table.Column<string>(type: "nvarchar(max)", nullable: true),
                     IsImporter = table.Column<bool>(type: "bit", nullable: false)
                 },
                 constraints: table =>
@@ -86,7 +86,7 @@ namespace CarDealer.Migrations
                 {
                     Id = table.Column<int>(type: "int", nullable: false)
                         .Annotation("SqlServer:Identity", "1, 1"),
-                    Name = table.Column<string>(type: "nvarchar(max)", nullable: false),
+                    Name = table.Column<string>(type: "nvarchar(max)", nullable: true),
                     Price = table.Column<decimal>(type: "decimal(18,2)", nullable: false),
                     Quantity = table.Column<int>(type: "int", nullable: false),
                     SupplierId = table.Column<int>(type: "int", nullable: false)
