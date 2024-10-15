@@ -1,0 +1,1 @@
+//Тук се добавя референция към CinemaWebApp.Infrastructure.
