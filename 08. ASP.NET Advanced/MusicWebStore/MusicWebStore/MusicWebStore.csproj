@@ -22,6 +22,11 @@
 
   <ItemGroup>
     <ProjectReference Include="..\MusicWebStore.Data\MusicWebStore.Data.csproj" />
+    <ProjectReference Include="..\MusicWebStore.ViewModels\MusicWebStore.ViewModels.csproj" />
+  </ItemGroup>
+
+  <ItemGroup>
+    <Folder Include="Views\Genre\" />
   </ItemGroup>
 
 </Project>
