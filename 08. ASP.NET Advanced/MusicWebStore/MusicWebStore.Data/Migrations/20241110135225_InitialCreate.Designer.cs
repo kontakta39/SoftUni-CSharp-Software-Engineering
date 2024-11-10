@@ -12,7 +12,7 @@ using MusicWebStore.Data;
 namespace MusicWebStore.Data.Migrations
 {
     [DbContext(typeof(MusicStoreDbContext))]
-    [Migration("20241103211245_InitialCreate")]
+    [Migration("20241110135225_InitialCreate")]
     partial class InitialCreate
     {
         /// <inheritdoc />
@@ -295,31 +295,31 @@ namespace MusicWebStore.Data.Migrations
                     b.HasData(
                         new
                         {
-                            Id = new Guid("c6f726ae-1c50-4e5d-83d3-a61d83688ed9"),
+                            Id = new Guid("7e8efad0-6612-4e5d-bc87-748c281c23bb"),
                             IsDeleted = false,
                             Name = "Blues"
                         },
                         new
                         {
-                            Id = new Guid("ad16ff5a-5a68-4781-ac98-3004f8e64043"),
+                            Id = new Guid("82585b09-b588-4700-a020-f9d3887eb89c"),
                             IsDeleted = false,
                             Name = "Heavy Metal"
                         },
                         new
                         {
-                            Id = new Guid("77abaf28-1e86-430e-a7c9-b92080c077cc"),
+                            Id = new Guid("df66ae89-7ae0-4881-86dd-53fb7764a3ee"),
                             IsDeleted = false,
                             Name = "Jazz"
                         },
                         new
                         {
-                            Id = new Guid("e4755096-78d6-4310-b5ba-a02f04d659c2"),
+                            Id = new Guid("296f786b-432e-4edc-ae6f-07b74980870e"),
                             IsDeleted = false,
                             Name = "Pop"
                         },
                         new
                         {
-                            Id = new Guid("dc760dd3-1260-403b-8f96-ecb7f0f3cba7"),
+                            Id = new Guid("3e9eed14-9c56-4f71-8074-dbd5b6140875"),
                             IsDeleted = false,
                             Name = "Rock"
                         });
@@ -333,10 +333,10 @@ namespace MusicWebStore.Data.Migrations
 
                     b.Property<string>("Biography")
                         .IsRequired()
-                        .HasMaxLength(250)
-                        .HasColumnType("nvarchar(250)");
+                        .HasMaxLength(500)
+                        .HasColumnType("nvarchar(500)");
 
-                    b.Property<DateOnly>("BirthDate")
+                    b.Property<DateOnly?>("BirthDate")
                         .HasColumnType("date");
 
                     b.Property<Guid>("GenreId")

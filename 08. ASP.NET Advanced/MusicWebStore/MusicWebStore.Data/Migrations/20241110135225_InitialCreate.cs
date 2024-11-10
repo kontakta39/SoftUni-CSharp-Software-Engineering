@@ -198,9 +198,9 @@ namespace MusicWebStore.Data.Migrations
                 {
                     Id = table.Column<Guid>(type: "uniqueidentifier", nullable: false),
                     Name = table.Column<string>(type: "nvarchar(60)", maxLength: 60, nullable: false),
-                    Biography = table.Column<string>(type: "nvarchar(250)", maxLength: 250, nullable: false),
+                    Biography = table.Column<string>(type: "nvarchar(500)", maxLength: 500, nullable: false),
                     Nationality = table.Column<string>(type: "nvarchar(30)", maxLength: 30, nullable: true),
-                    BirthDate = table.Column<DateOnly>(type: "date", nullable: false),
+                    BirthDate = table.Column<DateOnly>(type: "date", nullable: true),
                     Label = table.Column<string>(type: "nvarchar(50)", maxLength: 50, nullable: true),
                     ImageUrl = table.Column<string>(type: "nvarchar(max)", nullable: true),
                     IsDeleted = table.Column<bool>(type: "bit", nullable: false),
@@ -306,11 +306,11 @@ namespace MusicWebStore.Data.Migrations
                 columns: new[] { "Id", "IsDeleted", "Name" },
                 values: new object[,]
                 {
-                    { new Guid("77abaf28-1e86-430e-a7c9-b92080c077cc"), false, "Jazz" },
-                    { new Guid("ad16ff5a-5a68-4781-ac98-3004f8e64043"), false, "Heavy Metal" },
-                    { new Guid("c6f726ae-1c50-4e5d-83d3-a61d83688ed9"), false, "Blues" },
-                    { new Guid("dc760dd3-1260-403b-8f96-ecb7f0f3cba7"), false, "Rock" },
-                    { new Guid("e4755096-78d6-4310-b5ba-a02f04d659c2"), false, "Pop" }
+                    { new Guid("296f786b-432e-4edc-ae6f-07b74980870e"), false, "Pop" },
+                    { new Guid("3e9eed14-9c56-4f71-8074-dbd5b6140875"), false, "Rock" },
+                    { new Guid("7e8efad0-6612-4e5d-bc87-748c281c23bb"), false, "Blues" },
+                    { new Guid("82585b09-b588-4700-a020-f9d3887eb89c"), false, "Heavy Metal" },
+                    { new Guid("df66ae89-7ae0-4881-86dd-53fb7764a3ee"), false, "Jazz" }
                 });
 
             migrationBuilder.CreateIndex(

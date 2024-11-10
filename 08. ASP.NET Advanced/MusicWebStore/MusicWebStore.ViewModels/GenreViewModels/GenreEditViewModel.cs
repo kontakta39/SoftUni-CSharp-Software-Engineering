@@ -3,10 +3,11 @@ using System.Collections.Generic;
 using System.ComponentModel.DataAnnotations;
 using static MusicWebStore.Constants.ModelConstants;
 
-namespace MusicWebStore.ViewModels.Genre;
+namespace MusicWebStore.ViewModels;
 
 public class GenreEditViewModel
 {
+    [Required]
     public Guid Id { get; set; }
 
     [Required]

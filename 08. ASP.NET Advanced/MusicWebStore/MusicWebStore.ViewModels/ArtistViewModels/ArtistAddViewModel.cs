@@ -1,12 +1,12 @@
-﻿using System.ComponentModel.DataAnnotations;
-using System.ComponentModel.DataAnnotations.Schema;
+﻿using MusicWebStore.Data;
+using System.ComponentModel.DataAnnotations;
 using static MusicWebStore.Constants.ModelConstants;
 
-namespace MusicWebStore.Data.Models;
+namespace MusicWebStore.ViewModels;
 
-public class Artist
+public class ArtistAddViewModel
 {
-    [Key]
+    [Required]
     public Guid Id { get; set; } = Guid.NewGuid();
 
     [Required]
@@ -18,23 +18,19 @@ public class Artist
     public string Biography { get; set; } = null!;
 
     [StringLength(NationalityMaxLength, MinimumLength = NationalityMinLength)]
-    public string? Nationality { get; set; } = null!; 
+    public string? Nationality { get; set; } = null!;
 
+    [DataType(DataType.Date)]
     [DisplayFormat(DataFormatString = "{0:dd-MM-yyyy}")]
-    public DateOnly? BirthDate { get; set; }
+    public string? BirthDate { get; set; } = null!;
 
     [StringLength(LabelMaxLength, MinimumLength = LabelMinLength)]
     public string? Label { get; set; }
 
     public string? ImageUrl { get; set; } = null!;
-    public bool IsDeleted { get; set; } = false;
 
     [Required]
     public Guid GenreId { get; set; }
 
-    [Required]
-    [ForeignKey(nameof(GenreId))]
-    public Genre Genre { get; set; } = null!;
-
-    public virtual ICollection<Album> Albums { get; set; } = new HashSet<Album>();   
+    public ICollection<Genre> Genres = new HashSet<Genre>();
 }

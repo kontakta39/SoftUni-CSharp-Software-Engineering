@@ -1,8 +1,8 @@
-﻿@using MusicWebStore.ViewModels.Genre;
+﻿@using MusicWebStore.ViewModels
 @model GenreAddViewModel
 
 @{
-    ViewData["Title"] = "Add Genre";
+    ViewData["Title"] = "Add genre";
 }
 
 <div class="d-flex justify-content-between align-items-center mb-3" style="margin-top: 20px;">
@@ -13,12 +13,11 @@
 <div class="row">
     <div class="col-sm-12 offset-lg-2 col-lg-8 offset-xl-3 col-xl-6">
         <form asp-action="Add" method="post" enctype="multipart/form-data">
-            <div class="row">
-                <div class="col-sm-6 mb-2">
-                    <label asp-for="@Model.Name" class="form-label-add-edit">Genre Name</label>
-                    <input asp-for="@Model.Name" class="form-control" aria-required="true" />
-                    <span asp-validation-for="@Model.Name" class="text-danger"></span>
-                </div>
+
+            <div class="mb-2">
+                <label asp-for="@Model.Name" class="form-label-add-edit">Name</label>
+                <input asp-for="@Model.Name" class="form-control" aria-required="false" placeholder="Enter name" />
+                <span asp-validation-for="@Model.Name" class="text-danger"></span>
             </div>
 
             <div class="mb-2">

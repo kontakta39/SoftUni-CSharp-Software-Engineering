@@ -1,5 +1,5 @@
 using Microsoft.AspNetCore.Mvc;
-using MusicWebStore.Models;
+using MusicWebStore.ViewModels;
 using System.Diagnostics;
 
 namespace MusicWebStore.Controllers

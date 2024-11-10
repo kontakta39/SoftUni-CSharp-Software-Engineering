@@ -6,7 +6,7 @@ public static class ModelConstants
     public const int ArtistNameMaxLength = 60;
 
     public const int BiographyMinLength = 10;
-    public const int BiographyMaxLength = 250;
+    public const int BiographyMaxLength = 500;
 
     public const int NationalityMinLength = 5;
     public const int NationalityMaxLength = 30;
