@@ -33,4 +33,6 @@ public class ArtistAddViewModel
     public Guid GenreId { get; set; }
 
     public ICollection<Genre> Genres = new HashSet<Genre>();
+
+    public ICollection<string> NationalityOptions { get; set; } = new SortedSet<string>();
 }

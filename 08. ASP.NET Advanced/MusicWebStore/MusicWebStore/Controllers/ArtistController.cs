@@ -1,5 +1,6 @@
 ﻿using Microsoft.AspNetCore.Mvc;
 using Microsoft.EntityFrameworkCore;
+using MusicWebStore.Constants;
 using MusicWebStore.Data;
 using MusicWebStore.Data.Models;
 using MusicWebStore.ViewModels;
@@ -38,6 +39,7 @@ public class ArtistController : Controller
     {
         List<Genre> allGenres = await _context.Genres.ToListAsync();
         ArtistAddViewModel addArtist = new ArtistAddViewModel();
+        addArtist.NationalityOptions = CountriesConstants.CountriesList();
         addArtist.Genres = allGenres;
 
         return View(addArtist);
@@ -48,6 +50,7 @@ public class ArtistController : Controller
     {
         List<Genre> allGenres = await _context.Genres.ToListAsync();
         addArtist.Genres = allGenres;
+        addArtist.NationalityOptions = CountriesConstants.CountriesList();
 
         if (!ModelState.IsValid)
         {
@@ -98,7 +101,7 @@ public class ArtistController : Controller
     [HttpGet]
     public async Task<IActionResult> Edit(Guid id)
     {
-        Artist? artist = await _context.Artists.FindAsync(id);
+        Artist? artist = _context.Artists.FirstOrDefault(g => g.Id == id);
 
         if (artist == null)
         {
@@ -116,7 +119,8 @@ public class ArtistController : Controller
             Label = artist.Label,
             ImageUrl = artist.ImageUrl,
             GenreId = artist.GenreId,
-            Genres = allGenres
+            Genres = allGenres,
+            NationalityOptions = CountriesConstants.CountriesList()
         };
 
         return View(editArtist);
@@ -127,14 +131,14 @@ public class ArtistController : Controller
     {
         List<Genre> genres = await _context.Genres.ToListAsync();
         editArtist.Genres = genres;
+        editArtist.NationalityOptions = CountriesConstants.CountriesList();
 
         if (!ModelState.IsValid)
         {
             return View(editArtist);
         }
 
-        Artist? artist = _context.Artists.FirstOrDefault(g => g.Id == id);
-
+        Artist artist = _context.Artists.FirstOrDefault(g => g.Id == id)!;
 
         artist.Name = editArtist.Name;
         artist.Biography = editArtist.Biography;
