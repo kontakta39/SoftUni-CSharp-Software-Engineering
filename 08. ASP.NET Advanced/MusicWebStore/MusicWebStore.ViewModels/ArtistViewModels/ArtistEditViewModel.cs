@@ -11,18 +11,18 @@ public class ArtistEditViewModel
     public string Name { get; set; } = null!;
 
     [Required]
-    [StringLength(BiographyMaxLength, MinimumLength = BiographyMinLength)]
+    [StringLength(ArtistBiographyMaxLength, MinimumLength = ArtistBiographyMinLength)]
     public string Biography { get; set; } = null!;
 
-    [StringLength(NationalityMaxLength, MinimumLength = NationalityMinLength)]
+    [StringLength(ArtistNationalityMaxLength, MinimumLength = ArtistNationalityMinLength)]
     public string? Nationality { get; set; } = null!;
 
     [DataType(DataType.Date)]
     [DisplayFormat(DataFormatString = "{0:dd-MM-yyyy}")]
     public string? BirthDate { get; set; } = null!;
 
-    [StringLength(LabelMaxLength, MinimumLength = LabelMinLength)]
-    public string? Label { get; set; }
+    [StringLength(ArtistWebsiteMaxLength, MinimumLength = ArtistWebsiteMinLength)]
+    public string? Website { get; set; }
 
     public string? ImageUrl { get; set; } = null!;
 

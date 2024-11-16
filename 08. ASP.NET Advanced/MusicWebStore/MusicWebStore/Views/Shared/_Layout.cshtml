@@ -7,7 +7,7 @@
 <head>
     <meta charset="utf-8" />
     <meta name="viewport" content="width=device-width, initial-scale=1.0" />
-    <title>@ViewData["Title"] - MusicWebStore</title>
+    <title>@ViewData["Title"] - Music Web Store</title>
     <link rel="stylesheet" href="~/lib/bootstrap/dist/css/bootstrap.min.css" />
     <link rel="stylesheet" href="~/css/site.css" asp-append-version="true" />
     <link rel="stylesheet" href="~/MusicWebStore.styles.css" asp-append-version="true" />
@@ -29,6 +29,9 @@
                         <li class="nav-item">
                             <a class="nav-link text-dark" asp-area="" asp-controller="Artist" asp-action="Index">Artists</a>
                         </li>
+                        <li class="nav-item">
+                            <a class="nav-link text-dark" asp-area="" asp-controller="Album" asp-action="Index">Albums</a>
+                        </li>
                     </ul>
                     <partial name="_LoginPartial" />
                 </div>
@@ -43,7 +46,7 @@
 
     <footer class="border-top footer text-muted">
         <div class="container">
-            <p>&copy; Music Store @currentYear</p>
+            <p>&copy; @currentYear Music Store</p>
         </div>
     </footer>
     <script src="~/lib/jquery/dist/jquery.min.js"></script>

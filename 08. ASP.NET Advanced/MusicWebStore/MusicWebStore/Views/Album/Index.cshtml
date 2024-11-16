@@ -1,0 +1,44 @@
+﻿@using MusicWebStore.ViewModels
+@model IEnumerable<AlbumIndexViewModel>
+
+@{
+    ViewData["Title"] = "Albums";
+}
+
+<div class="d-flex justify-content-between align-items-center mb-3" style="margin-top: 20px;">
+    <h2>@ViewData["Title"]</h2>
+    <a asp-controller="Album" asp-action="Add" class="btn btn-primary"><i class="fas fa-plus"></i>Add album</a>
+</div>
+<hr />
+
+@foreach (var genreGroup in Model.GroupBy(a => a.Genre).OrderBy(g => g.Key))
+{
+    <h3 class="card-title">@genreGroup.Key</h3>
+    <div class="row text-center">
+        @foreach (var album in genreGroup)
+        {
+            <div class="col-md-3 mb-4">
+                <div class="card h-100" style="width: 100%;">
+                    @if (!string.IsNullOrEmpty(album.ImageUrl))
+                    {
+                        <img src="@album.ImageUrl" class="card-img-top" style="max-height: 150px; object-fit: contain;" alt="@album.Title">
+                    }
+                    else
+                    {
+                        <img src="~/img/no_album_image.jpg" class="card-img-top" style="max-height: 150px; object-fit: contain;" alt="No Image Available">
+                    }
+
+                    <div class="card-body d-flex flex-column">
+                        <h5 class="card-title">@album.Title</h5>
+                        <h6 class="card-title">@album.Artist</h6>
+                        <p class="card-text">@album.Price lv.</p>
+                        <div class="d-flex justify-content-between mt-auto">
+                            <a asp-controller="Album" asp-action="Edit" asp-route-id="@album.Id" class="btn btn-success me-2 w-50">Edit</a>
+                            <a asp-controller="Album" asp-action="Details" asp-route-id="@album.Id" class="btn btn-info me-2 w-50">Details</a>
+                        </div>
+                    </div>
+                </div>
+            </div>
+        }
+    </div>
+}

@@ -17,7 +17,7 @@ Project("{2150E333-8FDC-42A3-9474-1A3956D46DE8}") = "Constants", "Constants", "{
 EndProject
 Project("{2150E333-8FDC-42A3-9474-1A3956D46DE8}") = "ViewModels", "ViewModels", "{C6611CF4-F891-4DAE-9870-FFBA8922BF63}"
 EndProject
-Project("{FAE04EC0-301F-11D3-BF4B-00C04F79EFBC}") = "MusicWebStore.ViewModels", "MusicWebStore.ViewModels\MusicWebStore.ViewModels.csproj", "{7892F5D4-DA3B-4DB8-AD4A-9B81C1842CA6}"
+Project("{9A19103F-16F7-4668-BE54-9A1E7A4F7556}") = "MusicWebStore.ViewModels", "MusicWebStore.ViewModels\MusicWebStore.ViewModels.csproj", "{7892F5D4-DA3B-4DB8-AD4A-9B81C1842CA6}"
 EndProject
 Global
 	GlobalSection(SolutionConfigurationPlatforms) = preSolution

@@ -247,6 +247,10 @@ namespace MusicWebStore.Data.Migrations
                     b.Property<bool>("IsDeleted")
                         .HasColumnType("bit");
 
+                    b.Property<string>("Label")
+                        .HasMaxLength(50)
+                        .HasColumnType("nvarchar(50)");
+
                     b.Property<decimal>("Price")
                         .HasColumnType("decimal(18,2)");
 
@@ -268,7 +272,7 @@ namespace MusicWebStore.Data.Migrations
 
                     b.HasIndex("GenreId");
 
-                    b.ToTable("Albums");
+                    b.ToTable("Albums", (string)null);
                 });
 
             modelBuilder.Entity("MusicWebStore.Data.Genre", b =>
@@ -287,36 +291,36 @@ namespace MusicWebStore.Data.Migrations
 
                     b.HasKey("Id");
 
-                    b.ToTable("Genres");
+                    b.ToTable("Genres", (string)null);
 
                     b.HasData(
                         new
                         {
-                            Id = new Guid("7e8efad0-6612-4e5d-bc87-748c281c23bb"),
+                            Id = new Guid("cdd55e56-425c-4f56-a032-e1a26148200b"),
                             IsDeleted = false,
                             Name = "Blues"
                         },
                         new
                         {
-                            Id = new Guid("82585b09-b588-4700-a020-f9d3887eb89c"),
+                            Id = new Guid("aea9caf8-4885-4a25-ae8f-3c15296a2f06"),
                             IsDeleted = false,
                             Name = "Heavy Metal"
                         },
                         new
                         {
-                            Id = new Guid("df66ae89-7ae0-4881-86dd-53fb7764a3ee"),
+                            Id = new Guid("f44b31c6-9669-49af-9825-f15fcb88169b"),
                             IsDeleted = false,
                             Name = "Jazz"
                         },
                         new
                         {
-                            Id = new Guid("296f786b-432e-4edc-ae6f-07b74980870e"),
+                            Id = new Guid("6d0b20a4-4b5b-42e3-9e74-ef2d20d15383"),
                             IsDeleted = false,
                             Name = "Pop"
                         },
                         new
                         {
-                            Id = new Guid("3e9eed14-9c56-4f71-8074-dbd5b6140875"),
+                            Id = new Guid("008a1f54-acc9-4923-8524-c3a37a619cdc"),
                             IsDeleted = false,
                             Name = "Rock"
                         });
@@ -345,10 +349,6 @@ namespace MusicWebStore.Data.Migrations
                     b.Property<bool>("IsDeleted")
                         .HasColumnType("bit");
 
-                    b.Property<string>("Label")
-                        .HasMaxLength(50)
-                        .HasColumnType("nvarchar(50)");
-
                     b.Property<string>("Name")
                         .IsRequired()
                         .HasMaxLength(60)
@@ -358,11 +358,15 @@ namespace MusicWebStore.Data.Migrations
                         .HasMaxLength(30)
                         .HasColumnType("nvarchar(30)");
 
+                    b.Property<string>("Website")
+                        .HasMaxLength(300)
+                        .HasColumnType("nvarchar(300)");
+
                     b.HasKey("Id");
 
                     b.HasIndex("GenreId");
 
-                    b.ToTable("Artists");
+                    b.ToTable("Artists", (string)null);
                 });
 
             modelBuilder.Entity("MusicWebStore.Data.Order", b =>
@@ -388,7 +392,7 @@ namespace MusicWebStore.Data.Migrations
 
                     b.HasIndex("UserId");
 
-                    b.ToTable("Orders");
+                    b.ToTable("Orders", (string)null);
                 });
 
             modelBuilder.Entity("MusicWebStore.Data.OrderAlbum", b =>
@@ -403,7 +407,7 @@ namespace MusicWebStore.Data.Migrations
 
                     b.HasIndex("AlbumId");
 
-                    b.ToTable("OrderAlbums");
+                    b.ToTable("OrderAlbums", (string)null);
                 });
 
             modelBuilder.Entity("MusicWebStore.Data.Review", b =>
@@ -436,7 +440,7 @@ namespace MusicWebStore.Data.Migrations
 
                     b.HasIndex("UserId");
 
-                    b.ToTable("Reviews");
+                    b.ToTable("Reviews", (string)null);
                 });
 
             modelBuilder.Entity("Microsoft.AspNetCore.Identity.IdentityRoleClaim<string>", b =>

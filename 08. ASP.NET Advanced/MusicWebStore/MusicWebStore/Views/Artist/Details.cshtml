@@ -2,7 +2,7 @@
 @model ArtistDetailsViewModel
 
 @{
-    ViewData["Title"] = "Artist Information";
+    ViewData["Title"] = "Artist information";
 }
 
 <div class="d-flex justify-content-between align-items-center mb-3" style="margin-top: 20px;">
@@ -36,15 +36,14 @@
                 <h6 class="card-subtitle mb-2 text-muted">Nationality: @Model.Nationality</h6>
                 <hr />
             }
-            @if (!string.IsNullOrEmpty(Model.Label))
+            @if (!string.IsNullOrEmpty(Model.Website))
             {
-                <h6 class="card-subtitle mb-2 text-muted">Label: @Model.Label</h6>
+                <h6 class="card-subtitle mb-2 text-muted">Website: <a href="@Model.Website" target="_blank">Click</a></h6>
                 <hr />
             }
             <p class="card-text">@Model.Biography</p>
             <hr />
             <p class="card-text">Genre: @Model.Genre</p>
-            <hr />
         </div>
         <div class="card-footer text-center">
             <div class="d-flex justify-content-between align-items-center">

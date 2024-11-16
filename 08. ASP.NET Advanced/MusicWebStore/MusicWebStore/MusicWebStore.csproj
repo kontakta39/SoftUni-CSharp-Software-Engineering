@@ -29,4 +29,11 @@
     <Folder Include="Views\Genre\" />
   </ItemGroup>
 
+  <ItemGroup>
+    <Content Update="Views\Album\Edit.cshtml">
+      <ExcludeFromSingleFile>true</ExcludeFromSingleFile>
+      <CopyToPublishDirectory>PreserveNewest</CopyToPublishDirectory>
+    </Content>
+  </ItemGroup>
+
 </Project>

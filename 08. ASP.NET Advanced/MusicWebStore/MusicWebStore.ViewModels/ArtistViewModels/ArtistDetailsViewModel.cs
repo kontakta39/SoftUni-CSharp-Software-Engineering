@@ -4,6 +4,7 @@ namespace MusicWebStore.ViewModels;
 
 public class ArtistDetailsViewModel
 {
+    [Required]
     public Guid Id { get; set; }
 
     [Required]
@@ -16,7 +17,7 @@ public class ArtistDetailsViewModel
 
     public DateOnly? BirthDate { get; set; }
 
-    public string? Label { get; set; }
+    public string? Website { get; set; }
 
     public string? ImageUrl { get; set; } = null!;
 

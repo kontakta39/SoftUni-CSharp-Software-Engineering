@@ -5,9 +5,10 @@ namespace MusicWebStore.ViewModels;
 
 public class ArtistIndexViewModel
 {
-    public required Guid Id { get; set; }
+    [Required]
+    public Guid Id { get; set; }
 
-    [StringLength(ArtistNameMaxLength, MinimumLength = ArtistNameMinLength)]
+    [Required]
     public required string Name { get; set; } = null!;
 
     public string? ImageUrl { get; set; }

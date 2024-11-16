@@ -4,6 +4,7 @@ using MusicWebStore.Constants;
 using MusicWebStore.Data;
 using MusicWebStore.Data.Models;
 using MusicWebStore.ViewModels;
+using System.Text.RegularExpressions;
 
 namespace MusicWebStore.Controllers;
 
@@ -52,6 +53,19 @@ public class ArtistController : Controller
         addArtist.Genres = allGenres;
         addArtist.NationalityOptions = CountriesConstants.CountriesList();
 
+        List<Artist> allArtists = await _context.Artists.ToListAsync();
+
+        /*foreach (var artistCheck in allArtists)
+        {
+            string formattedName = Regex.Replace(artistCheck.Name, @"\W+", "").ToLower();
+            string formatedNameToBeChecked = Regex.Replace(addArtist.Name, @"\W+", "").ToLower();
+
+            if (formattedName == formatedNameToBeChecked) 
+            {
+                return RedirectToAction(nameof(Edit));
+            }
+        }*/
+
         if (!ModelState.IsValid)
         {
             return View(addArtist);
@@ -66,7 +80,7 @@ public class ArtistController : Controller
             BirthDate = string.IsNullOrEmpty(addArtist.BirthDate)
                         ? null
                         : DateOnly.ParseExact(addArtist.BirthDate, "yyyy-MM-dd", null),
-            Label = addArtist.Label,
+            Website = addArtist.Website,
             ImageUrl = addArtist.ImageUrl,
             GenreId = addArtist.GenreId
         };
@@ -80,8 +94,16 @@ public class ArtistController : Controller
     [HttpGet]
     public async Task<IActionResult> Details(Guid id)
     {
+        Artist? artistCheck = _context.Artists
+            .Where(a => a.IsDeleted == false)
+            .FirstOrDefault(a => a.Id == id);
+
+        if (artistCheck == null)
+        {
+            return RedirectToAction(nameof(Index));
+        }
+
         ArtistDetailsViewModel? artist = await _context.Artists
-            .Where(a => a.Id == id)
             .Select(a => new ArtistDetailsViewModel()
             {
                 Id = a.Id,
@@ -89,7 +111,7 @@ public class ArtistController : Controller
                 Biography = a.Biography,
                 Nationality = a.Nationality,
                 BirthDate = a.BirthDate,
-                Label = a.Label,
+                Website = a.Website,
                 ImageUrl = a.ImageUrl,
                 Genre = a.Genre.Name
             })
@@ -116,7 +138,7 @@ public class ArtistController : Controller
             Biography = artist.Biography,
             Nationality = artist.Nationality,
             BirthDate = artist.BirthDate.ToString(),
-            Label = artist.Label,
+            Website = artist.Website,
             ImageUrl = artist.ImageUrl,
             GenreId = artist.GenreId,
             Genres = allGenres,
@@ -146,7 +168,7 @@ public class ArtistController : Controller
         artist.BirthDate = string.IsNullOrEmpty(editArtist.BirthDate)
                     ? null
                     : DateOnly.ParseExact(editArtist.BirthDate, "yyyy-MM-dd", null);
-        artist.Label = editArtist.Label;
+        artist.Website = editArtist.Website;
         artist.ImageUrl = editArtist.ImageUrl;
         artist.GenreId = editArtist.GenreId;
 

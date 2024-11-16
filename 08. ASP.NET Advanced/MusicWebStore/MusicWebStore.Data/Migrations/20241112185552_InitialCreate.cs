@@ -201,7 +201,7 @@ namespace MusicWebStore.Data.Migrations
                     Biography = table.Column<string>(type: "nvarchar(500)", maxLength: 500, nullable: false),
                     Nationality = table.Column<string>(type: "nvarchar(30)", maxLength: 30, nullable: true),
                     BirthDate = table.Column<DateOnly>(type: "date", nullable: true),
-                    Label = table.Column<string>(type: "nvarchar(50)", maxLength: 50, nullable: true),
+                    Website = table.Column<string>(type: "nvarchar(300)", maxLength: 300, nullable: true),
                     ImageUrl = table.Column<string>(type: "nvarchar(max)", nullable: true),
                     IsDeleted = table.Column<bool>(type: "bit", nullable: false),
                     GenreId = table.Column<Guid>(type: "uniqueidentifier", nullable: false)
@@ -223,6 +223,7 @@ namespace MusicWebStore.Data.Migrations
                 {
                     Id = table.Column<Guid>(type: "uniqueidentifier", nullable: false),
                     Title = table.Column<string>(type: "nvarchar(100)", maxLength: 100, nullable: false),
+                    Label = table.Column<string>(type: "nvarchar(50)", maxLength: 50, nullable: true),
                     ReleaseDate = table.Column<DateOnly>(type: "date", nullable: false),
                     Description = table.Column<string>(type: "nvarchar(300)", maxLength: 300, nullable: false),
                     ImageUrl = table.Column<string>(type: "nvarchar(max)", nullable: true),
@@ -306,11 +307,11 @@ namespace MusicWebStore.Data.Migrations
                 columns: new[] { "Id", "IsDeleted", "Name" },
                 values: new object[,]
                 {
-                    { new Guid("296f786b-432e-4edc-ae6f-07b74980870e"), false, "Pop" },
-                    { new Guid("3e9eed14-9c56-4f71-8074-dbd5b6140875"), false, "Rock" },
-                    { new Guid("7e8efad0-6612-4e5d-bc87-748c281c23bb"), false, "Blues" },
-                    { new Guid("82585b09-b588-4700-a020-f9d3887eb89c"), false, "Heavy Metal" },
-                    { new Guid("df66ae89-7ae0-4881-86dd-53fb7764a3ee"), false, "Jazz" }
+                    { new Guid("008a1f54-acc9-4923-8524-c3a37a619cdc"), false, "Rock" },
+                    { new Guid("6d0b20a4-4b5b-42e3-9e74-ef2d20d15383"), false, "Pop" },
+                    { new Guid("aea9caf8-4885-4a25-ae8f-3c15296a2f06"), false, "Heavy Metal" },
+                    { new Guid("cdd55e56-425c-4f56-a032-e1a26148200b"), false, "Blues" },
+                    { new Guid("f44b31c6-9669-49af-9825-f15fcb88169b"), false, "Jazz" }
                 });
 
             migrationBuilder.CreateIndex(

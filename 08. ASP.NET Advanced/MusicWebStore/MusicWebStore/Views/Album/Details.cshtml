@@ -1,0 +1,56 @@
+﻿@using MusicWebStore.ViewModels
+@model AlbumDetailsViewModel
+
+@{
+    ViewData["Title"] = "Album information";
+}
+
+<div class="d-flex justify-content-between align-items-center mb-3" style="margin-top: 20px;">
+    <h2>@ViewData["Title"]</h2>
+</div>
+<hr />
+
+<div class="row justify-content-center" style="margin: 0 auto; max-width: 800px;">
+    <div class="col-md-4 text-center">
+        @if (!string.IsNullOrEmpty(Model.ImageUrl))
+        {
+            <img src="@Model.ImageUrl" class="img-fluid" style="max-width: 100%; height: auto;" alt="@Model.Title" />
+        }
+        else
+        {
+            <img src="~/img/no_album_image.jpg class="img-fluid" style="max-width: 100%; height: auto;" alt="No Image Available" />
+        }
+    </div>
+
+    <div class="col-md-8">
+        <div class="card-body">
+            <h5 class="card-title">@Model.Title</h5>
+            <hr />
+            <h6 class="card-subtitle mb-2 text-muted">@Model.Artist</h6>
+            <hr />
+            <h6 class="card-subtitle mb-2 text-muted">Genre: @Model.Genre</h6>
+            <hr />
+            @if (Model.ReleaseDate != null)
+            {
+                <h6 class="card-subtitle mb-2 text-muted">Release Date: @Model.ReleaseDate</h6>
+                <hr />
+            }
+            @if (!string.IsNullOrEmpty(Model.Label))
+            {
+                <h6 class="card-subtitle mb-2 text-muted">Label: @Model.Label</h6>
+                <hr />
+            }
+            <p class="card-text">@Model.Description</p>
+            <hr />
+            <p class="card-text">Price: @Model.Price lv.</p>
+            <hr />
+            <p class="card-text">In stock: @Model.Stock copies</p>
+        </div>
+        <div class="card-footer text-center">
+            <div class="d-flex justify-content-between align-items-center">
+                <a asp-controller="Album" asp-action="Edit" asp-route-id="@Model.Id" class="btn btn-primary d-flex justify-content-center align-items-center flex-fill mx-1">Edit</a>
+                <a asp-controller="Album" asp-action="Delete" asp-route-id="@Model.Id" class="btn btn-danger d-flex justify-content-center align-items-center flex-fill mx-1">Delete</a>
+            </div>
+        </div>
+    </div>
+</div>
