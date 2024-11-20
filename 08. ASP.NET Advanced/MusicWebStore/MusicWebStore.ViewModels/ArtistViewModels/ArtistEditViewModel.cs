@@ -1,4 +1,5 @@
-﻿using MusicWebStore.Data;
+﻿using Microsoft.AspNetCore.Http;
+using MusicWebStore.Data;
 using System.ComponentModel.DataAnnotations;
 using static MusicWebStore.Constants.ModelConstants;
 
@@ -6,6 +7,9 @@ namespace MusicWebStore.ViewModels;
 
 public class ArtistEditViewModel
 {
+    [Required]
+    public Guid Id { get; set; }
+
     [Required]
     [StringLength(ArtistNameMaxLength, MinimumLength = ArtistNameMinLength)]
     public string Name { get; set; } = null!;
@@ -25,6 +29,8 @@ public class ArtistEditViewModel
     public string? Website { get; set; }
 
     public string? ImageUrl { get; set; } = null!;
+
+    public IFormFile? ImageFile { get; set; } // New property for file upload
 
     [Required]
     public Guid GenreId { get; set; }

@@ -13,9 +13,9 @@
 
 @foreach (var genreGroup in Model.GroupBy(a => a.Genre).OrderBy(g => g.Key))
 {
-    <h3 class="card-title">@genreGroup.Key</h3>
+    <h3 class="text-start">@genreGroup.Key genre</h3>
     <div class="row text-center">
-        @foreach (var album in genreGroup)
+        @foreach (var album in genreGroup.OrderBy(a => a.Title))
         {
             <div class="col-md-3 mb-4">
                 <div class="card h-100" style="width: 100%;">

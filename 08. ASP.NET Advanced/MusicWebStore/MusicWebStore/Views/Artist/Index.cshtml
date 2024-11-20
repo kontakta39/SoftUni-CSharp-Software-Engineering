@@ -12,28 +12,35 @@
 <hr />
 
 <div class="row text-center">
-    @foreach (var artist in Model)
-    {
-        <div class="col-md-3 mb-4">
-            <div class="card h-100" style="width: 100%;">
-                @if (!string.IsNullOrEmpty(artist.ImageUrl))
-                {
-                    <img src="@artist.ImageUrl" class="card-img-top" style="max-height: 150px; object-fit: contain;" alt="@artist.Name">
-                }
-                else
-                {
-                    <img src="~/img/artist-no-image-available.jpg" class="card-img-top" style="max-height: 150px; object-fit: contain;" alt="No Image Available">
-                }
+    @foreach (var genreGroup in Model.GroupBy(a => a.Genre).OrderBy(g => g.Key))
+{
+    <h3 class="text-start">@genreGroup.Key genre</h3>
+    <div class="row text-center">
+        @foreach (var artist in genreGroup.OrderBy(a => a.Name))
+        {
+            <div class="col-md-3 mb-4">
+                <div class="card h-100" style="width: 100%;">
+                    @if (!string.IsNullOrEmpty(artist.ImageUrl))
+                    {
+                        <img src="~/img/@artist.ImageUrl" class="card-img-top" style="max-height: 150px; object-fit: contain;" alt="@artist.Name">
+                    }
+                    else
+                    {
+                        <img src="~/img/artist-no-image-available.jpg" class="card-img-top" style="max-height: 150px; object-fit: contain;" alt="No Image Available">
+                    }
 
-                <div class="card-body d-flex flex-column">
-                    <h5 class="card-title">@artist.Name</h5>
-                    <p class="card-text">Genre: @artist.Genre</p>
-                    <div class="d-flex justify-content-between mt-auto">
-                        <a asp-controller="Artist" asp-action="Edit" asp-route-id="@artist.Id" class="btn btn-success me-2 w-50">Edit</a>
-                        <a asp-controller="Artist" asp-action="Details" asp-route-id="@artist.Id" class="btn btn-info me-2 w-50">Details</a>
+                    <div class="card-body d-flex flex-column">
+                        <h5 class="card-title">@artist.Name</h5>
+                        <p class="card-text">Genre: @artist.Genre</p>
+                        <div class="d-flex justify-content-between mt-auto">
+                            <a asp-controller="Artist" asp-action="Edit" asp-route-id="@artist.Id" class="btn btn-success me-2 w-50">Edit</a>
+                            <a asp-controller="Artist" asp-action="Details" asp-route-id="@artist.Id" class="btn btn-info me-2 w-50">Details</a>
+                        </div>
                     </div>
                 </div>
             </div>
-        </div>
-    }
+        }
+    </div>
+    <hr />
+}
 </div>

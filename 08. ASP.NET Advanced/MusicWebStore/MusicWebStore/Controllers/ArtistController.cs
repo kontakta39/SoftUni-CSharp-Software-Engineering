@@ -4,7 +4,6 @@ using MusicWebStore.Constants;
 using MusicWebStore.Data;
 using MusicWebStore.Data.Models;
 using MusicWebStore.ViewModels;
-using System.Text.RegularExpressions;
 
 namespace MusicWebStore.Controllers;
 
@@ -53,19 +52,6 @@ public class ArtistController : Controller
         addArtist.Genres = allGenres;
         addArtist.NationalityOptions = CountriesConstants.CountriesList();
 
-        List<Artist> allArtists = await _context.Artists.ToListAsync();
-
-        /*foreach (var artistCheck in allArtists)
-        {
-            string formattedName = Regex.Replace(artistCheck.Name, @"\W+", "").ToLower();
-            string formatedNameToBeChecked = Regex.Replace(addArtist.Name, @"\W+", "").ToLower();
-
-            if (formattedName == formatedNameToBeChecked) 
-            {
-                return RedirectToAction(nameof(Edit));
-            }
-        }*/
-
         if (!ModelState.IsValid)
         {
             return View(addArtist);
@@ -78,12 +64,37 @@ public class ArtistController : Controller
             Biography = addArtist.Biography,
             Nationality = addArtist.Nationality,
             BirthDate = string.IsNullOrEmpty(addArtist.BirthDate)
-                        ? null
-                        : DateOnly.ParseExact(addArtist.BirthDate, "yyyy-MM-dd", null),
+                       ? null
+                       : DateOnly.ParseExact(addArtist.BirthDate, "yyyy-MM-dd", null),
             Website = addArtist.Website,
-            ImageUrl = addArtist.ImageUrl,
             GenreId = addArtist.GenreId
         };
+
+        // Handle image upload
+        if (addArtist.ImageFile != null)
+        {
+            // Validate the uploaded image
+            string[] allowedContentTypes = new[] { "image/jpg", "image/jpeg", "image/png", "image/gif", "image/webp" };
+            string[] allowedExtensions = new[] { ".jpg", ".jpeg", ".png", ".gif", ".webp" };
+
+            if (!allowedContentTypes.Contains(addArtist.ImageFile.ContentType) ||
+                !allowedExtensions.Contains(Path.GetExtension(addArtist.ImageFile.FileName).ToLower()))
+            {
+                ModelState.AddModelError("ImageFile", "Please upload a valid image file (JPG, JPEG, PNG, GIF, WEBP).");
+                return View(addArtist);
+            }
+
+            // Get the original file name
+            string fileName = Path.GetFileName(addArtist.ImageFile.FileName); // Extract only the file name
+            string savePath = Path.Combine(Directory.GetCurrentDirectory(), "wwwroot", "img", fileName);
+
+            using (FileStream? stream = new FileStream(savePath, FileMode.Create))
+            {
+                await addArtist.ImageFile.CopyToAsync(stream);
+            }
+
+            artist.ImageUrl = fileName; // Save the original file name for future retrieval
+        }
 
         await _context.Artists.AddAsync(artist);
         await _context.SaveChangesAsync();
@@ -94,28 +105,30 @@ public class ArtistController : Controller
     [HttpGet]
     public async Task<IActionResult> Details(Guid id)
     {
-        Artist? artistCheck = _context.Artists
+        Artist? artistCheck = await _context.Artists
             .Where(a => a.IsDeleted == false)
-            .FirstOrDefault(a => a.Id == id);
+            .FirstOrDefaultAsync(a => a.Id == id);
 
         if (artistCheck == null)
         {
             return RedirectToAction(nameof(Index));
         }
 
-        ArtistDetailsViewModel? artist = await _context.Artists
-            .Select(a => new ArtistDetailsViewModel()
-            {
-                Id = a.Id,
-                Name = a.Name,
-                Biography = a.Biography,
-                Nationality = a.Nationality,
-                BirthDate = a.BirthDate,
-                Website = a.Website,
-                ImageUrl = a.ImageUrl,
-                Genre = a.Genre.Name
-            })
+        Genre? currentGenre = await _context.Genres
+            .Where(g => g.Id == artistCheck.GenreId)
             .FirstOrDefaultAsync();
+
+        ArtistDetailsViewModel? artist = new ArtistDetailsViewModel()
+        {
+            Id = artistCheck.Id,
+            Name = artistCheck.Name,
+            Biography = artistCheck.Biography,
+            Nationality = artistCheck.Nationality,
+            BirthDate = artistCheck.BirthDate,
+            Website = artistCheck.Website,
+            ImageUrl = artistCheck.ImageUrl,
+            Genre = currentGenre.Name
+        };
 
         return View(artist);
     }
@@ -134,6 +147,7 @@ public class ArtistController : Controller
 
         ArtistEditViewModel? editArtist = new ArtistEditViewModel
         {
+            Id = artist.Id,
             Name = artist.Name,
             Biography = artist.Biography,
             Nationality = artist.Nationality,
@@ -169,12 +183,92 @@ public class ArtistController : Controller
                     ? null
                     : DateOnly.ParseExact(editArtist.BirthDate, "yyyy-MM-dd", null);
         artist.Website = editArtist.Website;
-        artist.ImageUrl = editArtist.ImageUrl;
         artist.GenreId = editArtist.GenreId;
+
+        // Handle image upload
+        if (editArtist.ImageFile != null)
+        {
+            // Validate the uploaded image
+            string[] allowedContentTypes = new[] { "image/jpg", "image/jpeg", "image/png", "image/gif", "image/webp" };
+            string[] allowedExtensions = new[] { ".jpg", ".jpeg", ".png", ".gif", ".webp" };
+
+            if (!allowedContentTypes.Contains(editArtist.ImageFile.ContentType) ||
+                !allowedExtensions.Contains(Path.GetExtension(editArtist.ImageFile.FileName).ToLower()))
+            {
+                ModelState.AddModelError("ImageFile", "Please upload a valid image file (JPG, JPEG, PNG, GIF, WEBP).");
+                return View(editArtist);
+            }
+
+            // Delete the old image if it's not the default one
+            if (artist.ImageUrl != null)
+            {
+                string oldImagePath = Path.Combine(Directory.GetCurrentDirectory(), "wwwroot", "img", artist.ImageUrl);
+
+                if (System.IO.File.Exists(oldImagePath))
+                {
+                    System.IO.File.Delete(oldImagePath);
+                }
+            }
+
+            // Get the original file name
+            string fileName = Path.GetFileName(editArtist.ImageFile.FileName); // Extract only the file name
+            string savePath = Path.Combine(Directory.GetCurrentDirectory(), "wwwroot", "img", fileName);
+
+            using (FileStream? stream = new FileStream(savePath, FileMode.Create))
+            {
+                await editArtist.ImageFile.CopyToAsync(stream);
+            }
+
+            artist.ImageUrl = fileName; // Save the original file name for future retrieval
+        }
+        else
+        {
+            // Delete the old image if it's not the default one
+            if (artist.ImageUrl != null)
+            {
+                string oldImagePath = Path.Combine(Directory.GetCurrentDirectory(), "wwwroot", "img", artist.ImageUrl);
+
+                if (System.IO.File.Exists(oldImagePath))
+                {
+                    System.IO.File.Delete(oldImagePath);
+                }
+            }
+
+            // If no new image is uploaded and no existing image, set null
+            artist.ImageUrl = null;
+        }
 
         await _context.SaveChangesAsync();
 
         return RedirectToAction("Details", "Artist", new { id = artist.Id });
+    }
+
+    [HttpPost]
+    public async Task<IActionResult> DeleteImage(Guid id)
+    {
+        Artist? artist = await _context.Artists
+            .Where(a => a.IsDeleted == false)
+            .FirstOrDefaultAsync(a => a.Id == id);
+
+        if (artist == null)
+        {
+            return RedirectToAction(nameof(Index)); // Optionally redirect to another page
+        }
+
+        if (!string.IsNullOrEmpty(artist.ImageUrl))
+        {
+            string oldImagePath = Path.Combine(Directory.GetCurrentDirectory(), "wwwroot", "img", artist.ImageUrl);
+
+            if (System.IO.File.Exists(oldImagePath))
+            {
+                System.IO.File.Delete(oldImagePath);
+            }
+
+            artist.ImageUrl = null;
+            await _context.SaveChangesAsync();
+        }
+
+        return Ok(); // This returns a success response to the client
     }
 
     [HttpGet]

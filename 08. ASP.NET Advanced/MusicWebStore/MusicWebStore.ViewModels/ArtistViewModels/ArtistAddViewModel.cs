@@ -1,4 +1,5 @@
-﻿using MusicWebStore.Data;
+﻿using Microsoft.AspNetCore.Http;
+using MusicWebStore.Data;
 using System.ComponentModel.DataAnnotations;
 using static MusicWebStore.Constants.ModelConstants;
 
@@ -27,7 +28,7 @@ public class ArtistAddViewModel
     [StringLength(ArtistWebsiteMaxLength, MinimumLength = ArtistWebsiteMinLength)]
     public string? Website { get; set; }
 
-    public string? ImageUrl { get; set; } = null!;
+    public IFormFile? ImageFile { get; set; }
 
     [Required]
     public Guid GenreId { get; set; }
