@@ -1,6 +1,5 @@
 ﻿using Microsoft.AspNetCore.Mvc;
 using Microsoft.EntityFrameworkCore;
-using MusicWebStore.Constants;
 using MusicWebStore.Data;
 using MusicWebStore.Data.Models;
 using MusicWebStore.ViewModels;
@@ -74,12 +73,37 @@ public class AlbumController : Controller
                         ? null
                         : DateOnly.ParseExact(addAlbum.ReleaseDate, "yyyy-MM-dd", null),
             Description = addAlbum.Description,
-            ImageUrl = addAlbum.ImageUrl,
             Price = addAlbum.Price,
             Stock = addAlbum.Stock,
             ArtistId = addAlbum.ArtistId,
             GenreId = addAlbum.GenreId,
         };
+
+        // Handle image upload
+        if (addAlbum.ImageFile != null)
+        {
+            // Validate the uploaded image
+            string[] allowedContentTypes = new[] { "image/jpg", "image/jpeg", "image/png", "image/gif", "image/webp" };
+            string[] allowedExtensions = new[] { ".jpg", ".jpeg", ".png", ".gif", ".webp" };
+
+            if (!allowedContentTypes.Contains(addAlbum.ImageFile.ContentType) ||
+                !allowedExtensions.Contains(Path.GetExtension(addAlbum.ImageFile.FileName).ToLower()))
+            {
+                ModelState.AddModelError("ImageFile", "Please upload a valid image file (JPG, JPEG, PNG, GIF, WEBP).");
+                return View(addAlbum);
+            }
+
+            // Get the original file name
+            string fileName = Path.GetFileName(addAlbum.ImageFile.FileName); // Extract only the file name
+            string savePath = Path.Combine(Directory.GetCurrentDirectory(), "wwwroot", "img", "Albums Covers", fileName);
+
+            using (FileStream? stream = new FileStream(savePath, FileMode.Create))
+            {
+                await addAlbum.ImageFile.CopyToAsync(stream);
+            }
+
+            album.ImageUrl = fileName; // Save the original file name for future retrieval
+        }
 
         await _context.Albums.AddAsync(album);
         await _context.SaveChangesAsync();
@@ -171,15 +195,95 @@ public class AlbumController : Controller
                     ? null
                     : DateOnly.ParseExact(editAlbum.ReleaseDate, "yyyy-MM-dd", null);
         album.Description = editAlbum.Description;
-        album.ImageUrl = editAlbum.ImageUrl;
         album.Price = editAlbum.Price;
         album.Stock = editAlbum.Stock;
         album.ArtistId = editAlbum.ArtistId;
         album.GenreId = editAlbum.GenreId;
 
+        // Handle image upload
+        if (editAlbum.ImageFile != null)
+        {
+            // Validate the uploaded image
+            string[] allowedContentTypes = new[] { "image/jpg", "image/jpeg", "image/png", "image/gif", "image/webp" };
+            string[] allowedExtensions = new[] { ".jpg", ".jpeg", ".png", ".gif", ".webp" };
+
+            if (!allowedContentTypes.Contains(editAlbum.ImageFile.ContentType) ||
+                !allowedExtensions.Contains(Path.GetExtension(editAlbum.ImageFile.FileName).ToLower()))
+            {
+                ModelState.AddModelError("ImageFile", "Please upload a valid image file (JPG, JPEG, PNG, GIF, WEBP).");
+                return View(editAlbum);
+            }
+
+            // Delete the old image if it's not the default one
+            if (album.ImageUrl != null)
+            {
+                string oldImagePath = Path.Combine(Directory.GetCurrentDirectory(), "wwwroot", "img", "Albums Covers", album.ImageUrl);
+
+                if (System.IO.File.Exists(oldImagePath))
+                {
+                    System.IO.File.Delete(oldImagePath);
+                }
+            }
+
+            // Get the original file name
+            string fileName = Path.GetFileName(editAlbum.ImageFile.FileName); // Extract only the file name
+            string savePath = Path.Combine(Directory.GetCurrentDirectory(), "wwwroot", "img", "Albums Covers", fileName);
+
+            using (FileStream? stream = new FileStream(savePath, FileMode.Create))
+            {
+                await editAlbum.ImageFile.CopyToAsync(stream);
+            }
+
+            album.ImageUrl = fileName; // Save the original file name for future retrieval
+        }
+        else
+        {
+            // Delete the old image if it's not the default one
+            if (album.ImageUrl != null)
+            {
+                string oldImagePath = Path.Combine(Directory.GetCurrentDirectory(), "wwwroot", "img", "Albums Covers", album.ImageUrl);
+
+                if (System.IO.File.Exists(oldImagePath))
+                {
+                    System.IO.File.Delete(oldImagePath);
+                }
+            }
+
+            // If no new image is uploaded and no existing image, set null
+            album.ImageUrl = null;
+        }
+
         await _context.SaveChangesAsync();
 
         return RedirectToAction("Details", "Album", new { id = album.Id });
+    }
+
+    [HttpPost]
+    public async Task<IActionResult> DeleteImage(Guid id)
+    {
+        Album? album = await _context.Albums
+            .Where(a => a.IsDeleted == false)
+            .FirstOrDefaultAsync(a => a.Id == id);
+
+        if (album == null)
+        {
+            return RedirectToAction(nameof(Index)); // Optionally redirect to another page
+        }
+
+        if (!string.IsNullOrEmpty(album.ImageUrl))
+        {
+            string oldImagePath = Path.Combine(Directory.GetCurrentDirectory(), "wwwroot", "img", "Albums Covers", album.ImageUrl);
+
+            if (System.IO.File.Exists(oldImagePath))
+            {
+                System.IO.File.Delete(oldImagePath);
+            }
+
+            album.ImageUrl = null;
+            await _context.SaveChangesAsync();
+        }
+
+        return Ok(); // This returns a success response to the client
     }
 
     [HttpGet]

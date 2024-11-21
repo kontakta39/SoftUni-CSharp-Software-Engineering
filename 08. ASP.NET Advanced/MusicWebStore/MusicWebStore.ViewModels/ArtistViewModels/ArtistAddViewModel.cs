@@ -26,7 +26,7 @@ public class ArtistAddViewModel
     public string? BirthDate { get; set; } = null!;
 
     [StringLength(ArtistWebsiteMaxLength, MinimumLength = ArtistWebsiteMinLength)]
-    public string? Website { get; set; }
+    public string? Website { get; set; } = null!;
 
     public IFormFile? ImageFile { get; set; }
 

@@ -86,7 +86,7 @@ public class ArtistController : Controller
 
             // Get the original file name
             string fileName = Path.GetFileName(addArtist.ImageFile.FileName); // Extract only the file name
-            string savePath = Path.Combine(Directory.GetCurrentDirectory(), "wwwroot", "img", fileName);
+            string savePath = Path.Combine(Directory.GetCurrentDirectory(), "wwwroot", "img", "Artists Images", fileName);
 
             using (FileStream? stream = new FileStream(savePath, FileMode.Create))
             {
@@ -202,7 +202,7 @@ public class ArtistController : Controller
             // Delete the old image if it's not the default one
             if (artist.ImageUrl != null)
             {
-                string oldImagePath = Path.Combine(Directory.GetCurrentDirectory(), "wwwroot", "img", artist.ImageUrl);
+                string oldImagePath = Path.Combine(Directory.GetCurrentDirectory(), "wwwroot", "img", "Artists Images", artist.ImageUrl);
 
                 if (System.IO.File.Exists(oldImagePath))
                 {
@@ -212,7 +212,7 @@ public class ArtistController : Controller
 
             // Get the original file name
             string fileName = Path.GetFileName(editArtist.ImageFile.FileName); // Extract only the file name
-            string savePath = Path.Combine(Directory.GetCurrentDirectory(), "wwwroot", "img", fileName);
+            string savePath = Path.Combine(Directory.GetCurrentDirectory(), "wwwroot", "img", "Artists Images", fileName);
 
             using (FileStream? stream = new FileStream(savePath, FileMode.Create))
             {
@@ -226,7 +226,7 @@ public class ArtistController : Controller
             // Delete the old image if it's not the default one
             if (artist.ImageUrl != null)
             {
-                string oldImagePath = Path.Combine(Directory.GetCurrentDirectory(), "wwwroot", "img", artist.ImageUrl);
+                string oldImagePath = Path.Combine(Directory.GetCurrentDirectory(), "wwwroot", "img", "Artists Images", artist.ImageUrl);
 
                 if (System.IO.File.Exists(oldImagePath))
                 {
@@ -257,7 +257,7 @@ public class ArtistController : Controller
 
         if (!string.IsNullOrEmpty(artist.ImageUrl))
         {
-            string oldImagePath = Path.Combine(Directory.GetCurrentDirectory(), "wwwroot", "img", artist.ImageUrl);
+            string oldImagePath = Path.Combine(Directory.GetCurrentDirectory(), "wwwroot", "img", "Artists Images", artist.ImageUrl);
 
             if (System.IO.File.Exists(oldImagePath))
             {

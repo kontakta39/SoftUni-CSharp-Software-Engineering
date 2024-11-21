@@ -67,7 +67,7 @@
                 <label>Current Image</label>
                 @if (!string.IsNullOrEmpty(Model.ImageUrl))
                 {
-                    <img id="currentImage" src="@Url.Content("~/img/" + Model.ImageUrl)" alt="Current Artist Image" style="max-width: 150px; max-height: 150px; object-fit: cover;" />
+                    <img id="currentImage" src="~/img/Artists Images/@Model.ImageUrl" alt="Current Artist Image" style="max-width: 150px; max-height: 150px; object-fit: cover;" />
                     <input type="hidden" id="artistId" value="@Model.Id" />
                     <!-- Clear Button -->
                     <button type="button" class="btn btn-danger" id="clearImageBtn">Clear</button>

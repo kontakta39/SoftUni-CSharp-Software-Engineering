@@ -21,7 +21,7 @@ public class AlbumDetailsViewModel
     [Required]
     public string Description { get; set; } = null!;
 
-    public string? ImageUrl { get; set; }
+    public string? ImageUrl { get; set; } = null!;
 
     [Required]
     public decimal Price { get; set; }

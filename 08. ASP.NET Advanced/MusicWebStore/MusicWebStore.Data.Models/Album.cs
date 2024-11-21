@@ -19,13 +19,13 @@ public class Album
 
     [DataType(DataType.Date)]
     [DisplayFormat(DataFormatString = "{0:dd-MM-yyyy}")]
-    public DateOnly? ReleaseDate { get; set; }
+    public DateOnly? ReleaseDate { get; set; } = null!;
 
     [Required]
     [StringLength(AlbumDescriptionMaxLength, MinimumLength = AlbumDescriptionMinLength)]
     public string Description { get; set; } = null!;
 
-    public string? ImageUrl { get; set; }
+    public string? ImageUrl { get; set; } = null!;
 
     [Required]
     [Range(AlbumMinPrice, AlbumMaxPrice)]

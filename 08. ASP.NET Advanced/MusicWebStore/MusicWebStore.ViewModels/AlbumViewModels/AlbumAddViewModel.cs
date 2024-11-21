@@ -2,6 +2,7 @@
 using MusicWebStore.Data;
 using System.ComponentModel.DataAnnotations;
 using static MusicWebStore.Constants.ModelConstants;
+using Microsoft.AspNetCore.Http;
 
 namespace MusicWebStore.ViewModels;
 
@@ -25,7 +26,7 @@ public class AlbumAddViewModel
     [StringLength(AlbumDescriptionMaxLength, MinimumLength = AlbumDescriptionMinLength)]
     public string Description { get; set; } = null!;
 
-    public string? ImageUrl { get; set; }
+    public IFormFile? ImageFile { get; set; }
 
     [Required]
     [Range(AlbumMinPrice, AlbumMaxPrice)]

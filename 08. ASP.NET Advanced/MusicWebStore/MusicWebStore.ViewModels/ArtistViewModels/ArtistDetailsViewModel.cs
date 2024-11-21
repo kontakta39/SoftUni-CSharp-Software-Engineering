@@ -17,7 +17,7 @@ public class ArtistDetailsViewModel
 
     public DateOnly? BirthDate { get; set; }
 
-    public string? Website { get; set; }
+    public string? Website { get; set; } = null!;
 
     public string? ImageUrl { get; set; } = null!;
 

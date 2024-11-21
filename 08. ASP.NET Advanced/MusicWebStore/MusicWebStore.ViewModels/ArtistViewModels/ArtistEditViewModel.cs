@@ -26,11 +26,11 @@ public class ArtistEditViewModel
     public string? BirthDate { get; set; } = null!;
 
     [StringLength(ArtistWebsiteMaxLength, MinimumLength = ArtistWebsiteMinLength)]
-    public string? Website { get; set; }
+    public string? Website { get; set; } = null!;
 
     public string? ImageUrl { get; set; } = null!;
 
-    public IFormFile? ImageFile { get; set; } // New property for file upload
+    public IFormFile? ImageFile { get; set; }
 
     [Required]
     public Guid GenreId { get; set; }

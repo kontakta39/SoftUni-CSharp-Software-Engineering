@@ -24,9 +24,10 @@ public class Artist
     public DateOnly? BirthDate { get; set; }
 
     [StringLength(ArtistWebsiteMaxLength, MinimumLength = ArtistWebsiteMinLength)]
-    public string? Website { get; set; }
+    public string? Website { get; set; } = null!;
 
     public string? ImageUrl { get; set; } = null!;
+
     public bool IsDeleted { get; set; } = false;
 
     [Required]

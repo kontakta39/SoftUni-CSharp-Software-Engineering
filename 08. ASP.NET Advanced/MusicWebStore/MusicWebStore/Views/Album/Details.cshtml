@@ -14,11 +14,11 @@
     <div class="col-md-4 text-center">
         @if (!string.IsNullOrEmpty(Model.ImageUrl))
         {
-            <img src="@Model.ImageUrl" class="img-fluid" style="max-width: 100%; height: auto;" alt="@Model.Title" />
+            <img src="~/img/Albums Covers/@Model.ImageUrl" class="img-fluid" style="max-width: 100%; height: auto;" alt="@Model.Title" />
         }
         else
         {
-            <img src="~/img/no_album_image.jpg class="img-fluid" style="max-width: 100%; height: auto;" alt="No Image Available" />
+            <img src="~/img/album-no-cover-available.jpg" class="img-fluid" style="max-width: 100%; height: auto;" alt="No Image Available" />
         }
     </div>
 

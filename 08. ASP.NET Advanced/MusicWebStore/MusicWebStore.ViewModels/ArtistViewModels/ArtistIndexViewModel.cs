@@ -11,7 +11,7 @@ public class ArtistIndexViewModel
     [Required]
     public required string Name { get; set; } = null!;
 
-    public string? ImageUrl { get; set; }
+    public string? ImageUrl { get; set; } = null!;
 
     public string Genre { get; set; } = null!;
 }
