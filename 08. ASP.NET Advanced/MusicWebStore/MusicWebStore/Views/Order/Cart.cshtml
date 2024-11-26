@@ -1,0 +1,49 @@
+﻿@using MusicWebStore.ViewModels;
+@model ICollection<OrderCartViewModel>
+
+@{
+    ViewData["Title"] = "Cart";
+}
+
+<div class="d-flex justify-content-between align-items-center mb-3" style="margin-top: 20px;">
+    <h2>@ViewData["Title"]</h2>
+</div>
+<hr />
+
+@if (Model.Count == 0)
+{
+    <h4 class="text-start">Your shopping cart is empty.</h4>
+}
+
+else
+{
+    @foreach (var order in Model)
+    {
+        <div class="row align-items-center mb-4 py-3" style="border-bottom: 1px solid #ccc;">
+            <div class="col-md-2 text-center">
+                @if (!string.IsNullOrEmpty(order.ImageUrl))
+                {
+                    <img src="~/img/Albums Covers/@order.ImageUrl" class="img-fluid" style="max-height: 100px; object-fit: contain;" alt="@order.AlbumTitle" />
+                }
+                else
+                {
+                    <img src="~/img/album-no-cover-available.jpg" class="img-fluid" style="max-height: 100px; object-fit: contain;" alt="No Image Available" />
+                }
+            </div>
+            <div class="col-md-2 text-start">
+                <h5 class="mb-0">@order.AlbumTitle</h5>
+            </div>
+            <div class="col-md-2 text-start">
+                <input asp-for="@order.Quantity" class="form-control" aria-required="true" type="number" value="1" step="1" min="1" />
+            </div>
+            <div class="col-md-2 text-start">
+                <h5 class="mb-0">@order.UnitPrice.ToString() лв.</h5>
+            </div>
+            <div class="col-md-2 text-end">
+                <form asp-controller="Order" asp-action="RemoveFromCart" asp-route-id="@order.Id" method="post" style="display:inline;">
+                    <button type="submit" class="btn btn-danger">Remove from Cart</button>
+                </form>
+            </div>
+        </div>
+    }
+}

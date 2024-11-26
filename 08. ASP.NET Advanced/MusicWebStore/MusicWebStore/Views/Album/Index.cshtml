@@ -33,8 +33,11 @@
                         <h6 class="card-title">@album.Artist</h6>
                         <p class="card-text">@album.Price lv.</p>
                         <div class="d-flex justify-content-between mt-auto">
-                            <a asp-controller="Album" asp-action="Edit" asp-route-id="@album.Id" class="btn btn-success me-2 w-50">Edit</a>
                             <a asp-controller="Album" asp-action="Details" asp-route-id="@album.Id" class="btn btn-info me-2 w-50">Details</a>
+                            <form asp-controller="Order" asp-action="AddToCart" method="post" class="w-50">
+                                <input type="hidden" name="id" value="@album.Id" />
+                                <button type="submit" class="btn btn-success w-100">Buy</button>
+                            </form>
                         </div>
                     </div>
                 </div>

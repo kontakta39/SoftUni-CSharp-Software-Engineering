@@ -11,6 +11,11 @@ public class Order
     public Guid Id { get; set; } = Guid.NewGuid();
 
     [Required]
+    public string AlbumTitle { get; set; } = null!;
+
+    public string ImageUrl { get; set; } = null!;
+
+    [Required]
     [DisplayFormat(DataFormatString = "{0:dd-MM-yyyy}")]
     public DateOnly OrderDate { get; set; } = DateOnly.FromDateTime(DateTime.UtcNow);
 
@@ -22,10 +27,10 @@ public class Order
     public decimal UnitPrice { get; set; }
 
     [Required]
-    public string UserId { get; set; } = null!;
+    public string BuyerId { get; set; } = null!;
 
-    [ForeignKey(nameof(UserId))]
-    public IdentityUser User { get; set; } = null!;
+    [ForeignKey(nameof(BuyerId))]
+    public IdentityUser Buyer { get; set; } = null!;
 
-    public virtual ICollection<OrderAlbum> OrderAlbums { get; set; } = new HashSet<OrderAlbum>();
+    public virtual ICollection<BuyerAlbum> BuyerAlbums { get; set; } = new HashSet<BuyerAlbum>();
 }

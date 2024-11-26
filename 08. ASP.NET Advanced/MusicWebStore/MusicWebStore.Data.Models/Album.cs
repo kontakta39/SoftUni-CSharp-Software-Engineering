@@ -49,6 +49,6 @@ public class Album
 
     public bool IsDeleted { get; set; } = false;
 
-    public virtual ICollection<OrderAlbum> OrderAlbums { get; set; } = new HashSet<OrderAlbum>();
+    public virtual ICollection<BuyerAlbum> BuyersAlbums { get; set; } = new HashSet<BuyerAlbum>();
     public virtual ICollection<Review> Reviews { get; set; } = new HashSet<Review>();
 }
