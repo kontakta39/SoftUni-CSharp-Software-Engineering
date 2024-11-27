@@ -34,16 +34,26 @@ else
                 <h5 class="mb-0">@order.AlbumTitle</h5>
             </div>
             <div class="col-md-2 text-start">
-                <input asp-for="@order.Quantity" class="form-control" aria-required="true" type="number" value="1" step="1" min="1" />
+                <input class="quantity-input form-control"
+                       type="number"
+                       value="@order.Quantity"
+                       step="1"
+                       min="1"
+                       />
+                <input type="hidden" class="order-id" value="@order.Id" />
+                <input type="hidden" class="album-id" value="@order.AlbumId" />
             </div>
             <div class="col-md-2 text-start">
-                <h5 class="mb-0">@order.UnitPrice.ToString() лв.</h5>
+                <h5 class="mb-0 total-price">@($"{order.UnitPrice:F2} лв.")</h5>
             </div>
             <div class="col-md-2 text-end">
                 <form asp-controller="Order" asp-action="RemoveFromCart" asp-route-id="@order.Id" method="post" style="display:inline;">
-                    <button type="submit" class="btn btn-danger">Remove from Cart</button>
+                    <button type="submit" class="btn btn-danger">Remove from cart</button>
                 </form>
             </div>
         </div>
     }
 }
+
+<!-- Link to external JavaScript file -->
+<script src="~/js/updateQuantity.js"></script>

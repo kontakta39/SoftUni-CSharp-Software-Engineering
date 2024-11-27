@@ -31,6 +31,8 @@ public class Order
 
     [ForeignKey(nameof(BuyerId))]
     public IdentityUser Buyer { get; set; } = null!;
+	
+	public bool IsCompleted { get; set; } = false;
 
     public virtual ICollection<BuyerAlbum> BuyerAlbums { get; set; } = new HashSet<BuyerAlbum>();
 }
