@@ -6,7 +6,7 @@ public static class ModelConstants
     public const int ArtistNameMaxLength = 60;
 
     public const int ArtistBiographyMinLength = 10;
-    public const int ArtistBiographyMaxLength = 500;
+    public const int ArtistBiographyMaxLength = 1000;
 
     public const int ArtistNationalityMinLength = 5;
     public const int ArtistNationalityMaxLength = 30;
@@ -24,7 +24,7 @@ public static class ModelConstants
     public const int AlbumLabelMaxLength = 50;
 
     public const int AlbumDescriptionMinLength = 10;
-    public const int AlbumDescriptionMaxLength = 300;
+    public const int AlbumDescriptionMaxLength = 1000;
 
     public const double AlbumMinPrice = 1.00;
     public const double AlbumMaxPrice = 3000.00;
@@ -38,6 +38,8 @@ public static class ModelConstants
     public const int RatingMinLength = 1;
     public const int RatingMaxLength = 10;
 
-    public const int OrderQuantityMinLength = 1;
-    public const int OrderQuantityMaxLength = 50;
+    public const int OrderTotalQuantityMinLength = 1;
+    public const int OrderTotalQuantityMaxLength = 50;
+
+    public const int OrderAlbumQuantityMinValue = 1;
 }

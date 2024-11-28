@@ -1,46 +1,59 @@
 document.getElementById('clearImageBtn')?.addEventListener('click', function () {
-    const artistIdElement = document.getElementById('artistId');
     const albumIdElement = document.getElementById('albumId');
-
-    const artistId = artistIdElement ? artistIdElement.value : null;
-    const albumId = albumIdElement ? albumIdElement.value : null;
-
-    // Get the current image element
+    const artistIdElement = document.getElementById('artistId');
     const currentImage = document.getElementById('currentImage');
+    const fileNameField = document.getElementById('fileName'); // Текстовото поле за името на файла
 
-    // Define default image URLs for artist and album
-    const defaultArtistImageUrl = "/img/artist-no-image-available.jpg";
+    const albumId = albumIdElement ? albumIdElement.value : null;
+    const artistId = artistIdElement ? artistIdElement.value : null;
+
+    // Дефиниране на стойности по подразбиране
     const defaultAlbumCoverUrl = "/img/album-no-cover-available.jpg";
+    const defaultArtistImageUrl = "/img/artist-no-image-available.jpg";
 
-    if (artistId) {
-        // Send a request to delete the artist's image
-        fetch(`/Artist/DeleteImage/${artistId}`, {
-            method: 'POST',
-            headers: { 'Content-Type': 'application/json' }
-        })
-            .then(response => handleResponse(response, 'Artist', defaultArtistImageUrl));
-    } else if (albumId) {
-        // Send a request to delete the album's image
+    if (albumId) {
+        // Заявка за изтриване на изображение за албум
         fetch(`/Album/DeleteImage/${albumId}`, {
             method: 'POST',
             headers: { 'Content-Type': 'application/json' }
         })
-            .then(response => handleResponse(response, 'Album', defaultAlbumCoverUrl));
+            .then(response => {
+                if (response.ok) {
+                    // Успешно изтриване
+                    currentImage.src = defaultAlbumCoverUrl; // Нулиране на изображението
+                    fileNameField.value = "No file chosen"; // Нулиране на името на файла
+                    document.getElementById('clearImageBtn').style.display = 'none'; // Скриване на бутона
+                    console.log("Album image deleted successfully.");
+                } else {
+                    alert("Failed to delete the album image.");
+                }
+            })
+            .catch(error => {
+                console.error("Error deleting album image:", error);
+                alert("An error occurred while trying to delete the album image.");
+            });
+    } else if (artistId) {
+        // Заявка за изтриване на изображение за артист
+        fetch(`/Artist/DeleteImage/${artistId}`, {
+            method: 'POST',
+            headers: { 'Content-Type': 'application/json' }
+        })
+            .then(response => {
+                if (response.ok) {
+                    // Успешно изтриване
+                    currentImage.src = defaultArtistImageUrl; // Нулиране на изображението
+                    fileNameField.value = "No file chosen"; // Нулиране на името на файла
+                    document.getElementById('clearImageBtn').style.display = 'none'; // Скриване на бутона
+                    console.log("Artist image deleted successfully.");
+                } else {
+                    alert("Failed to delete the artist image.");
+                }
+            })
+            .catch(error => {
+                console.error("Error deleting artist image:", error);
+                alert("An error occurred while trying to delete the artist image.");
+            });
     } else {
-        // Handle the case where neither artistId nor albumId is available
-        alert('Error: No ID found.');
-    }
-
-    function handleResponse(response, type, defaultImageUrl) {
-        if (response.ok) {
-            // Update the image source to the default image URL
-            currentImage.src = defaultImageUrl;
-            // Hide the "Clear" button after the image is cleared
-            document.getElementById('clearImageBtn').style.display = 'none';
-            console.log(`${type} image deleted successfully.`);
-        } else {
-            // Show an error message if the deletion fails
-            alert(`Failed to delete the ${type.toLowerCase()} image.`);
-        }
+        alert("Error: No album or artist ID found.");
     }
 });

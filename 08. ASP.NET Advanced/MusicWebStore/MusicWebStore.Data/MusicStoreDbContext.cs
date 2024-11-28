@@ -15,7 +15,7 @@ public class MusicStoreDbContext : IdentityDbContext
     public virtual DbSet<Genre> Genres { get; set; }
     public virtual DbSet<Album> Albums { get; set; }
     public virtual DbSet<Order> Orders { get; set; }
-    public virtual DbSet<BuyerAlbum> BuyersAlbums { get; set; }
+    public virtual DbSet<OrderAlbum> OrdersAlbums { get; set; }
     public virtual DbSet<Review> Reviews { get; set; }
 
     protected override void OnModelCreating(ModelBuilder modelBuilder)

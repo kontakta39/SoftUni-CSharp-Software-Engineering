@@ -11,8 +11,14 @@
 </div>
 <hr />
 
-@foreach (var genreGroup in Model.GroupBy(a => a.Genre).OrderBy(g => g.Key))
+@{
+    // Group by Genre and convert to List<IGrouping<string, ArtistIndexViewModel>>
+    List<IGrouping<string, AlbumIndexViewModel>> genreGroups = Model.GroupBy(a => a.Genre).OrderBy(g => g.Key).ToList();
+}
+
+@for (int i = 0; i < genreGroups.Count; i++)
 {
+    var genreGroup = genreGroups[i];
     <h3 class="text-start">@genreGroup.Key genre</h3>
     <div class="row text-center">
         @foreach (var album in genreGroup.OrderBy(a => a.Title))
@@ -44,4 +50,8 @@
             </div>
         }
     </div>
+    if (i < genreGroups.Count - 1)
+    {
+        <hr />
+    }
 }

@@ -112,6 +112,17 @@ public class AlbumController : Controller
     }
 
     [HttpGet]
+    public async Task<IActionResult> GetArtistsByGenre(Guid genreId)
+    {
+        var artists = await _context.Artists
+            .Where(a => a.GenreId == genreId && !a.IsDeleted)
+            .Select(a => new { a.Id, a.Name })
+            .ToListAsync();
+
+        return Json(artists);
+    }
+
+    [HttpGet]
     public async Task<IActionResult> Details(Guid id)
     {
         Album? albumCheck = _context.Albums
@@ -124,6 +135,7 @@ public class AlbumController : Controller
         }
 
         AlbumDetailsViewModel? album = await _context.Albums
+            .Where(a => a.Id == id && a.IsDeleted == false)
             .Select(a => new AlbumDetailsViewModel()
             {
                 Id = a.Id,
@@ -204,8 +216,8 @@ public class AlbumController : Controller
         if (editAlbum.ImageFile != null)
         {
             // Validate the uploaded image
-            string[] allowedContentTypes = new[] { "image/jpg", "image/jpeg", "image/png", "image/gif", "image/webp" };
-            string[] allowedExtensions = new[] { ".jpg", ".jpeg", ".png", ".gif", ".webp" };
+            string[] allowedContentTypes = { "image/jpg", "image/jpeg", "image/png", "image/gif", "image/webp" };
+            string[] allowedExtensions = { ".jpg", ".jpeg", ".png", ".gif", ".webp" };
 
             if (!allowedContentTypes.Contains(editAlbum.ImageFile.ContentType) ||
                 !allowedExtensions.Contains(Path.GetExtension(editAlbum.ImageFile.FileName).ToLower()))
@@ -235,22 +247,6 @@ public class AlbumController : Controller
             }
 
             album.ImageUrl = fileName; // Save the original file name for future retrieval
-        }
-        else
-        {
-            // Delete the old image if it's not the default one
-            if (album.ImageUrl != null)
-            {
-                string oldImagePath = Path.Combine(Directory.GetCurrentDirectory(), "wwwroot", "img", "Albums Covers", album.ImageUrl);
-
-                if (System.IO.File.Exists(oldImagePath))
-                {
-                    System.IO.File.Delete(oldImagePath);
-                }
-            }
-
-            // If no new image is uploaded and no existing image, set null
-            album.ImageUrl = null;
         }
 
         await _context.SaveChangesAsync();

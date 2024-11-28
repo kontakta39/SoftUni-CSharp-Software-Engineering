@@ -221,22 +221,6 @@ public class ArtistController : Controller
 
             artist.ImageUrl = fileName; // Save the original file name for future retrieval
         }
-        else
-        {
-            // Delete the old image if it's not the default one
-            if (artist.ImageUrl != null)
-            {
-                string oldImagePath = Path.Combine(Directory.GetCurrentDirectory(), "wwwroot", "img", "Artists Images", artist.ImageUrl);
-
-                if (System.IO.File.Exists(oldImagePath))
-                {
-                    System.IO.File.Delete(oldImagePath);
-                }
-            }
-
-            // If no new image is uploaded and no existing image, set null
-            artist.ImageUrl = null;
-        }
 
         await _context.SaveChangesAsync();
 

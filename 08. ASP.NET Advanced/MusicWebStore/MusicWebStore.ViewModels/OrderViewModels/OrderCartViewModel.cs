@@ -1,7 +1,4 @@
-﻿using MusicWebStore.Data;
-using System.ComponentModel.DataAnnotations;
-
-namespace MusicWebStore.ViewModels;
+﻿namespace MusicWebStore.ViewModels;
 
 public class OrderCartViewModel
 {

@@ -20,22 +20,24 @@ public class OrderController : Controller
 	[HttpGet]
 	public async Task<IActionResult> Cart()
 	{
-		string getCurrentUserId = User.FindFirstValue(ClaimTypes.NameIdentifier) ?? string.Empty;
+		string buyerId = User.FindFirstValue(ClaimTypes.NameIdentifier) ?? string.Empty;
 
-		List<OrderCartViewModel>? model = await _context.Orders
-			.Where(o => o.IsCompleted == false && o.BuyerId == getCurrentUserId)
-			.Select(o => new OrderCartViewModel()
+        if (buyerId == null)
+        {
+            return RedirectToAction("Index", "Home");
+        }
+
+        List<OrderCartViewModel>? model = await _context.OrdersAlbums
+			.Where(oa => oa.Order.IsCompleted == false && oa.Order.BuyerId == buyerId)
+			.Select(oa => new OrderCartViewModel()
 			{
-				Id = o.Id,
-				AlbumId = _context.BuyersAlbums
-					.Where(ba => ba.OrderId == o.Id)
-					.Select(ba => ba.AlbumId)
-					.FirstOrDefault(), // Fetch the AlbumId related to the Order
-				ImageUrl = o.ImageUrl,
-				AlbumTitle = o.AlbumTitle,
-				Quantity = o.Quantity,
-				UnitPrice = o.UnitPrice
-			})
+				Id = oa.OrderId,
+				AlbumId = oa.AlbumId,
+				ImageUrl = oa.Album.ImageUrl!,
+				AlbumTitle = oa.Album.Title,
+				Quantity = oa.Quantity,
+				UnitPrice = oa.Price
+            })
 			.AsNoTracking()
 			.ToListAsync();
 
@@ -45,103 +47,177 @@ public class OrderController : Controller
     [HttpPost]
     public async Task<IActionResult> AddToCart(Guid id)
     {
+        int quantity = 1;
         string? buyerId = User.FindFirstValue(ClaimTypes.NameIdentifier);
 
-        Album? albumCheck = await _context.Albums
-            .Where(a => a.IsDeleted == false && a.Id == id)
-            .FirstOrDefaultAsync();
-
-        if (albumCheck == null)
+        if (buyerId == null)
         {
-            return RedirectToAction("Index", "Album");
+            return RedirectToAction("Index", "Home");
         }
 
-        Order order = new Order()
-        {
-            AlbumTitle = albumCheck.Title,
-            ImageUrl = albumCheck.ImageUrl!,
-            OrderDate = DateOnly.FromDateTime(DateTime.UtcNow),
-            Quantity = 1,
-            UnitPrice = albumCheck.Price,
-            BuyerId = buyerId!
-        };
+        Order? order = await _context.Orders
+            .Where(o => o.BuyerId == buyerId && o.IsCompleted == false)
+            .FirstOrDefaultAsync();
 
-        BuyerAlbum buyerAlbum = new BuyerAlbum()
+        if (order == null)
         {
-            BuyerId = buyerId ?? string.Empty,
-            AlbumId = id,
-            OrderId = order.Id
-        };
+            order = new Order()
+            {
+                BuyerId = buyerId,
+                OrderDate = DateOnly.FromDateTime(DateTime.UtcNow),
+                TotalQuantity = 0,
+                TotalPrice = 0
+            };
 
-        await _context.Orders.AddAsync(order);
-        await _context.BuyersAlbums.AddAsync(buyerAlbum!);
+            _context.Orders.Add(order);
+            await _context.SaveChangesAsync();
+        }
+
+        Album? album = await _context.Albums
+            .Where(a => a.Id == id && a.IsDeleted == false)
+            .FirstOrDefaultAsync();
+
+        if (album == null)
+        {
+            return RedirectToAction(nameof(Cart));
+        }
+
+        OrderAlbum? existingOrderAlbum = await _context.OrdersAlbums
+            .Where(oa => oa.OrderId == order.Id && oa.AlbumId == id)
+            .FirstOrDefaultAsync();
+
+        if (existingOrderAlbum != null)
+        {
+            return RedirectToAction(nameof(Cart));
+        }
+        else
+        {
+            // Добави нов албум в поръчката.
+            order.OrdersAlbums.Add(new OrderAlbum
+            {
+                OrderId = order.Id,
+                AlbumId = id,
+                Quantity = quantity,
+                Price = quantity * album.Price
+            });
+
+            // Обнови тоталите на поръчката.
+            order.TotalQuantity += quantity;
+            order.TotalPrice += quantity * album.Price;
+
+            // Обнови наличността на албума.
+            album.Stock -= quantity;
+        }
+
         await _context.SaveChangesAsync();
-
         return RedirectToAction(nameof(Cart));
     }
 
     [HttpPost]
     public async Task<IActionResult> UpdateQuantity(Guid id, Guid albumId, int quantity)
     {
-        // Validate the incoming quantity
         if (quantity < 1)
         {
             return Json(new { success = false, error = "Quantity must be at least 1." });
         }
 
-        // Fetch the order and album from the database
-        var order = await _context.Orders
-            .FirstOrDefaultAsync(o => o.Id == id && o.BuyerAlbums.Any(ba => ba.AlbumId == albumId));
+        Order? order = await _context.Orders
+            .Include(o => o.OrdersAlbums)
+            .FirstOrDefaultAsync(o => o.Id == id);
 
         if (order == null)
         {
-            return Json(new { success = false, error = "Order not found." });
+            return RedirectToAction(nameof(Cart));
         }
 
-        var album = await _context.Albums.FirstOrDefaultAsync(a => a.Id == albumId && !a.IsDeleted);
+        OrderAlbum? orderAlbum = order.OrdersAlbums.FirstOrDefault(oa => oa.AlbumId == albumId);
 
+        if (orderAlbum == null)
+        {
+            return RedirectToAction(nameof(Cart));
+        }
+
+        Album? album = await _context.Albums.FirstOrDefaultAsync(a => a.Id == albumId && a.IsDeleted == false);
+        
         if (album == null)
         {
-            return Json(new { success = false, error = "Album not found or unavailable." });
+            return RedirectToAction(nameof(Cart));
         }
 
-        // Check stock availability
-        if (quantity > album.Stock)
+        if (quantity > album.Stock + orderAlbum.Quantity)
         {
-            return Json(new { success = false, error = $"Only {album.Stock} units of this album are available." });
+            return Json(new { success = false, error = $"Only {album.Stock + orderAlbum.Quantity} units are available." });
         }
 
-        // Update the quantity and recalculate the total price
-        order.Quantity = quantity;
-        order.UnitPrice = album.Price * quantity;
+        //Change quantity and totals.
+        int quantityChange = quantity - orderAlbum.Quantity;
+        orderAlbum.Quantity = quantity;
+        orderAlbum.Price = quantity * album.Price;
+        order.TotalQuantity += quantityChange;
+        order.TotalPrice += quantityChange * album.Price;
 
-        // Save changes to the database
+        //Update the available albums.
+        album.Stock -= quantityChange;
+
+        if (album.Stock < 1)
+        { 
+           album.IsDeleted = true;
+        }
+
         await _context.SaveChangesAsync();
-
         return Json(new
         {
             success = true,
-            updatedPrice = order.UnitPrice.ToString("F2"),
+            updatedPrice = orderAlbum.Price.ToString("F2"),
             remainingStock = album.Stock
         });
     }
 
     [HttpPost]
-    public async Task<IActionResult> RemoveFromCart(OrderCartViewModel order, Guid albumId)
+    public async Task<IActionResult> RemoveFromCart(Guid id, Guid albumId)
     {
         string? buyerId = User.FindFirstValue(ClaimTypes.NameIdentifier);
 
-        BuyerAlbum? buyerAlbum = await _context.BuyersAlbums
-            .Where(ba => ba.BuyerId == buyerId && ba.AlbumId == albumId &&
-            ba.OrderId == order.Id)
+        if (buyerId == null)
+        {
+            return RedirectToAction("Index", "Home");
+        }
+
+        OrderAlbum? orderAlbumToBeDeleted = await _context.OrdersAlbums
+            .Where(oa => oa.OrderId == id && oa.AlbumId == albumId)
             .FirstOrDefaultAsync();
 
-        if (buyerAlbum == null)
+        if (orderAlbumToBeDeleted == null)
         {
             return RedirectToAction("Index", "Album");
         }
 
-        _context.BuyersAlbums.Remove(buyerAlbum);
+        //Returning back the quantities to the album stock
+        Album? album = await _context.Albums
+            .Where(a => a.Id == albumId && a.IsDeleted == false)
+            .FirstOrDefaultAsync();
+
+        if (album == null)
+        {
+            return RedirectToAction("Index", "Album");
+        }
+
+        //Changing the total quantity and the price of the order
+        Order? currentOrder = await _context.Orders
+            .Where(o => o.Id == id && o.BuyerId == buyerId &&
+                        o.IsCompleted == false)
+            .FirstOrDefaultAsync();
+
+        currentOrder.TotalQuantity -= orderAlbumToBeDeleted.Quantity;
+        currentOrder.TotalPrice -= orderAlbumToBeDeleted.Price;
+        album.Stock += orderAlbumToBeDeleted.Quantity;
+
+        if (album.Stock >= 1)
+        {
+            album.IsDeleted = false;
+        }
+
+        _context.OrdersAlbums.Remove(orderAlbumToBeDeleted);
         await _context.SaveChangesAsync();
 
         return RedirectToAction(nameof(Cart));
