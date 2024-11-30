@@ -35,22 +35,37 @@ document.addEventListener('DOMContentLoaded', function () {
                 method: 'POST',
                 body: formData // No need for 'Content-Type' header
             })
-            .then(response => response.json())
-            .then(data => {
-                if (data.success) {
-                    const totalPrice = data.updatedPrice;
-                    parentRow.querySelector('.total-price').textContent = `${totalPrice} лв.`;
-                    previousValue = quantity; // Update the stored value to the new value
-                } else {
-                    alert(data.error || 'Could not update quantity.');
-                    this.value = previousValue; // Reset to previous value if the update fails
-                }
-            })
-            .catch(error => {
-                console.error('Error:', error);
-                alert(`There are only ${quantity} units of the album in stock.`);
-                this.value = previousValue; // Reset to previous value in case of error
-            });
+                .then(response => response.json())
+                .then(data => {
+                    if (data.success) {
+                        const totalPrice = data.updatedPrice;
+                        parentRow.querySelector('.total-price').textContent = `${totalPrice} lv.`;
+                        updateTotalCartPrice(); // Update the total price of the cart
+                        previousValue = quantity; // Update the stored value to the new value
+                    } else {
+                        alert(data.error || 'Could not update quantity.');
+                        this.value = previousValue; // Reset to previous value if the update fails
+                    }
+                })
+                .catch(error => {
+                    console.error('Error:', error);
+                    alert(`There are only ${quantity} units of the album in stock.`);
+                    this.value = previousValue; // Reset to previous value in case of error
+                });
         });
     });
+
+    function updateTotalCartPrice() {
+        let totalCartPrice = 0;
+        const totalPrices = document.querySelectorAll('.total-price');
+        totalPrices.forEach(function (priceElement) {
+            const price = parseFloat(priceElement.textContent.replace(' lv.', '').trim());
+            totalCartPrice += price;
+        });
+
+        const totalPriceElement = document.querySelector('.total-price-cart');
+        if (totalPriceElement) {
+            totalPriceElement.textContent = `${totalCartPrice.toFixed(2)} lv.`;
+        }
+    }
 });

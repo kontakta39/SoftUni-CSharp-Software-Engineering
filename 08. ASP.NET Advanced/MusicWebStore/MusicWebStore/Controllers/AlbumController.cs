@@ -37,11 +37,16 @@ public class AlbumController : Controller
     public async Task<IActionResult> Add()
     {
         AlbumAddViewModel addAlbum = new AlbumAddViewModel();
-        addAlbum.Artists = await _context.Artists
+        addAlbum.Stock = addAlbum.Stock == 0 ? 1 : addAlbum.Stock; // Set default value for Stock if 0 or null
+        addAlbum.Price = addAlbum.Price == 0 ? 1.00m : addAlbum.Price; // Set default value for Price if 0 or null
+
+        addAlbum.Genres = await _context.Genres
+            .Where(g => _context.Artists.Any(a => a.GenreId == g.Id) && g.IsDeleted == false)
             .AsNoTracking()
             .ToListAsync();
 
-        addAlbum.Genres = await _context.Genres
+        addAlbum.Artists = await _context.Artists
+            .Where(a => a.IsDeleted == false)
             .AsNoTracking()
             .ToListAsync();
 
@@ -51,27 +56,68 @@ public class AlbumController : Controller
     [HttpPost]
     public async Task<IActionResult> Add(AlbumAddViewModel addAlbum)
     {
-        addAlbum.Artists = await _context.Artists
+        List<Genre> allGenres = await _context.Genres
+            .Where(g => _context.Artists.Any(a => a.GenreId == g.Id) && g.IsDeleted == false)
             .AsNoTracking()
             .ToListAsync();
 
-        addAlbum.Genres = await _context.Genres
+        List<Artist> allArtists = await _context.Artists
+            .Where(a => a.IsDeleted == false)
             .AsNoTracking()
             .ToListAsync();
 
         if (!ModelState.IsValid)
         {
+            addAlbum.Genres = allGenres;
+            addAlbum.Artists = allArtists;
+
+            // Handle image upload (only store the filename in TempData if ModelState is not valid)
+            if (addAlbum.ImageFile != null)
+            {
+                // Validate the uploaded image
+                string[] allowedContentTypes = { "image/jpg", "image/jpeg", "image/png", "image/gif", "image/webp" };
+                string[] allowedExtensions = { ".jpg", ".jpeg", ".png", ".gif", ".webp" };
+
+                if (!allowedContentTypes.Contains(addAlbum.ImageFile.ContentType) ||
+                    !allowedExtensions.Contains(Path.GetExtension(addAlbum.ImageFile.FileName).ToLower()))
+                {
+                    ModelState.AddModelError("ImageFile", "Please upload a valid image file (JPG, JPEG, PNG, GIF, WEBP).");
+                }
+                else
+                {
+                    string tempFileName = Path.GetFileName(addAlbum.ImageFile.FileName);
+                    string tempSavePath = Path.Combine(Directory.GetCurrentDirectory(), "wwwroot", "img", "Temp", tempFileName);
+
+                    // Save the file temporarily
+                    Directory.CreateDirectory(Path.GetDirectoryName(tempSavePath)); // Ensure the tmp folder exists
+                    using (FileStream? stream = new FileStream(tempSavePath, FileMode.Create))
+                    {
+                        await addAlbum.ImageFile.CopyToAsync(stream);
+                    }
+
+                    addAlbum.ImageUrl = tempFileName;
+                    TempData["ImageUrl"] = tempFileName; // Store the file name temporarily
+                }
+            }
+            else if (TempData["ImageUrl"] != null)
+            { 
+                addAlbum.ImageUrl = TempData["ImageUrl"].ToString(); // Retrieve the file name from TempData
+            }
+
+            TempData.Keep("ImageUrl"); // Preserve TempData for subsequent requests
+
             return View(addAlbum);
         }
 
+        // Model is valid, proceed to create the album
         Album album = new Album()
         {
             Id = addAlbum.Id,
             Title = addAlbum.Title,
             Label = addAlbum.Label,
             ReleaseDate = string.IsNullOrEmpty(addAlbum.ReleaseDate)
-                        ? null
-                        : DateOnly.ParseExact(addAlbum.ReleaseDate, "yyyy-MM-dd", null),
+                         ? null
+                         : DateOnly.ParseExact(addAlbum.ReleaseDate, "yyyy-MM-dd", null),
             Description = addAlbum.Description,
             Price = addAlbum.Price,
             Stock = addAlbum.Stock,
@@ -79,34 +125,45 @@ public class AlbumController : Controller
             GenreId = addAlbum.GenreId,
         };
 
-        // Handle image upload
+        // Handle image upload (copy the file to server only if ModelState is valid)
         if (addAlbum.ImageFile != null)
         {
-            // Validate the uploaded image
-            string[] allowedContentTypes = new[] { "image/jpg", "image/jpeg", "image/png", "image/gif", "image/webp" };
-            string[] allowedExtensions = new[] { ".jpg", ".jpeg", ".png", ".gif", ".webp" };
-
-            if (!allowedContentTypes.Contains(addAlbum.ImageFile.ContentType) ||
-                !allowedExtensions.Contains(Path.GetExtension(addAlbum.ImageFile.FileName).ToLower()))
-            {
-                ModelState.AddModelError("ImageFile", "Please upload a valid image file (JPG, JPEG, PNG, GIF, WEBP).");
-                return View(addAlbum);
-            }
-
-            // Get the original file name
-            string fileName = Path.GetFileName(addAlbum.ImageFile.FileName); // Extract only the file name
+            string fileName = Path.GetFileName(addAlbum.ImageFile.FileName);
             string savePath = Path.Combine(Directory.GetCurrentDirectory(), "wwwroot", "img", "Albums Covers", fileName);
 
+            // Save the file in the final destination
             using (FileStream? stream = new FileStream(savePath, FileMode.Create))
             {
                 await addAlbum.ImageFile.CopyToAsync(stream);
             }
 
-            album.ImageUrl = fileName; // Save the original file name for future retrieval
+            album.ImageUrl = fileName; // Save the file name in the database
+        }
+        else if (TempData["ImageUrl"] != null)
+        {
+            string fileName = TempData["ImageUrl"].ToString();
+            string tempFilePath = Path.Combine(Directory.GetCurrentDirectory(), "wwwroot", "img", "Temp", fileName);
+            string savePath = Path.Combine(Directory.GetCurrentDirectory(), "wwwroot", "img", "Albums Covers", fileName);
+
+            if (System.IO.File.Exists(tempFilePath))
+            {
+                // Move the file from the temp folder to the final destination
+                Directory.CreateDirectory(Path.GetDirectoryName(savePath)); // Ensure the final folder exists
+                System.IO.File.Move(tempFilePath, savePath);
+                album.ImageUrl = fileName; // Save the file name in the database
+            }
+            else
+            {
+                ModelState.AddModelError("ImageFile", "The temporary file is missing. Please re-upload the image.");
+                return View(addAlbum);
+            }
         }
 
         await _context.Albums.AddAsync(album);
         await _context.SaveChangesAsync();
+
+        // Clean up TempData
+        TempData.Remove("ImageUrl");
 
         return RedirectToAction(nameof(Index));
     }
@@ -115,7 +172,7 @@ public class AlbumController : Controller
     public async Task<IActionResult> GetArtistsByGenre(Guid genreId)
     {
         var artists = await _context.Artists
-            .Where(a => a.GenreId == genreId && !a.IsDeleted)
+            .Where(a => a.GenreId == genreId && a.IsDeleted == false)
             .Select(a => new { a.Id, a.Name })
             .ToListAsync();
 
@@ -164,8 +221,14 @@ public class AlbumController : Controller
             return RedirectToAction(nameof(Index));
         }
 
-        List<Genre> allGenres = await _context.Genres.ToListAsync();
-        List<Artist> allArtists = await _context.Artists.ToListAsync();
+        List<Genre> allGenres = await _context.Genres
+            .Where(g => _context.Artists.Any(a => a.GenreId == g.Id) && g.IsDeleted == false)
+            .AsNoTracking()
+            .ToListAsync();
+
+        List<Artist> allArtists = await _context.Artists
+            .AsNoTracking()
+            .ToListAsync();
 
         AlbumEditViewModel? editAlbum = new AlbumEditViewModel()
             {
@@ -190,11 +253,76 @@ public class AlbumController : Controller
     [HttpPost]
     public async Task<IActionResult> Edit(AlbumEditViewModel editAlbum, Guid id)
     {
-        List<Genre> allGenres = await _context.Genres.ToListAsync();
-        List<Artist> allArtists = await _context.Artists.ToListAsync();
+        List<Genre> allGenres = await _context.Genres
+            .Where(g => _context.Artists.Any(a => a.GenreId == g.Id) && g.IsDeleted == false)
+            .AsNoTracking()
+            .ToListAsync();
+
+        List<Artist> allArtists = await _context.Artists
+            .AsNoTracking()
+            .ToListAsync();
+
+        TempData["CurrentImageUrl"] = await _context.Albums
+            .Where(a => a.Id == id && a.IsDeleted == false)
+            .Select(a => a.ImageUrl)
+            .FirstOrDefaultAsync();
 
         if (!ModelState.IsValid)
         {
+            editAlbum.Genres = allGenres;
+            editAlbum.Artists = allArtists;
+
+            // Handle image upload (only store the filename in TempData if ModelState is not valid)
+            if (editAlbum.ImageFile != null)
+            {
+                // Delete the old image if it's not the default one
+                Album? albumCheck = _context.Albums.FirstOrDefault(g => g.Id == id);
+
+                if (albumCheck.ImageUrl != null)
+                {
+                    string oldImagePath = Path.Combine(Directory.GetCurrentDirectory(), "wwwroot", "img", "Albums Covers", albumCheck.ImageUrl);
+
+                    if (System.IO.File.Exists(oldImagePath))
+                    {
+                        System.IO.File.Delete(oldImagePath);
+                    }
+                }
+
+                // Validate the uploaded image
+                string[] allowedContentTypes = { "image/jpg", "image/jpeg", "image/png", "image/gif", "image/webp" };
+                string[] allowedExtensions = { ".jpg", ".jpeg", ".png", ".gif", ".webp" };
+
+                if (!allowedContentTypes.Contains(editAlbum.ImageFile.ContentType) ||
+                    !allowedExtensions.Contains(Path.GetExtension(editAlbum.ImageFile.FileName).ToLower()))
+                {
+                    ModelState.AddModelError("ImageFile", "Please upload a valid image file (JPG, JPEG, PNG, GIF, WEBP).");
+                }
+                else
+                {
+                    string tempFileName = Path.GetFileName(editAlbum.ImageFile.FileName);
+                    string tempSavePath = Path.Combine(Directory.GetCurrentDirectory(), "wwwroot", "img", "Temp", tempFileName);
+
+                    // Save the file temporarily
+                    Directory.CreateDirectory(Path.GetDirectoryName(tempSavePath)); // Ensure the tmp folder exists
+                    using (FileStream? stream = new FileStream(tempSavePath, FileMode.Create))
+                    {
+                        await editAlbum.ImageFile.CopyToAsync(stream);
+                    }
+
+                    editAlbum.ImageUrl = tempFileName;
+                    TempData["NewImageUrl"] = tempFileName; // Store the file name temporarily
+                }
+            }
+            else if (TempData["NewImageUrl"] != null)
+            {
+                editAlbum.ImageUrl = TempData["NewImageUrl"].ToString(); //Retrieve the file name from TempData
+                TempData.Keep("NewImageUrl"); //Preserve TempData for subsequent requests
+            }
+            else 
+            {
+                editAlbum.ImageUrl = TempData["CurrentImageUrl"].ToString(); //Retrieve the file name from TempData
+            }
+
             return View(editAlbum);
         }
 
@@ -212,20 +340,9 @@ public class AlbumController : Controller
         album.ArtistId = editAlbum.ArtistId;
         album.GenreId = editAlbum.GenreId;
 
-        // Handle image upload
+        // Handle image upload (copy the file to server only if ModelState is valid)
         if (editAlbum.ImageFile != null)
         {
-            // Validate the uploaded image
-            string[] allowedContentTypes = { "image/jpg", "image/jpeg", "image/png", "image/gif", "image/webp" };
-            string[] allowedExtensions = { ".jpg", ".jpeg", ".png", ".gif", ".webp" };
-
-            if (!allowedContentTypes.Contains(editAlbum.ImageFile.ContentType) ||
-                !allowedExtensions.Contains(Path.GetExtension(editAlbum.ImageFile.FileName).ToLower()))
-            {
-                ModelState.AddModelError("ImageFile", "Please upload a valid image file (JPG, JPEG, PNG, GIF, WEBP).");
-                return View(editAlbum);
-            }
-
             // Delete the old image if it's not the default one
             if (album.ImageUrl != null)
             {
@@ -237,19 +354,42 @@ public class AlbumController : Controller
                 }
             }
 
-            // Get the original file name
-            string fileName = Path.GetFileName(editAlbum.ImageFile.FileName); // Extract only the file name
+            string fileName = Path.GetFileName(editAlbum.ImageFile.FileName);
             string savePath = Path.Combine(Directory.GetCurrentDirectory(), "wwwroot", "img", "Albums Covers", fileName);
 
+            // Save the file in the final destination
             using (FileStream? stream = new FileStream(savePath, FileMode.Create))
             {
                 await editAlbum.ImageFile.CopyToAsync(stream);
             }
 
-            album.ImageUrl = fileName; // Save the original file name for future retrieval
+            album.ImageUrl = fileName; // Save the file name in the database
+        }
+        else if (TempData["NewImageUrl"] != null && album.ImageUrl == null)
+        {
+            string fileName = TempData["NewImageUrl"].ToString();
+            string tempFilePath = Path.Combine(Directory.GetCurrentDirectory(), "wwwroot", "img", "Temp", fileName);
+            string savePath = Path.Combine(Directory.GetCurrentDirectory(), "wwwroot", "img", "Albums Covers", fileName);
+
+            if (System.IO.File.Exists(tempFilePath))
+            {
+                // Move the file from the temp folder to the final destination
+                Directory.CreateDirectory(Path.GetDirectoryName(savePath)); // Ensure the final folder exists
+                System.IO.File.Move(tempFilePath, savePath);
+                album.ImageUrl = fileName; // Save the file name in the database
+            }
+            else
+            {
+                ModelState.AddModelError("ImageFile", "The temporary file is missing. Please re-upload the image.");
+                return View(editAlbum);
+            }
         }
 
         await _context.SaveChangesAsync();
+
+        // Clean up TempData
+        TempData.Remove("CurrentImageUrl");
+        TempData.Remove("NewImageUrl");
 
         return RedirectToAction("Details", "Album", new { id = album.Id });
     }
@@ -263,7 +403,7 @@ public class AlbumController : Controller
 
         if (album == null)
         {
-            return RedirectToAction(nameof(Index)); // Optionally redirect to another page
+            return RedirectToAction(nameof(Index));
         }
 
         if (!string.IsNullOrEmpty(album.ImageUrl))

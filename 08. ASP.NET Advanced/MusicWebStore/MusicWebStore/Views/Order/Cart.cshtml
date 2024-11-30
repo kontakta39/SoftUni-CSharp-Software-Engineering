@@ -62,7 +62,7 @@ else
                 <button type="submit" class="btn btn-success">Complete the order</button>
             </form>
             <h4 class="mb-2 mt-3">Total Price:</h4>
-            <h4 class="mb-0">@($"{Model.Sum(m => m.UnitPrice):F2} lv.")</h4>
+            <h4 class="mb-0 total-price-cart">@($"{Model.Sum(m => m.UnitPrice):F2} lv.")</h4>
         </div>
     </div>
 }

@@ -92,7 +92,6 @@ public class OrderController : Controller
         }
         else
         {
-            // Добави нов албум в поръчката.
             order.OrdersAlbums.Add(new OrderAlbum
             {
                 OrderId = order.Id,
@@ -101,11 +100,9 @@ public class OrderController : Controller
                 Price = quantity * album.Price
             });
 
-            // Обнови тоталите на поръчката.
             order.TotalQuantity += quantity;
             order.TotalPrice += quantity * album.Price;
 
-            // Обнови наличността на албума.
             album.Stock -= quantity;
         }
 

@@ -2,6 +2,7 @@
 using System.ComponentModel.DataAnnotations;
 using System.ComponentModel.DataAnnotations.Schema;
 using static MusicWebStore.Constants.ModelConstants;
+using static System.Net.Mime.MediaTypeNames;
 
 namespace MusicWebStore.Data;
 
@@ -26,6 +27,10 @@ public class Album
     public string Description { get; set; } = null!;
 
     public string? ImageUrl { get; set; } = null!;
+    //public Guid? ImageId { get; set; }
+
+    //[ForeignKey(nameof(ImageId))]
+    //public SaveImage SaveImage { get; set; } = null!;
 
     [Required]
     [Range(AlbumMinPrice, AlbumMaxPrice)]
@@ -35,17 +40,17 @@ public class Album
     [Range(AlbumStockMinLength, AlbumStockMaxLength)]
     public int Stock { get; set; } 
 
-    [Required]
-    public Guid ArtistId { get; set; }
-
-    [ForeignKey(nameof(ArtistId))]
-    public Artist Artist { get; set; } = null!;
-
-    [Required]
-    public Guid GenreId { get; set; }
+    [Required(ErrorMessage = "Please select a genre.")]
+    public Guid? GenreId { get; set; }
 
     [ForeignKey(nameof(GenreId))]
     public Genre Genre { get; set; } = null!;
+
+    [Required(ErrorMessage = "Please select an artist.")]
+    public Guid? ArtistId { get; set; }
+
+    [ForeignKey(nameof(ArtistId))]
+    public Artist Artist { get; set; } = null!;
 
     public bool IsDeleted { get; set; } = false;
 

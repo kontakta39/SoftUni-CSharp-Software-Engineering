@@ -30,8 +30,10 @@ public class ArtistAddViewModel
 
     public IFormFile? ImageFile { get; set; }
 
-    [Required]
-    public Guid GenreId { get; set; }
+    public string? ImageUrl { get; set; } = null!;
+
+    [Required(ErrorMessage = "Please select a genre.")]
+    public Guid? GenreId { get; set; }
 
     public ICollection<Genre> Genres = new HashSet<Genre>();
 

@@ -37,7 +37,8 @@ public class ArtistController : Controller
     [HttpGet]
     public async Task<IActionResult> Add()
     {
-        List<Genre> allGenres = await _context.Genres.ToListAsync();
+        List<Genre> allGenres = await _context.Genres
+            .ToListAsync();
         ArtistAddViewModel addArtist = new ArtistAddViewModel();
         addArtist.NationalityOptions = CountriesConstants.CountriesList();
         addArtist.Genres = allGenres;
@@ -54,6 +55,36 @@ public class ArtistController : Controller
 
         if (!ModelState.IsValid)
         {
+            addArtist.Genres = allGenres;
+            addArtist.NationalityOptions = CountriesConstants.CountriesList();
+
+            if (addArtist.ImageUrl == null)
+            {
+                if (addArtist.ImageFile != null)
+                {
+                    // Validate the uploaded image
+                    string[] allowedContentTypes = new[] { "image/jpg", "image/jpeg", "image/png", "image/gif", "image/webp" };
+                    string[] allowedExtensions = new[] { ".jpg", ".jpeg", ".png", ".gif", ".webp" };
+
+                    if (!allowedContentTypes.Contains(addArtist.ImageFile.ContentType) ||
+                        !allowedExtensions.Contains(Path.GetExtension(addArtist.ImageFile.FileName).ToLower()))
+                    {
+                        ModelState.AddModelError("ImageFile", "Please upload a valid image file (JPG, JPEG, PNG, GIF, WEBP).");
+                        return View(addArtist);
+                    }
+
+                    // Get the original file name
+                    string fileName = Path.GetFileName(addArtist.ImageFile.FileName); // Extract only the file name
+                    string savePath = Path.Combine(Directory.GetCurrentDirectory(), "wwwroot", "img", "Artists Images", fileName);
+
+                    using (FileStream? stream = new FileStream(savePath, FileMode.Create))
+                    {
+                        await addArtist.ImageFile.CopyToAsync(stream);
+                    }
+
+                    addArtist.ImageUrl = fileName;
+                }
+            }
             return View(addArtist);
         }
 
@@ -70,30 +101,37 @@ public class ArtistController : Controller
             GenreId = addArtist.GenreId
         };
 
-        // Handle image upload
-        if (addArtist.ImageFile != null)
+        if (addArtist.ImageUrl != null)
         {
-            // Validate the uploaded image
-            string[] allowedContentTypes = new[] { "image/jpg", "image/jpeg", "image/png", "image/gif", "image/webp" };
-            string[] allowedExtensions = new[] { ".jpg", ".jpeg", ".png", ".gif", ".webp" };
-
-            if (!allowedContentTypes.Contains(addArtist.ImageFile.ContentType) ||
-                !allowedExtensions.Contains(Path.GetExtension(addArtist.ImageFile.FileName).ToLower()))
+            artist.ImageUrl = addArtist.ImageUrl;
+        }
+        else
+        {
+            // Handle image upload
+            if (addArtist.ImageFile != null)
             {
-                ModelState.AddModelError("ImageFile", "Please upload a valid image file (JPG, JPEG, PNG, GIF, WEBP).");
-                return View(addArtist);
+                // Validate the uploaded image
+                string[] allowedContentTypes = new[] { "image/jpg", "image/jpeg", "image/png", "image/gif", "image/webp" };
+                string[] allowedExtensions = new[] { ".jpg", ".jpeg", ".png", ".gif", ".webp" };
+
+                if (!allowedContentTypes.Contains(addArtist.ImageFile.ContentType) ||
+                    !allowedExtensions.Contains(Path.GetExtension(addArtist.ImageFile.FileName).ToLower()))
+                {
+                    ModelState.AddModelError("ImageFile", "Please upload a valid image file (JPG, JPEG, PNG, GIF, WEBP).");
+                    return View(addArtist);
+                }
+
+                // Get the original file name
+                string fileName = Path.GetFileName(addArtist.ImageFile.FileName); // Extract only the file name
+                string savePath = Path.Combine(Directory.GetCurrentDirectory(), "wwwroot", "img", "Artists Images", fileName);
+
+                using (FileStream? stream = new FileStream(savePath, FileMode.Create))
+                {
+                    await addArtist.ImageFile.CopyToAsync(stream);
+                }
+
+                artist.ImageUrl = fileName; // Save the original file name for future retrieval
             }
-
-            // Get the original file name
-            string fileName = Path.GetFileName(addArtist.ImageFile.FileName); // Extract only the file name
-            string savePath = Path.Combine(Directory.GetCurrentDirectory(), "wwwroot", "img", "Artists Images", fileName);
-
-            using (FileStream? stream = new FileStream(savePath, FileMode.Create))
-            {
-                await addArtist.ImageFile.CopyToAsync(stream);
-            }
-
-            artist.ImageUrl = fileName; // Save the original file name for future retrieval
         }
 
         await _context.Artists.AddAsync(artist);
@@ -171,6 +209,8 @@ public class ArtistController : Controller
 
         if (!ModelState.IsValid)
         {
+            editArtist.Genres = genres;
+            editArtist.NationalityOptions = CountriesConstants.CountriesList();
             return View(editArtist);
         }
 

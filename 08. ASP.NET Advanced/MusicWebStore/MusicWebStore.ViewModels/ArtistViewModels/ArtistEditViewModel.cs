@@ -28,12 +28,12 @@ public class ArtistEditViewModel
     [StringLength(ArtistWebsiteMaxLength, MinimumLength = ArtistWebsiteMinLength)]
     public string? Website { get; set; } = null!;
 
-    public string? ImageUrl { get; set; } = null!;
-
     public IFormFile? ImageFile { get; set; }
 
-    [Required]
-    public Guid GenreId { get; set; }
+    public string? ImageUrl { get; set; } = null!;
+
+    [Required(ErrorMessage = "Please select a genre.")]
+    public Guid? GenreId { get; set; }
 
     public ICollection<Genre> Genres = new HashSet<Genre>();
 

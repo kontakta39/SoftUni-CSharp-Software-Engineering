@@ -30,8 +30,8 @@ public class Artist
 
     public bool IsDeleted { get; set; } = false;
 
-    [Required]
-    public Guid GenreId { get; set; }
+    [Required(ErrorMessage = "Please select a genre.")]
+    public Guid? GenreId { get; set; }
 
     [Required]
     [ForeignKey(nameof(GenreId))]

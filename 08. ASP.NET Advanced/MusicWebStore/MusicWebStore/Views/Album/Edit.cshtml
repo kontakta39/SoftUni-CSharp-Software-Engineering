@@ -28,9 +28,16 @@
                 <div class="col-sm-6 mb-2">
                     <label asp-for="@Model.Price" class="form-label-add-edit">Price</label>
                     <div class="input-group">
-                        <input asp-for="Price" class="form-control" aria-required="true" type="number" step="1.00" min="1.00" />
+                        <input asp-for="Price" class="form-control" aria-required="true" id="price" type="number" step="1.00" min="1.00" />
                         <span class="input-group-text">lv.</span>
                     </div>
+                    <script>
+                            document.getElementById('price').addEventListener('blur', function () {
+                            if (this.value) {
+                                this.value = parseFloat(this.value).toFixed(2);
+                            }
+                        });
+                    </script>
                     <span asp-validation-for="@Model.Price" class="text-danger"></span>
                 </div>
             </div>
@@ -45,7 +52,7 @@
                 </div>
                 <div class="col-sm-6 mb-2">
                     <label asp-for="@Model.ArtistId" class="form-label-add-edit">Artist</label>
-                    <select asp-for="@Model.ArtistId" class="form-control" aria-required="true" asp-items="@(new SelectList(Model.Artists, "Id", "Name"))" id="artistDropdown">
+                    <select asp-for="@Model.ArtistId" class="form-control" aria-required="true" asp-items="@(new SelectList(Model.Artists, "Id", "Name"))" id="artistDropdown" data-selected-artist="@Model.ArtistId">
                         <option value="">Select artist</option>
                     </select>
                     <span asp-validation-for="@Model.ArtistId" class="text-danger"></span>
@@ -67,7 +74,7 @@
                 <label asp-for="@Model.ImageFile" class="form-label-add-edit">Upload Image</label>
                 <div class="input-group">
                     <!-- Text input field for displaying the selected file name -->
-                    <input type="text" class="form-control" id="fileName" placeholder="No file chosen" disabled value="@Model.ImageUrl"/>
+                    <input type="text" class="form-control" id="fileName" placeholder="No file chosen" value="@Model.ImageUrl" disabled />
 
                     <!-- Hidden file input element -->
                     <input type="file" asp-for="@Model.ImageFile" class="d-none" id="imageFileInput" onchange="document.getElementById('fileName').value = this.files[0].name" />
@@ -77,20 +84,12 @@
                 </div>
             </div>
 
-            <div class="mb-2">
+@*             <div class="mb-2" id="imageDiv" style="@(string.IsNullOrEmpty(Model.ImageUrl) ? "display:none;" : "")">
                 <label>Current Image</label>
-                @if (!string.IsNullOrEmpty(Model.ImageUrl))
-                {
-                    <img id="currentImage" src="~/img/Albums Covers/@Model.ImageUrl" alt="Current Album Image" style="max-width: 150px; max-height: 150px; object-fit: cover;" />
-                    <input type="hidden" id="albumId" value="@Model.Id" />
-                    <!-- Clear Button -->
-                    <button type="button" class="btn btn-danger" id="clearImageBtn">Clear</button>
-                }
-                else
-                {
-                    <img id="currentImage" src="~/img/album-no-cover-available.jpg" alt="Current Artist Image" style="max-width: 150px; max-height: 150px; object-fit: cover;" />
-                }
-            </div>
+                <img id="currentImage" src="~/img/Albums Covers/@Model.ImageUrl" alt="Current Album Image" style="max-width: 150px; max-height: 150px; object-fit: cover;" />
+                <input type="hidden" id="albumId" value="@Model.Id" />
+                <button type="button" class="btn btn-danger" id="clearImageBtn">Clear</button>
+            </div> *@
 
             <div class="mb-2">
                 <label asp-for="@Model.Description" class="form-label-add-edit">Description</label>
@@ -106,5 +105,5 @@
 </div>
 
 <!-- Link to external JavaScript file -->
-<script src="~/js/clearImage.js"></script>
+@* <script src="~/js/clearImage.js"></script> *@
 <script src="~/js/genreArtistFilter.js"></script>

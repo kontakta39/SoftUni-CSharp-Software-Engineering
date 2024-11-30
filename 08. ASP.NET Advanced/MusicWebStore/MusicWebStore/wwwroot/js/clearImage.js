@@ -1,59 +1,57 @@
-document.getElementById('clearImageBtn')?.addEventListener('click', function () {
-    const albumIdElement = document.getElementById('albumId');
-    const artistIdElement = document.getElementById('artistId');
+document.addEventListener('DOMContentLoaded', function () {
+    const clearButton = document.getElementById('clearImageBtn');
+    const uploadImageSection = document.getElementById('uploadImageSection');
     const currentImage = document.getElementById('currentImage');
-    const fileNameField = document.getElementById('fileName'); // Текстовото поле за името на файла
+    const fileNameField = document.getElementById('fileName');
+    const currentImageDiv = clearButton ? clearButton.closest('div.mb-2') : null;
+    const albumIdElement = document.getElementById('albumId');
 
-    const albumId = albumIdElement ? albumIdElement.value : null;
-    const artistId = artistIdElement ? artistIdElement.value : null;
+    if (clearButton) {
+        clearButton.addEventListener('click', function () {
+            clearImage(albumIdElement, currentImage, fileNameField, currentImageDiv, uploadImageSection);
+        });
+    }
 
-    // Дефиниране на стойности по подразбиране
-    const defaultAlbumCoverUrl = "/img/album-no-cover-available.jpg";
-    const defaultArtistImageUrl = "/img/artist-no-image-available.jpg";
+    function clearImage(albumIdElement, currentImage, fileNameField, currentImageDiv, uploadImageSection) {
+        const albumId = albumIdElement ? albumIdElement.value : null;
+        const defaultAlbumCoverUrl = "/img/album-no-cover-available.jpg";
 
-    if (albumId) {
-        // Заявка за изтриване на изображение за албум
-        fetch(`/Album/DeleteImage/${albumId}`, {
-            method: 'POST',
-            headers: { 'Content-Type': 'application/json' }
-        })
-            .then(response => {
-                if (response.ok) {
-                    // Успешно изтриване
-                    currentImage.src = defaultAlbumCoverUrl; // Нулиране на изображението
-                    fileNameField.value = "No file chosen"; // Нулиране на името на файла
-                    document.getElementById('clearImageBtn').style.display = 'none'; // Скриване на бутона
-                    console.log("Album image deleted successfully.");
-                } else {
-                    alert("Failed to delete the album image.");
-                }
+        if (albumId) {
+            // Send request to delete the album image
+            fetch(`/Album/DeleteImage/${albumId}`, {
+                method: 'POST',
+                headers: { 'Content-Type': 'application/json' }
             })
-            .catch(error => {
-                console.error("Error deleting album image:", error);
-                alert("An error occurred while trying to delete the album image.");
-            });
-    } else if (artistId) {
-        // Заявка за изтриване на изображение за артист
-        fetch(`/Artist/DeleteImage/${artistId}`, {
-            method: 'POST',
-            headers: { 'Content-Type': 'application/json' }
-        })
-            .then(response => {
-                if (response.ok) {
-                    // Успешно изтриване
-                    currentImage.src = defaultArtistImageUrl; // Нулиране на изображението
-                    fileNameField.value = "No file chosen"; // Нулиране на името на файла
-                    document.getElementById('clearImageBtn').style.display = 'none'; // Скриване на бутона
-                    console.log("Artist image deleted successfully.");
-                } else {
-                    alert("Failed to delete the artist image.");
-                }
-            })
-            .catch(error => {
-                console.error("Error deleting artist image:", error);
-                alert("An error occurred while trying to delete the artist image.");
-            });
-    } else {
-        alert("Error: No album or artist ID found.");
+                .then(response => {
+                    if (response.ok) {
+                        // Successfully deleted the image
+                        updateUIForImageClear(currentImage, fileNameField, currentImageDiv, uploadImageSection, defaultAlbumCoverUrl);
+                    } else {
+                        alert("Failed to delete the album image.");
+                    }
+                })
+                .catch(error => {
+                    console.error("Error deleting album image:", error);
+                    alert("An error occurred while trying to delete the album image.");
+                });
+        } else {
+            alert("Error: No album ID found.");
+        }
+    }
+
+    function updateUIForImageClear(currentImage, fileNameField, currentImageDiv, uploadImageSection, defaultAlbumCoverUrl) {
+        // Update image to default cover
+        currentImage.src = defaultAlbumCoverUrl;
+
+        // Reset file name field
+        fileNameField.value = "No file chosen";
+
+        // Hide the image and clear button section
+        if (currentImageDiv) {
+            currentImageDiv.style.display = 'none';
+        }
+
+        // Show the upload image section again
+        uploadImageSection.style.display = 'block';
     }
 });
