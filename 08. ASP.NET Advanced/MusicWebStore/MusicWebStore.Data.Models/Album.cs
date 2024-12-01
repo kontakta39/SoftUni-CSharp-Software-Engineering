@@ -27,10 +27,6 @@ public class Album
     public string Description { get; set; } = null!;
 
     public string? ImageUrl { get; set; } = null!;
-    //public Guid? ImageId { get; set; }
-
-    //[ForeignKey(nameof(ImageId))]
-    //public SaveImage SaveImage { get; set; } = null!;
 
     [Required]
     [Range(AlbumMinPrice, AlbumMaxPrice)]

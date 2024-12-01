@@ -58,7 +58,7 @@ else
 
     <div class="row mb-4 py-3">
         <div class="col-md-10 d-flex flex-column align-items-end">
-            <form asp-controller="Order" asp-action="CompletedOrder" asp-route-id="@Model.FirstOrDefault()?.Id" method="post">
+            <form asp-controller="CompletedOrder" asp-action="CompletedOrder" asp-route-id="@Model.FirstOrDefault(or => or.IsCompleted == false)?.Id" method="post">
                 <button type="submit" class="btn btn-success">Complete the order</button>
             </form>
             <h4 class="mb-2 mt-3">Total Price:</h4>

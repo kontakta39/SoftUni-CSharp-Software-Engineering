@@ -1,0 +1,80 @@
+﻿@using MusicWebStore.ViewModels;
+@model ICollection<CompletedOrderViewModel>
+
+@{
+    ViewData["Title"] = "Your orders";
+}
+
+<div class="d-flex justify-content-between align-items-center mb-3" style="margin-top: 20px;">
+    <h2>@ViewData["Title"]</h2>
+</div>
+<hr />
+
+@if (Model.Count == 0)
+{
+    <h4 class="text-start">You have no orders yet.</h4>
+}
+
+else
+{
+    <h3 class="text-start font-weight-bold text-primary">You can return an album 30 days after your purchase!</h3>
+    List<CompletedOrderViewModel> orders = Model.OrderBy(or => or.OrderDate).ToList(); 
+
+    for(int i = 0; i < orders.Count; i++)
+    {
+        DateOnly currentDate = DateOnly.FromDateTime(DateTime.Now);
+        bool hasDateExpired = currentDate <= orders[i].OrderDate.AddDays(30);
+
+        <h3 class="text-start">@orders[i].OrderNumber</h3>
+        <h3 class="text-start">@orders[i].OrderDate</h3>
+        <div class="row align-items-center mb-4 py-3">
+            @foreach(var album in orders[i].OrderedAlbums)
+            {
+                <div class="col-md-2 text-center">
+                    @if (!string.IsNullOrEmpty(album.AlbumImageUrl))
+                    {
+                        <img src="~/img/Albums Covers/@album.AlbumImageUrl" class="img-fluid" style="max-height: 100px; object-fit: contain;" alt="@album.AlbumTitle" />
+                    }
+                    else
+                    {
+                        <img src="~/img/album-no-cover-available.jpg" class="img-fluid" style="max-height: 100px; object-fit: contain;" alt="No Image Available" />
+                    }
+                </div>
+                <div class="col-md-2 text-start">
+                    <h5 class="mb-0">@album.AlbumTitle</h5>
+                </div>
+                <div class="col-md-2 text-start">
+                    <h5 class="mb-0">@album.AlbumQuantity</h5>
+                </div>
+                <div class="col-md-2 text-start">
+                    <h5 class="mb-0 total-price">@($"{album.AlbumPrice:F2} lv.")</h5>
+                </div>
+                @if (hasDateExpired == false)
+                {
+                    <div class="col-md-2 text-end">
+                        <form asp-controller="CompletedOrder" asp-action="ReturnAlbum" asp-route-id="@album.AlbumId" method="post">
+                            <button type="submit" class="btn btn-danger">Remove from cart</button>
+                        </form>
+                    </div>
+                }
+
+                <div class="col-md-2 text-end">
+                    <form asp-controller="Review" asp-action="ReviewAlbum" asp-route-id="@album.AlbumId" method="post">
+                        <button type="submit" class="btn btn-warning">Write a review</button>
+                    </form>
+                </div>
+            }
+        </div>
+
+        <div class="row mb-4 py-3">
+            <div class="col-md-10 d-flex flex-column align-items-end">
+                <h4 class="mb-2 mt-3">Total Price:</h4>
+                <h4 class="mb-0 total-price-cart">@($"{orders[i].TotalPrice:F2} lv.")</h4>
+            </div>
+        </div>
+        if (i < orders.Count - 1)
+        {
+            <hr />
+        }
+    }
+}

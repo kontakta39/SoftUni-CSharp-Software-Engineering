@@ -24,7 +24,7 @@ public class OrderController : Controller
 
         if (buyerId == null)
         {
-            return RedirectToAction("Index", "Home");
+            return RedirectToPage("/Account/Login", new { area = "Identity" });
         }
 
         List<OrderCartViewModel>? model = await _context.OrdersAlbums
@@ -52,7 +52,7 @@ public class OrderController : Controller
 
         if (buyerId == null)
         {
-            return RedirectToAction("Index", "Home");
+            return RedirectToPage("/Account/Login", new { area = "Identity" });
         }
 
         Order? order = await _context.Orders
@@ -61,16 +61,30 @@ public class OrderController : Controller
 
         if (order == null)
         {
+            //Creating the order number
+            Random random = new Random();
+
+            //Create a list of numbers from 1 to 9
+            List<int> digits = Enumerable.Range(1, 9).ToList();
+            List<int> shuffledDigits = digits.OrderBy(x => random.Next()).ToList();
+
+            // Concatenate the digits into a single number
+            string randomNumber = "#" + string.Join("", shuffledDigits);
+
             order = new Order()
             {
                 BuyerId = buyerId,
+                OrderNumber = randomNumber,
                 OrderDate = DateOnly.FromDateTime(DateTime.UtcNow),
                 TotalQuantity = 0,
                 TotalPrice = 0
             };
 
             _context.Orders.Add(order);
-            await _context.SaveChangesAsync();
+        }
+        else
+        {
+            return RedirectToAction(nameof(Cart));
         }
 
         Album? album = await _context.Albums
@@ -79,7 +93,7 @@ public class OrderController : Controller
 
         if (album == null)
         {
-            return RedirectToAction(nameof(Cart));
+            return RedirectToAction("Index", "Album");
         }
 
         OrderAlbum? existingOrderAlbum = await _context.OrdersAlbums
@@ -88,7 +102,7 @@ public class OrderController : Controller
 
         if (existingOrderAlbum != null)
         {
-            return RedirectToAction(nameof(Cart));
+            return RedirectToAction("Index", "Album");
         }
         else
         {
@@ -104,6 +118,11 @@ public class OrderController : Controller
             order.TotalPrice += quantity * album.Price;
 
             album.Stock -= quantity;
+
+            if (album.Stock < 1)
+            { 
+                album.IsDeleted = true;
+            }
         }
 
         await _context.SaveChangesAsync();
@@ -177,7 +196,7 @@ public class OrderController : Controller
 
         if (buyerId == null)
         {
-            return RedirectToAction("Index", "Home");
+            return RedirectToPage("/Account/Login", new { area = "Identity" });
         }
 
         OrderAlbum? orderAlbumToBeDeleted = await _context.OrdersAlbums
@@ -189,9 +208,9 @@ public class OrderController : Controller
             return RedirectToAction("Index", "Album");
         }
 
-        //Returning back the quantities to the album stock
+        //Returning back the quantities to the album stock /without isDeleted because album stock may be 0/
         Album? album = await _context.Albums
-            .Where(a => a.Id == albumId && a.IsDeleted == false)
+            .Where(a => a.Id == albumId)
             .FirstOrDefaultAsync();
 
         if (album == null)
@@ -205,6 +224,11 @@ public class OrderController : Controller
                         o.IsCompleted == false)
             .FirstOrDefaultAsync();
 
+        if (currentOrder == null)
+        {
+            return RedirectToAction(nameof(Cart));
+        }
+
         currentOrder.TotalQuantity -= orderAlbumToBeDeleted.Quantity;
         currentOrder.TotalPrice -= orderAlbumToBeDeleted.Price;
         album.Stock += orderAlbumToBeDeleted.Quantity;
@@ -215,6 +239,12 @@ public class OrderController : Controller
         }
 
         _context.OrdersAlbums.Remove(orderAlbumToBeDeleted);
+
+        if (currentOrder.TotalQuantity == 0 && currentOrder.TotalPrice == 0)
+        {
+            _context.Orders.Remove(currentOrder);
+        }
+
         await _context.SaveChangesAsync();
 
         return RedirectToAction(nameof(Cart));

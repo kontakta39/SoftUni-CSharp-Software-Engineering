@@ -24,6 +24,7 @@ public class AlbumController : Controller
              Id = a.Id,
              Title = a.Title,
              ImageUrl = a.ImageUrl,
+             Stock = a.Stock,
              Price = a.Price,
              Artist = a.Artist.Name,
              Genre = a.Genre.Name

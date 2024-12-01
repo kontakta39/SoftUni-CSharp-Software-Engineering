@@ -11,6 +11,9 @@ public class Order
     public Guid Id { get; set; } = Guid.NewGuid();
 
     [Required]
+    public string OrderNumber { get; set; } = null!;
+
+    [Required]
     [DisplayFormat(DataFormatString = "{0:dd-MM-yyyy}")]
     public DateOnly OrderDate { get; set; } = DateOnly.FromDateTime(DateTime.UtcNow);
 
