@@ -53,29 +53,14 @@
                 <label asp-for="@Model.ImageFile" class="form-label-add-edit">Upload Image</label>
                 <div class="input-group">
                     <!-- Text input field for displaying the selected file name -->
-                    <input type="text" class="form-control" id="fileName" placeholder="No file chosen" disabled value="@Model.ImageUrl"/>
+                    <input type="text" class="form-control" id="fileName" placeholder="No file chosen" value="@Model.ImageUrl" disabled />
 
                     <!-- Hidden file input element -->
-                    <input type="file" asp-for="@Model.ImageFile" class="d-none" id="imageFileInput" onchange="document.getElementById('fileName').value = this.files[0].name" />
+                    <input type="file" asp-for="@Model.ImageFile" class="d-none" id="imageFileInput" />
 
                     <!-- Button to trigger file input -->
-                    <button class="btn btn-outline-secondary" type="button" onclick="document.getElementById('imageFileInput').click()">Upload</button>
+                    <button class="btn btn-outline-secondary" type="button">Upload</button>
                 </div>
-            </div>
-
-            <div class="mb-2">
-                <label>Current Image</label>
-                @if (!string.IsNullOrEmpty(Model.ImageUrl))
-                {
-                    <img id="currentImage" src="~/img/Artists Images/@Model.ImageUrl" alt="Current Artist Image" style="max-width: 150px; max-height: 150px; object-fit: cover;" />
-                    <input type="hidden" id="artistId" value="@Model.Id" />
-                    <!-- Clear Button -->
-                    <button type="button" class="btn btn-danger" id="clearImageBtn">Clear</button>
-                }
-                else
-                {
-                    <img id="currentImage" src="~/img/artist-no-image-available.jpg" alt="Current Artist Image" style="max-width: 150px; max-height: 150px; object-fit: cover;" />
-                }
             </div>
 
             <div class="mb-2">

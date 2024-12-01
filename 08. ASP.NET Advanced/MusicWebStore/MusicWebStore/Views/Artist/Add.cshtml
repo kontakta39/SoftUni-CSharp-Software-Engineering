@@ -53,13 +53,13 @@
                 <label asp-for="@Model.ImageFile" class="form-label-add-edit">Upload Image</label>
                 <div class="input-group">
                     <!-- Text input field for displaying the selected file name -->
-                    <input type="text" class="form-control" id="fileName" placeholder="No file chosen" disabled />
+                    <input type="text" class="form-control" id="fileName" placeholder="No file chosen" value="@Model.ImageUrl" disabled />
 
                     <!-- Hidden file input element -->
-                    <input type="file" asp-for="@Model.ImageFile" class="d-none" id="imageFileInput" onchange="document.getElementById('fileName').value = this.files[0].name" />
+                    <input type="file" asp-for="@Model.ImageFile" class="d-none" id="imageFileInput" />
 
                     <!-- Button to trigger file input -->
-                    <button class="btn btn-outline-secondary" type="button" onclick="document.getElementById('imageFileInput').click()">Upload</button>
+                    <button class="btn btn-outline-secondary" type="button">Upload</button>
                 </div>
             </div>
 

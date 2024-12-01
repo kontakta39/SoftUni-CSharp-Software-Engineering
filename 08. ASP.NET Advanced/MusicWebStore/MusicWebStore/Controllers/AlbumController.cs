@@ -272,11 +272,12 @@ public class AlbumController : Controller
             editAlbum.Genres = allGenres;
             editAlbum.Artists = allArtists;
 
-            // Handle image upload (only store the filename in TempData if ModelState is not valid)
+            //Handle image upload (only store the filename in TempData if ModelState is not valid)
             if (editAlbum.ImageFile != null)
             {
-                // Delete the old image if it's not the default one
-                Album? albumCheck = _context.Albums.FirstOrDefault(g => g.Id == id);
+                //Delete the old image if it's not the default one
+                Album? albumCheck = _context.Albums
+                    .FirstOrDefault(a => a.Id == id && a.IsDeleted == false);
 
                 if (albumCheck.ImageUrl != null)
                 {
@@ -288,7 +289,7 @@ public class AlbumController : Controller
                     }
                 }
 
-                // Validate the uploaded image
+                //Validate the uploaded image
                 string[] allowedContentTypes = { "image/jpg", "image/jpeg", "image/png", "image/gif", "image/webp" };
                 string[] allowedExtensions = { ".jpg", ".jpeg", ".png", ".gif", ".webp" };
 
@@ -302,15 +303,15 @@ public class AlbumController : Controller
                     string tempFileName = Path.GetFileName(editAlbum.ImageFile.FileName);
                     string tempSavePath = Path.Combine(Directory.GetCurrentDirectory(), "wwwroot", "img", "Temp", tempFileName);
 
-                    // Save the file temporarily
-                    Directory.CreateDirectory(Path.GetDirectoryName(tempSavePath)); // Ensure the tmp folder exists
+                    //Save the file temporarily
+                    Directory.CreateDirectory(Path.GetDirectoryName(tempSavePath)); //Ensure the tmp folder exists
                     using (FileStream? stream = new FileStream(tempSavePath, FileMode.Create))
                     {
                         await editAlbum.ImageFile.CopyToAsync(stream);
                     }
 
                     editAlbum.ImageUrl = tempFileName;
-                    TempData["NewImageUrl"] = tempFileName; // Store the file name temporarily
+                    TempData["NewImageUrl"] = tempFileName; //Store the file name temporarily
                 }
             }
             else if (TempData["NewImageUrl"] != null)
@@ -326,7 +327,8 @@ public class AlbumController : Controller
             return View(editAlbum);
         }
 
-        Album album = _context.Albums.FirstOrDefault(g => g.Id == id)!;
+        Album album = _context.Albums
+            .FirstOrDefault(a => a.Id == id && a.IsDeleted == false)!;
 
         album.Id = editAlbum.Id;
         album.Title = editAlbum.Title;
@@ -340,10 +342,10 @@ public class AlbumController : Controller
         album.ArtistId = editAlbum.ArtistId;
         album.GenreId = editAlbum.GenreId;
 
-        // Handle image upload (copy the file to server only if ModelState is valid)
+        //Handle image upload (copy the file to server only if ModelState is valid)
         if (editAlbum.ImageFile != null)
         {
-            // Delete the old image if it's not the default one
+            //Delete the old image if it's not the default one
             if (album.ImageUrl != null)
             {
                 string oldImagePath = Path.Combine(Directory.GetCurrentDirectory(), "wwwroot", "img", "Albums Covers", album.ImageUrl);
@@ -357,7 +359,7 @@ public class AlbumController : Controller
             string fileName = Path.GetFileName(editAlbum.ImageFile.FileName);
             string savePath = Path.Combine(Directory.GetCurrentDirectory(), "wwwroot", "img", "Albums Covers", fileName);
 
-            // Save the file in the final destination
+            //Save the file in the final destination
             using (FileStream? stream = new FileStream(savePath, FileMode.Create))
             {
                 await editAlbum.ImageFile.CopyToAsync(stream);
@@ -392,34 +394,6 @@ public class AlbumController : Controller
         TempData.Remove("NewImageUrl");
 
         return RedirectToAction("Details", "Album", new { id = album.Id });
-    }
-
-    [HttpPost]
-    public async Task<IActionResult> DeleteImage(Guid id)
-    {
-        Album? album = await _context.Albums
-            .Where(a => a.IsDeleted == false)
-            .FirstOrDefaultAsync(a => a.Id == id);
-
-        if (album == null)
-        {
-            return RedirectToAction(nameof(Index));
-        }
-
-        if (!string.IsNullOrEmpty(album.ImageUrl))
-        {
-            string oldImagePath = Path.Combine(Directory.GetCurrentDirectory(), "wwwroot", "img", "Albums Covers", album.ImageUrl);
-
-            if (System.IO.File.Exists(oldImagePath))
-            {
-                System.IO.File.Delete(oldImagePath);
-            }
-
-            album.ImageUrl = null;
-            await _context.SaveChangesAsync();
-        }
-
-        return Ok(); // This returns a success response to the client
     }
 
     [HttpGet]
