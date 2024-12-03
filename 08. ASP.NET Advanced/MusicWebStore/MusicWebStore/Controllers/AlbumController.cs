@@ -18,7 +18,7 @@ public class AlbumController : Controller
     public async Task<IActionResult> Index()
     {
         List<AlbumIndexViewModel> albums = await _context.Albums
-           .Where(a => a.IsDeleted == false)
+           .Where(a => a.IsDeleted == false && a.Stock > 0)
            .Select(a => new AlbumIndexViewModel() 
            {
              Id = a.Id,
@@ -183,9 +183,7 @@ public class AlbumController : Controller
     [HttpGet]
     public async Task<IActionResult> Details(Guid id)
     {
-        Album? albumCheck = _context.Albums
-            .Where(a => a.IsDeleted == false)
-            .FirstOrDefault(a => a.Id == id);
+        Album? albumCheck = _context.Albums.FirstOrDefault(a => a.Id == id);
 
         if (albumCheck == null)
         {
@@ -193,7 +191,7 @@ public class AlbumController : Controller
         }
 
         AlbumDetailsViewModel? album = await _context.Albums
-            .Where(a => a.Id == id && a.IsDeleted == false)
+            .Where(a => a.Id == id)
             .Select(a => new AlbumDetailsViewModel()
             {
                 Id = a.Id,
@@ -205,7 +203,8 @@ public class AlbumController : Controller
                 Price = a.Price,
                 Stock = a.Stock,
                 Genre = a.Genre.Name,
-                Artist = a.Artist.Name
+                Artist = a.Artist.Name,
+                ArtistId = a.Artist.Id
             })
             .FirstOrDefaultAsync();
 
@@ -247,7 +246,6 @@ public class AlbumController : Controller
                 Artists = allArtists
             };
        
-
         return View(editAlbum);
     }
 

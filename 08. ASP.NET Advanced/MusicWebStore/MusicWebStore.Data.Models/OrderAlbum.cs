@@ -27,4 +27,6 @@ public class OrderAlbum
     [Required]
     [Column(TypeName = "decimal(18,2)")]
     public decimal Price { get; set; }
+
+    public bool isReturned { get; set; } = false;
 }

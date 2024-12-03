@@ -77,10 +77,10 @@
                     <input type="text" class="form-control" id="fileName" placeholder="No file chosen" value="@Model.ImageUrl" disabled />
 
                     <!-- Hidden file input element -->
-                    <input type="file" asp-for="@Model.ImageFile" class="d-none" id="imageFileInput" />
+                    <input type="file" asp-for="@Model.ImageFile" class="d-none" id="imageFileInput" onchange="document.getElementById('fileName').value = this.files[0].name" />
 
                     <!-- Button to trigger file input -->
-                    <button class="btn btn-outline-secondary" type="button">Upload</button>
+                    <button class="btn btn-outline-secondary" type="button" onclick="document.getElementById('imageFileInput').click()">Upload</button>
                 </div>
             </div>
 

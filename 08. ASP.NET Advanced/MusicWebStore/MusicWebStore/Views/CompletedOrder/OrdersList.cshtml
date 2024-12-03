@@ -1,0 +1,100 @@
+﻿@using MusicWebStore.ViewModels;
+@model ICollection<CompletedOrderViewModel>
+
+@{
+    ViewData["Title"] = "Your orders";
+    //Album Id
+    Guid id = Guid.Empty;
+    bool isReturned = false;
+}
+
+<div class="d-flex justify-content-center align-items-center mb-3" style="margin-top: 20px;">
+    <h2>@ViewData["Title"]</h2>
+</div>
+<hr />
+
+@if (Model.Count == 0)
+{
+    <h4 class="text-center">You have no orders yet.</h4>
+}
+
+else
+{
+    <h3 class="text-center font-weight-bold text-primary mb-5">You have the right to return any purchased album within 30 days.</h3>
+    List<CompletedOrderViewModel> orders = Model.OrderBy(or => or.OrderDate).ToList(); 
+
+    for(int i = 0; i < orders.Count; i++)
+    {
+        DateOnly currentDate = DateOnly.FromDateTime(DateTime.Now);
+        bool hasDateExpired = currentDate > orders[i].OrderDate.AddDays(30);
+
+        <h4 class="text-start">Order @orders[i].OrderNumber, Date of purchase: @orders[i].OrderDate</h4>
+        <div class="row align-items-center mb-3 py-3">
+            @foreach(var album in orders[i].OrderedAlbums)
+            {
+                isReturned = album.isReturned;
+                <div class="col-md-2 text-start">
+                    @if (!string.IsNullOrEmpty(album.AlbumImageUrl))
+                    {
+                        <img src="~/img/Albums Covers/@album.AlbumImageUrl" class="img-fluid" style="max-height: 130px; object-fit: contain;" alt="@album.AlbumTitle" />
+                    }
+                    else
+                    {
+                        <img src="~/img/album-no-cover-available.jpg" class="img-fluid" style="max-height: 130px; object-fit: contain;" alt="No Image Available" />
+                    }
+                </div>
+                <div class="col-md-2 text-start">
+                    <h5 class="mb-0">@album.AlbumTitle</h5>
+                </div>
+                if (album.isReturned == true)
+                {
+                    <div class="col-md-2 text-start">
+                        <h5 class="mb-0 text-primary">Returned quantity: @album.AlbumQuantity</h5>
+                    </div>
+                }
+                else
+                {
+                    <div class="col-md-2 text-start">
+                        <h5 class="mb-0">Quantity: @album.AlbumQuantity</h5>
+                    </div>
+                }
+                <div class="col-md-2 text-center">
+                    <h5 class="mb-0">@($"{album.AlbumPrice:F2} lv.")</h5>
+                </div>
+                // Get the album Id
+                id = album.AlbumId;
+                @if (hasDateExpired == false && album.isReturned == false)
+                {
+                    <div class="col-md-2 d-flex justify-content-center align-items-center mt-0">
+                        <a asp-controller="Album" asp-action="Details" asp-route-id="@id" class="btn btn-info me-3 w-100 text-nowrap py-2" style="color: white;">Album Info</a>
+                        <form asp-controller="CompletedOrder" asp-action="ReturnAlbum" asp-route-id="@orders[i].Id" method="post" class="d-inline w-100">
+                            <input type="hidden" name="albumId" value="@album.AlbumId" />
+                            <button type="submit" class="btn btn-danger w-100 text-nowrap py-2">Return album</button>
+                        </form>
+                    </div>
+                }
+                else 
+                {
+                    <div class="col-md-2 text-center">
+                        <a asp-controller="Album" asp-action="Details" asp-route-id="@id" class="btn btn-info w-60 py-2">Album Info</a>
+                    </div>
+                }
+
+            }
+        </div>
+
+        if (isReturned == false)
+        {
+            <div class="row mb-1 py-0">
+                <div class="col-md-10 d-flex flex-column align-items-end">
+                    <h4 class="mb-1 mt-0 border-top pt-4">Total Price: @($"{orders[i].TotalPrice:F2} lv.")</h4>
+                </div>
+            </div>
+        }
+
+        if (i < orders.Count - 1)
+        {
+            <hr />
+        }
+    }
+}

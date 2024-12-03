@@ -33,5 +33,8 @@ public class AlbumDetailsViewModel
     public string Artist { get; set; } = null!;
 
     [Required]
+    public Guid ArtistId { get; set; }
+
+    [Required]
     public string Genre { get; set; } = null!;
 }

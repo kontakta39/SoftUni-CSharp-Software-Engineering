@@ -34,6 +34,12 @@
                         <li class="nav-item">
                             <a class="nav-link text-dark" asp-area="" asp-controller="Album" asp-action="Index">Albums</a>
                         </li>
+                        @if (User.Identity.IsAuthenticated)
+                        {
+                            <li class="nav-item">
+                                <a class="nav-link text-dark" asp-area="" asp-controller="CompletedOrder" asp-action="OrdersList">Orders</a>
+                            </li>
+                        }
                     </ul>
                     <a class="btn btn-outline-primary me-2" asp-area="" asp-controller="Order" asp-action="Cart">
                         <i class="bi bi-cart me-1"></i>Cart

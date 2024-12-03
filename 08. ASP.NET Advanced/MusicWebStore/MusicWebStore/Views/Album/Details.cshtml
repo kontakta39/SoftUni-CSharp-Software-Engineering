@@ -3,6 +3,7 @@
 
 @{
     ViewData["Title"] = "Album information";
+    Guid id = Model.ArtistId; 
 }
 
 <div class="d-flex justify-content-between align-items-center mb-3" style="margin-top: 20px;">
@@ -26,7 +27,7 @@
         <div class="card-body">
             <h5 class="card-title">@Model.Title</h5>
             <hr />
-            <h6 class="card-subtitle mb-2 text-muted">@Model.Artist</h6>
+            <a asp-controller="Artist" asp-action="Details" asp-route-id="@id" class="card-subtitle mb-2 text-muted" style="text-decoration:none; font-weight: 500;">Artist: <span style="text-decoration: underline; color:blue">@Model.Artist</span></a>
             <hr />
             <h6 class="card-subtitle mb-2 text-muted">Genre: @Model.Genre</h6>
             <hr />
@@ -40,11 +41,22 @@
                 <h6 class="card-subtitle mb-2 text-muted">Label: @Model.Label</h6>
                 <hr />
             }
+            <p class="card-subtitle mb-2 text-muted" style="font-weight: 500;">Price: @Model.Price lv.</p>
+            <hr />
+            @if (Model.Stock > 1)
+            {
+                <p class="card-text fw-bold">In stock: @Model.Stock copies</p>
+            }
+            else if (Model.Stock == 1)
+            {
+                <p class="card-text fw-bold">Only @Model.Stock album left</p>
+            }
+            else
+            {
+                <p class="card-text fw-bold">Album is not available</p>
+            }
+            <hr />
             <p class="card-text">@Model.Description</p>
-            <hr />
-            <p class="card-text">Price: @Model.Price lv.</p>
-            <hr />
-            <p class="card-text">In stock: @Model.Stock copies</p>
         </div>
         <div class="card-footer text-center">
             <div class="d-flex justify-content-between align-items-center">

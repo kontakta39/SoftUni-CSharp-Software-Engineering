@@ -2,6 +2,7 @@
 
 public class CompletedOrderViewModel
 {
+    public Guid Id { get; set; }
     public string OrderNumber { get; set; } = null!;
     public DateOnly OrderDate { get; set; }
     public decimal TotalPrice { get; set; }

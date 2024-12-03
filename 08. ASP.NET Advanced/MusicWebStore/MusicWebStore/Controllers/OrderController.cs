@@ -7,7 +7,6 @@ using System.Security.Claims;
 
 namespace MusicWebStore.Controllers;
 
-[Authorize]
 public class OrderController : Controller
 {
     private readonly MusicStoreDbContext _context;
@@ -44,6 +43,7 @@ public class OrderController : Controller
 		return View(model);
 	}
 
+    [Authorize]
     [HttpPost]
     public async Task<IActionResult> AddToCart(Guid id)
     {
@@ -129,6 +129,7 @@ public class OrderController : Controller
         return RedirectToAction(nameof(Cart));
     }
 
+    [Authorize]
     [HttpPost]
     public async Task<IActionResult> UpdateQuantity(Guid id, Guid albumId, int quantity)
     {
@@ -189,6 +190,7 @@ public class OrderController : Controller
         });
     }
 
+    [Authorize]
     [HttpPost]
     public async Task<IActionResult> RemoveFromCart(Guid id, Guid albumId)
     {

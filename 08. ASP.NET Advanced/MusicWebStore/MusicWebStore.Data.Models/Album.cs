@@ -2,7 +2,6 @@
 using System.ComponentModel.DataAnnotations;
 using System.ComponentModel.DataAnnotations.Schema;
 using static MusicWebStore.Constants.ModelConstants;
-using static System.Net.Mime.MediaTypeNames;
 
 namespace MusicWebStore.Data;
 
@@ -49,6 +48,8 @@ public class Album
     public Artist Artist { get; set; } = null!;
 
     public bool IsDeleted { get; set; } = false;
+
+    public bool isCommented { get; set; } = false;
 
     public virtual ICollection<OrderAlbum> OrderAlbums { get; set; } = new HashSet<OrderAlbum>();
     public virtual ICollection<Review> Reviews { get; set; } = new HashSet<Review>();
