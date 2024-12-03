@@ -23,13 +23,17 @@ public class Review
     public IdentityUser User { get; set; } = null!;
 
     [Required]
-    [StringLength(ReviewTextMaxLength, MinimumLength = ReviewTextMinLength)]
-    public string ReviewText { get; set; } = null!;
-
-    [Required]
     [DisplayFormat(DataFormatString = "{0:dd-MM-yyyy}")]
     public DateOnly ReviewDate { get; set; } = DateOnly.FromDateTime(DateTime.UtcNow);
 
+    [Required]
+    [StringLength(ReviewTextMaxLength, MinimumLength = ReviewTextMinLength)]
+    public string ReviewText { get; set; } = null!;
+
     [Range(RatingMinLength, RatingMaxLength)]
     public int Rating { get; set; }
+
+    public bool isCommented { get; set; } = false;
+
+    public bool IsEdited { get; set; } = false;
 }
