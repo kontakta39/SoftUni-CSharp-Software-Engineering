@@ -36,7 +36,7 @@ public static class ModelConstants
     public const int ReviewTextMaxLength = 500;
 
     public const int RatingMinLength = 1;
-    public const int RatingMaxLength = 10;
+    public const int RatingMaxLength = 5;
 
     public const int OrderTotalQuantityMinLength = 1;
     public const int OrderTotalQuantityMaxLength = 50;

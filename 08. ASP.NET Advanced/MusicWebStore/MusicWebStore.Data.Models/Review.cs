@@ -33,7 +33,5 @@ public class Review
     [Range(RatingMinLength, RatingMaxLength)]
     public int Rating { get; set; }
 
-    public bool isCommented { get; set; } = false;
-
     public bool IsEdited { get; set; } = false;
 }

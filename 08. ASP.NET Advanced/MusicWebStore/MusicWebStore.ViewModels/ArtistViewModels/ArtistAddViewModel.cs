@@ -8,7 +8,7 @@ namespace MusicWebStore.ViewModels;
 public class ArtistAddViewModel
 {
     [Required]
-    public Guid Id { get; set; } = Guid.NewGuid();
+    public Guid Id { get; set; } 
 
     [Required]
     [StringLength(ArtistNameMaxLength, MinimumLength = ArtistNameMinLength)]

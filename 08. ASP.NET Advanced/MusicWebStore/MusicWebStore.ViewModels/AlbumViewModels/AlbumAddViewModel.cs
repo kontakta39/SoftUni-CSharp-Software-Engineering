@@ -9,7 +9,7 @@ namespace MusicWebStore.ViewModels;
 public class AlbumAddViewModel
 {
     [Required]
-    public Guid Id { get; set; } = Guid.NewGuid();
+    public Guid Id { get; set; } 
 
     [Required]
     [StringLength(AlbumTitleMaxLength, MinimumLength = AlbumTitleMinLength)]
