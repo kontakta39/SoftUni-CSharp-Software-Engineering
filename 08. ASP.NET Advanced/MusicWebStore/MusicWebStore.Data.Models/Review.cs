@@ -26,12 +26,13 @@ public class Review
     [DisplayFormat(DataFormatString = "{0:dd-MM-yyyy}")]
     public DateOnly ReviewDate { get; set; } = DateOnly.FromDateTime(DateTime.UtcNow);
 
-    [Required]
+    [Required(ErrorMessage = "Please select a rating.")]
+    [Range(RatingMinLength, RatingMaxLength)]
+    public int? Rating { get; set; }
+
+    [Required(ErrorMessage = "Review text is required.")]
     [StringLength(ReviewTextMaxLength, MinimumLength = ReviewTextMinLength)]
     public string ReviewText { get; set; } = null!;
-
-    [Range(RatingMinLength, RatingMaxLength)]
-    public int Rating { get; set; }
 
     public bool IsEdited { get; set; } = false;
 }

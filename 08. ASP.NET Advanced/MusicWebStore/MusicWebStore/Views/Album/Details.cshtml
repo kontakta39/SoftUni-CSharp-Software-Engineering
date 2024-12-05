@@ -1,13 +1,12 @@
 ﻿@using MusicWebStore.ViewModels;
-@using System.Security.Claims
+@using System.Security.Claims;
 @model AlbumDetailsViewModel
-@inject IEnumerable<ReviewIndexViewModel> Reviews
 
 @{
     ViewData["Title"] = "Album information";
     Guid id = Model.ArtistId; 
     string? userId = User.FindFirstValue(System.Security.Claims.ClaimTypes.NameIdentifier);
-    ReviewIndexViewModel? userReview = Reviews.FirstOrDefault(r => r.UserId == userId);
+    ReviewIndexViewModel? userReview = Model.Reviews.FirstOrDefault(r => r.UserId == userId);
 }
 
 <div class="d-flex justify-content-between align-items-center mb-3" style="margin-top: 20px;">
@@ -71,60 +70,81 @@
     </div>
 </div>
 
-<div class="d-flex justify-content-between align-items-center mb-3" style="margin-top: 20px;">
-    <h4>Reviews</h4>
-</div>
-<hr />
+@if (Model.IsDeleted == false)
+{ 
+    <div class="d-flex justify-content-between align-items-center mb-3" style="margin-top:50px">
+        <h3>Album reviews</h3>
+    </div>
+    <hr />
 
-<!-- Review Section -->
-<div class="reviews-section mt-4">
-    @if (Reviews.Count() == 0)
-    {
-        <div class="card-footer" style="display: flex; align-items: center; gap: 30px; margin-bottom: 50px;">
-            <h5 style="margin: 0;">No reviews yet. Be the first to write one!</h5>
-            @if (userReview == null)
-            {
-                <a asp-controller="Review" asp-action="AddReview" asp-route-id="@Model.Id" class="btn btn-warning" style="color: dimgray;">Write a review</a>
-            }
-        </div>
-    }
-    else
-    {
-        <p>Total Reviews: @Reviews.Count()</p>
-        @if (userReview != null)
+    <!-- Review Section -->
+    <div class="reviews-section mt-4">
+        @if (Model.Reviews.Count() == 0)
         {
-            <p>You have already added a review for this album.</p>
+            <div class="card-footer" style="display: flex; align-items: center; gap: 30px; padding: 20px; margin-bottom: 50px;">
+                <h5 style="margin: 0;">No reviews yet. Be the first to write one!</h5>
+                @if (userReview == null)
+                {
+                    <a asp-controller="Review" asp-action="Add" asp-route-id="@Model.Id" class="btn btn-warning" style="color: dimgray;">Write a review</a>
+                }
+            </div>
         }
         else
         {
-            <a asp-controller="Review" asp-action="AddReview" asp-route-id="@Model.Id" class="btn btn-warning mb-3" style="color: dimgray;">Add review</a>
-        }
+            <div class="d-flex align-items-center" style="gap: 50px; margin-bottom: 25px">
+                <h5 class="mb-0">Total Reviews: @Model.Reviews.Count()</h5>
 
-        <div class="reviews-list">
-            @foreach (var review in Reviews)
-            {
-                <div class="card mb-3">
-                    <div class="card-body">
-                        <h6 class="card-subtitle mb-2 text-muted">By: @review.Username</h6>
-                        <p class="card-text">@review.ReviewText</p>
-                        <p class="card-subtitle text-muted">Rating: @review.Rating</p>
-                        <p class="card-subtitle text-muted">Published: @review.ReviewDate.ToShortDateString()</p>
+                @if (userReview != null)
+                {
+                    <h5 class="mb-0">You have already added a review for this album.</h5>
+                }
+                else
+                {
+                    <a asp-controller="Review" asp-action="Add" asp-route-id="@Model.Id" class="btn btn-warning mb-3" style="color: dimgray;">Add review</a>
+                }
+            </div>
 
-                        <!-- Show Edit Button for Each User's Review Based on `IsEdited` -->
-                        @if (review.UserId == userId)
-                        {
-                            @if (review.IsEdited == false)
-                            {
-                                <a asp-controller="Review" asp-action="Edit" asp-route-id="@review.Id" class="btn btn-primary btn-sm mt-2">Edit review</a>
-                            }
-                            else
-                            {
-                                <p class="text-muted mt-2">You have already edited your review.</p>
-                            }
-                        }
+            <div class="reviews-list" style="margin-bottom: 50px;">
+                @foreach (var review in Model.Reviews)
+                {
+                    <div class="card mb-3">
+                        <div class="card-body">
+                            <h6 class="card-subtitle mb-2 text-muted">Review by: @review.Username</h6>
+                            <p class="card-text">@review.ReviewText</p>
+                            <div class="d-flex align-items-center">
+                                <div>
+                                    @if (review.Rating == 1)
+                                    {
+                                        <h6 class="card-subtitle text-muted">Rating: @review.Rating star</h6>
+                                    }
+                                    else if (review.Rating > 1)
+                                    {
+                                        <h6 class="card-subtitle text-muted">Rating: @review.Rating stars</h6>
+                                    }
+
+                                    <h6 class="card-subtitle text-muted" style="margin-top: 5px;">Published on: @review.ReviewDate.ToShortDateString()</h6>
+                                </div>
+                                @if (review.UserId == userId)
+                                {
+                                    <div class="ms-3">
+                                        @if (review.IsEdited == false)
+                                        {
+                                            <form asp-controller="Review" asp-action="Edit" method="get" style="display: inline;">
+                                                <input type="hidden" name="albumId" value="@review.AlbumId" />
+                                                <button type="submit" class="btn btn-warning" style="color: dimgray; font-size: 15px; padding: 10px; margin-left: 15px;">Edit review</button>
+                                            </form>
+                                        }
+                                        else
+                                        {
+                                            <h6 class="text-muted">You have already edited your review.</h6>
+                                        }
+                                    </div>
+                                }
+                            </div>
+                        </div>
                     </div>
-                </div>
-            }
-        </div>
-    }
-</div>
+                }
+            </div>
+        }
+    </div>
+}

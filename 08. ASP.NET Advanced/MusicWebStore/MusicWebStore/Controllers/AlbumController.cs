@@ -204,7 +204,22 @@ public class AlbumController : Controller
                 Stock = a.Stock,
                 Genre = a.Genre.Name,
                 Artist = a.Artist.Name,
-                ArtistId = a.Artist.Id
+                ArtistId = a.Artist.Id,
+                IsDeleted = a.IsDeleted,
+                Reviews = _context.Reviews
+                    .Where(r => r.AlbumId == id)
+                    .Select(r => new ReviewIndexViewModel()
+                    {
+                        Id = r.Id,
+                        AlbumId = r.AlbumId,
+                        UserId = r.UserId,
+                        Username = r.User.UserName!,
+                        ReviewDate = r.ReviewDate,
+                        ReviewText = r.ReviewText,
+                        Rating = r.Rating,
+                        IsEdited = r.IsEdited
+                    })
+                    .ToList()
             })
             .FirstOrDefaultAsync();
 

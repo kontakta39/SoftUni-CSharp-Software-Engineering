@@ -3,7 +3,7 @@ using static MusicWebStore.Constants.ModelConstants;
 
 namespace MusicWebStore.ViewModels;
 
-public class ReviewAddViewModel
+public class ReviewEditViewModel
 {
     [Required]
     public Guid Id { get; set; }

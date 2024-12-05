@@ -18,39 +18,8 @@ public class ReviewController : Controller
     }
 
     [HttpGet]
-    public async Task<IActionResult> Index(Guid id)
+    public async Task<IActionResult> Add(Guid id)
     {
-        //Display all reviews for a certain album
-        Album? album = await _context.Albums
-            .Where(a => a.Id == id)
-            .FirstOrDefaultAsync();
-
-        if (album == null)
-        { 
-            return RedirectToAction("Index", "Album");
-        }
-
-        List<ReviewIndexViewModel> allReviews = await _context.Reviews
-            .Where(r => r.AlbumId == id)
-            .Select(r => new ReviewIndexViewModel()
-            {
-                Id = r.Id,
-                AlbumId = r.AlbumId,
-                Username = r.User.UserName!,
-                ReviewDate = r.ReviewDate,
-                ReviewText = r.ReviewText,
-                Rating = r.Rating,
-                IsEdited = r.IsEdited
-            })
-            .ToListAsync();
-
-        return View(allReviews);
-    }
-
-    [HttpGet]
-    public async Task<IActionResult> AddReview(Guid id)
-    {
-        //Display all reviews for a certain album
         Album? album = await _context.Albums
             .Where(a => a.Id == id)
             .FirstOrDefaultAsync();
@@ -67,6 +36,15 @@ public class ReviewController : Controller
             return RedirectToPage("/Account/Login", new { area = "Identity" });
         }
 
+        // Check if the user has already reviewed this album
+        Review? existingReview = await _context.Reviews
+            .FirstOrDefaultAsync(r => r.AlbumId == id && r.UserId == userId);
+
+        if (existingReview != null)
+        {
+            return RedirectToAction("Details", "Album", new { id = album.Id });
+        }
+
         ReviewAddViewModel addReview = new ReviewAddViewModel();
         addReview.AlbumId = album.Id;
         addReview.AlbumTitle = album.Title;
@@ -75,7 +53,7 @@ public class ReviewController : Controller
     }
 
     [HttpPost]
-    public async Task<IActionResult> AddReview(ReviewAddViewModel addReview, Guid id)
+    public async Task<IActionResult> Add(ReviewAddViewModel addReview, Guid id)
     {
         Album? album = await _context.Albums
             .FirstOrDefaultAsync(a => a.Id == id);
@@ -92,34 +70,113 @@ public class ReviewController : Controller
             return RedirectToPage("/Account/Login", new { area = "Identity" });
         }
 
-        // Check if the user has already reviewed this album
-        Review? existingReview = await _context.Reviews
-            .FirstOrDefaultAsync(r => r.AlbumId == id && r.UserId == userId);
-
-        if (existingReview != null)
-        {
-            return RedirectToAction("Details", "Album", new { id = album.Id });
-        }
-
         if (!ModelState.IsValid)
         {
             addReview.AlbumTitle = album.Title;
+            addReview.AlbumId = album.Id;
             return View(addReview);
         }
 
-        // Create and save the review
         Review review = new Review
         {
-            AlbumId = addReview.AlbumId,
+            AlbumId = album.Id,
             UserId = userId,
             ReviewDate = DateOnly.FromDateTime(DateTime.UtcNow),
             ReviewText = addReview.ReviewText,
-            Rating = addReview.Rating,
+            Rating = addReview.Rating
         };
 
         await _context.Reviews.AddAsync(review);
         await _context.SaveChangesAsync();
 
-        return RedirectToAction(nameof(Index), new { id = album.Id });
+        return RedirectToAction("Details", "Album", new { id = album.Id });
+    }
+
+    [HttpGet]
+    public async Task<IActionResult> Edit(Guid id, Guid albumId)
+    {
+        //Find the review that should be edited
+        Review? findReview = await _context.Reviews
+            .Where(r => r.Id == id && r.IsEdited == false)
+            .FirstOrDefaultAsync();
+
+        if (findReview == null)
+        {
+            return RedirectToAction("Index", "Album");
+        }
+
+        //Find the certain album, where the review is published
+        Album? album = await _context.Albums
+            .Where(a => a.Id == albumId)
+            .FirstOrDefaultAsync();
+
+        if (album == null)
+        {
+            return RedirectToAction("Index", "Album");
+        }
+
+        string userId = User.FindFirstValue(ClaimTypes.NameIdentifier) ?? string.Empty;
+
+        if (userId == null)
+        {
+            return RedirectToPage("/Account/Login", new { area = "Identity" });
+        }
+
+        ReviewEditViewModel editReview = new ReviewEditViewModel()
+        { 
+            ReviewText = findReview.ReviewText,
+            Rating = findReview.Rating
+        };
+
+        editReview.AlbumTitle = album.Title;
+
+        return View(editReview);
+    }
+
+    [HttpPost]
+    public async Task<IActionResult> Edit(ReviewEditViewModel editReview, Guid id, Guid albumId)
+    {
+        //Find the review that should be edited
+        Review? findReview = await _context.Reviews
+            .Where(r => r.Id == id && r.IsEdited == false)
+            .FirstOrDefaultAsync();
+
+        if (findReview == null)
+        {
+            return RedirectToAction("Index", "Album");
+        }
+
+        //Find the certain album, where the review is published
+        Album? album = await _context.Albums
+            .Where(a => a.Id == albumId)
+            .FirstOrDefaultAsync();
+
+        if (album == null)
+        {
+            return RedirectToAction("Index", "Album");
+        }
+
+        string userId = User.FindFirstValue(ClaimTypes.NameIdentifier) ?? string.Empty;
+
+        if (userId == null)
+        {
+            return RedirectToPage("/Account/Login", new { area = "Identity" });
+        }
+
+        if (!ModelState.IsValid)
+        {
+            editReview.AlbumTitle = album.Title;
+            return View(editReview);
+        }
+
+        findReview.AlbumId = album.Id;
+        findReview.UserId = userId;
+        findReview.ReviewDate = DateOnly.FromDateTime(DateTime.UtcNow);
+        findReview.ReviewText = editReview.ReviewText;
+        findReview.Rating = editReview.Rating;
+
+        await _context.SaveChangesAsync();
+
+        return RedirectToAction("Details", "Album", new { id = album.Id });
     }
 }

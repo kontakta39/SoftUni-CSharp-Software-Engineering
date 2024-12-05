@@ -37,4 +37,8 @@ public class AlbumDetailsViewModel
 
     [Required]
     public string Genre { get; set; } = null!;
+
+    public bool IsDeleted { get; set; }
+
+    public IEnumerable<ReviewIndexViewModel> Reviews { get; set; } = new List<ReviewIndexViewModel>();
 }
