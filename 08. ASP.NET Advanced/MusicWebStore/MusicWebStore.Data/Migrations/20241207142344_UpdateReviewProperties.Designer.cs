@@ -3,6 +3,7 @@ using System;
 using Microsoft.EntityFrameworkCore;
 using Microsoft.EntityFrameworkCore.Infrastructure;
 using Microsoft.EntityFrameworkCore.Metadata;
+using Microsoft.EntityFrameworkCore.Migrations;
 using Microsoft.EntityFrameworkCore.Storage.ValueConversion;
 using MusicWebStore.Data;
 
@@ -11,9 +12,11 @@ using MusicWebStore.Data;
 namespace MusicWebStore.Data.Migrations
 {
     [DbContext(typeof(MusicStoreDbContext))]
-    partial class MusicStoreDbContextModelSnapshot : ModelSnapshot
+    [Migration("20241207142344_UpdateReviewProperties")]
+    partial class UpdateReviewProperties
     {
-        protected override void BuildModel(ModelBuilder modelBuilder)
+        /// <inheritdoc />
+        protected override void BuildTargetModel(ModelBuilder modelBuilder)
         {
 #pragma warning disable 612, 618
             modelBuilder
@@ -297,31 +300,31 @@ namespace MusicWebStore.Data.Migrations
                     b.HasData(
                         new
                         {
-                            Id = new Guid("a6b493c0-3a83-47a2-af86-4926a239c423"),
+                            Id = new Guid("30e689eb-2f16-4b48-81f8-9f5a7c755f17"),
                             IsDeleted = false,
                             Name = "Blues"
                         },
                         new
                         {
-                            Id = new Guid("5bfc062c-5731-410d-8f3f-e779d2ae68a7"),
+                            Id = new Guid("8857d17c-2d2e-436f-8a90-8098c6318979"),
                             IsDeleted = false,
                             Name = "Heavy Metal"
                         },
                         new
                         {
-                            Id = new Guid("d0cfcc19-88bc-4dc6-af31-37c523252622"),
+                            Id = new Guid("42e8b1cf-843a-4f79-a8b3-c84d504a023a"),
                             IsDeleted = false,
                             Name = "Jazz"
                         },
                         new
                         {
-                            Id = new Guid("6f909664-716f-4275-961f-dbc97f37e13e"),
+                            Id = new Guid("25934709-7546-4c40-aeaa-831aec12f0de"),
                             IsDeleted = false,
                             Name = "Pop"
                         },
                         new
                         {
-                            Id = new Guid("a3b2ad3c-1bd3-4089-b8d4-c45a1c9fff06"),
+                            Id = new Guid("de89070e-34c3-4710-81c1-51c8d815626c"),
                             IsDeleted = false,
                             Name = "Rock"
                         });

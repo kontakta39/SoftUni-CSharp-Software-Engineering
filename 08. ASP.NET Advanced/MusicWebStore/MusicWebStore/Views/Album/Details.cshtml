@@ -91,16 +91,17 @@
         }
         else
         {
-            <div class="d-flex align-items-center" style="gap: 50px; margin-bottom: 25px">
-                <h5 class="mb-0">Total Reviews: @Model.Reviews.Count()</h5>
-
+            <div class="d-flex align-items-center" style="gap: 50px; margin-bottom: 25px;">
+                <h5 class="mb-0">Total reviews: @Model.Reviews.Count(), Ratings average score: @Model.Reviews.Average(r => r.Rating).Value.ToString("F1")</h5>
                 @if (userReview != null)
                 {
-                    <h5 class="mb-0">You have already added a review for this album.</h5>
+                    <h5 class="mb-0" style="margin: 0;">You have already added a review for this album.</h5>
                 }
                 else
                 {
-                    <a asp-controller="Review" asp-action="Add" asp-route-id="@Model.Id" class="btn btn-warning mb-3" style="color: dimgray;">Add review</a>
+                    <a asp-controller="Review" asp-action="Add" asp-route-id="@Model.Id"
+                       class="btn btn-warning"
+                       style="color: dimgray; margin: 0;">Add review</a>
                 }
             </div>
 
@@ -129,7 +130,7 @@
                                     <div class="ms-3">
                                         @if (review.IsEdited == false)
                                         {
-                                            <form asp-controller="Review" asp-action="Edit" method="get" style="display: inline;">
+                                            <form asp-controller="Review" asp-action="Edit" asp-route-id="@review.Id" method="get" style="display: inline;">
                                                 <input type="hidden" name="albumId" value="@review.AlbumId" />
                                                 <button type="submit" class="btn btn-warning" style="color: dimgray; font-size: 15px; padding: 10px; margin-left: 15px;">Edit review</button>
                                             </form>

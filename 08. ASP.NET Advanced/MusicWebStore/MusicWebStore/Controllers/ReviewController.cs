@@ -124,6 +124,7 @@ public class ReviewController : Controller
 
         ReviewEditViewModel editReview = new ReviewEditViewModel()
         { 
+            AlbumId = albumId,
             ReviewText = findReview.ReviewText,
             Rating = findReview.Rating
         };
@@ -174,6 +175,7 @@ public class ReviewController : Controller
         findReview.ReviewDate = DateOnly.FromDateTime(DateTime.UtcNow);
         findReview.ReviewText = editReview.ReviewText;
         findReview.Rating = editReview.Rating;
+        findReview.IsEdited = true;
 
         await _context.SaveChangesAsync();
 
