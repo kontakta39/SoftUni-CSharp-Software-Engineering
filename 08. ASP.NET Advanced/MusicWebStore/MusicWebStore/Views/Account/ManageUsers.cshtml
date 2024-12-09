@@ -1,0 +1,47 @@
+﻿@model List<(ApplicationUser User, IList<string> Roles)>
+
+@{
+    ViewData["Title"] = "Manage users";
+}
+
+<h2>@ViewData["Title"]</h2>
+
+<table class="table">
+    <thead>
+        <tr>
+            <th>Email</th>
+            <th>First Name</th>
+            <th>Last Name</th>
+            <th>Current Role</th>
+            <th>Make the user:</th>
+        </tr>
+    </thead>
+    <tbody>
+        @foreach (var userRole in Model)
+        {
+            <tr>
+                <td>@userRole.User.Email</td>
+                <td>@userRole.User.FirstName</td>
+                <td>@userRole.User.LastName</td>
+                <td>@string.Join(", ", userRole.Roles)</td>
+                <td>
+                    <form asp-action="ChangeRole" asp-controller="Account" method="post">
+                        <input type="hidden" name="userId" value="@userRole.User.Id" />
+                        @if (!userRole.Roles.Contains("Administrator"))
+                        {
+                            <button class="btn btn-primary" name="role" value="Administrator">Administrator</button>
+                        }
+                        @if (!userRole.Roles.Contains("Moderator"))
+                        {
+                            <button class="btn btn-secondary" name="role" value="Moderator">Moderator</button>
+                        }
+                        @if (!userRole.Roles.Contains("Guest"))
+                        {
+                            <button class="btn btn-warning" name="role" value="Guest">Guest</button>
+                        }
+                    </form>
+                </td>
+            </tr>
+        }
+    </tbody>
+</table>

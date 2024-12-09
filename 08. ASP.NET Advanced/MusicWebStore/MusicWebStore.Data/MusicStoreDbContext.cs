@@ -4,7 +4,7 @@ using MusicWebStore.Data.Models;
 
 namespace MusicWebStore.Data;
 
-public class MusicStoreDbContext : IdentityDbContext<ApplicationUser>
+public class MusicStoreDbContext : IdentityDbContext<ApplicationUser, ApplicationRole, string>
 {
     public MusicStoreDbContext(DbContextOptions<MusicStoreDbContext> options)
     : base(options)

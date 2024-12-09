@@ -2,12 +2,13 @@ using Microsoft.AspNetCore.Identity;
 using Microsoft.EntityFrameworkCore;
 using MusicWebStore.Data;
 using MusicWebStore.Data.Models;
+using MusicWebStore.Services;
 
 namespace MusicWebStore;
 
 public class Program
 {
-    public static void Main(string[] args)
+    public static async Task Main(string[] args)
     {
         WebApplicationBuilder? builder = WebApplication.CreateBuilder(args);
 
@@ -22,7 +23,7 @@ public class Program
         IdentityOptions? identityOptions = new IdentityOptions();
         builder.Configuration.GetSection("IdentityOptions").Bind(identityOptions);
 
-        builder.Services.AddIdentity<ApplicationUser, IdentityRole>(options =>
+        builder.Services.AddIdentity<ApplicationUser, ApplicationRole>(options =>
         {
             options.SignIn.RequireConfirmedAccount = identityOptions.SignIn.RequireConfirmedAccount;
             options.Password.RequireDigit = identityOptions.Password.RequireDigit;
@@ -36,6 +37,13 @@ public class Program
         builder.Services.AddRazorPages();
 
         WebApplication? app = builder.Build();
+
+        // Initialize roles and admin user
+        using (IServiceScope? scope = app.Services.CreateScope())
+        {
+            IServiceProvider? serviceProvider = scope.ServiceProvider;
+            await RoleInitializer.InitializeRolesAsync(serviceProvider);
+        }
 
         if (app.Environment.IsDevelopment())
         {
