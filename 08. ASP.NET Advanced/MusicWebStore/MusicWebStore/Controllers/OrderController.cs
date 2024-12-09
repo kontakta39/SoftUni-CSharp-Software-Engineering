@@ -84,7 +84,7 @@ public class OrderController : Controller
         }
         else
         {
-            return RedirectToAction(nameof(Cart));
+            return NotFound();
         }
 
         Album? album = await _context.Albums
@@ -93,7 +93,7 @@ public class OrderController : Controller
 
         if (album == null)
         {
-            return RedirectToAction("Index", "Album");
+            return NotFound();
         }
 
         OrderAlbum? existingOrderAlbum = await _context.OrdersAlbums
@@ -102,7 +102,7 @@ public class OrderController : Controller
 
         if (existingOrderAlbum != null)
         {
-            return RedirectToAction("Index", "Album");
+            return NotFound();
         }
         else
         {
@@ -144,21 +144,21 @@ public class OrderController : Controller
 
         if (order == null)
         {
-            return RedirectToAction(nameof(Cart));
+            return NotFound();
         }
 
         OrderAlbum? orderAlbum = order.OrdersAlbums.FirstOrDefault(oa => oa.AlbumId == albumId);
 
         if (orderAlbum == null)
         {
-            return RedirectToAction(nameof(Cart));
+            return NotFound();
         }
 
         Album? album = await _context.Albums.FirstOrDefaultAsync(a => a.Id == albumId && a.IsDeleted == false);
         
         if (album == null)
         {
-            return RedirectToAction(nameof(Cart));
+            return NotFound();
         }
 
         if (quantity > album.Stock + orderAlbum.Quantity)
@@ -207,7 +207,7 @@ public class OrderController : Controller
 
         if (orderAlbumToBeDeleted == null)
         {
-            return RedirectToAction("Index", "Album");
+            return NotFound();
         }
 
         //Returning back the quantities to the album stock /without isDeleted because album stock may be 0/
@@ -217,7 +217,7 @@ public class OrderController : Controller
 
         if (album == null)
         {
-            return RedirectToAction("Index", "Album");
+            return NotFound();
         }
 
         //Changing the total quantity and the price of the order
@@ -228,7 +228,7 @@ public class OrderController : Controller
 
         if (currentOrder == null)
         {
-            return RedirectToAction(nameof(Cart));
+            return NotFound();
         }
 
         currentOrder.TotalQuantity -= orderAlbumToBeDeleted.Quantity;

@@ -1,58 +1,68 @@
 using Microsoft.AspNetCore.Identity;
 using Microsoft.EntityFrameworkCore;
 using MusicWebStore.Data;
+using MusicWebStore.Data.Models;
 
-namespace MusicWebStore
+namespace MusicWebStore;
+
+public class Program
 {
-    public class Program
+    public static void Main(string[] args)
     {
-        public static void Main(string[] args)
+        WebApplicationBuilder? builder = WebApplication.CreateBuilder(args);
+
+        builder.Configuration.AddUserSecrets<Program>();
+
+        string? connectionString = builder.Configuration.GetConnectionString("MusicStoreConnectionString") ?? throw new InvalidOperationException("Connection string 'MusicStoreConnectionString' not found.");
+        builder.Services.AddDbContext<MusicStoreDbContext>(options =>
+            options.UseSqlServer(connectionString));
+
+        builder.Services.AddDatabaseDeveloperPageExceptionFilter();
+
+        IdentityOptions? identityOptions = new IdentityOptions();
+        builder.Configuration.GetSection("IdentityOptions").Bind(identityOptions);
+
+        builder.Services.AddIdentity<ApplicationUser, IdentityRole>(options =>
         {
-            var builder = WebApplication.CreateBuilder(args);
+            options.SignIn.RequireConfirmedAccount = identityOptions.SignIn.RequireConfirmedAccount;
+            options.Password.RequireDigit = identityOptions.Password.RequireDigit;
+            options.Password.RequireNonAlphanumeric = identityOptions.Password.RequireNonAlphanumeric;
+            options.Password.RequireUppercase = identityOptions.Password.RequireUppercase;
+        })
+        .AddEntityFrameworkStores<MusicStoreDbContext>()
+        .AddDefaultTokenProviders();
 
-            // Add services to the container.
-            var connectionString = builder.Configuration.GetConnectionString("MusicStoreConnectionString") ?? throw new InvalidOperationException("Connection string 'MusicStoreConnectionString' not found.");
-            builder.Services.AddDbContext<MusicStoreDbContext>(options =>
-                options.UseSqlServer(connectionString));
-            builder.Services.AddDatabaseDeveloperPageExceptionFilter();
+        builder.Services.AddControllersWithViews();
+        builder.Services.AddRazorPages();
 
-            builder.Services.AddDefaultIdentity<IdentityUser>(options =>
-            {
-                options.SignIn.RequireConfirmedAccount = false;
-                options.Password.RequireDigit = false;
-                options.Password.RequireNonAlphanumeric = false;
-                options.Password.RequireUppercase = false;
-            })
-                .AddEntityFrameworkStores<MusicStoreDbContext>();
-            builder.Services.AddControllersWithViews();
+        WebApplication? app = builder.Build();
 
-            var app = builder.Build();
-
-            // Configure the HTTP request pipeline.
-            if (app.Environment.IsDevelopment())
-            {
-                app.UseMigrationsEndPoint();
-            }
-            else
-            {
-                app.UseExceptionHandler("/Home/Error");
-                // The default HSTS value is 30 days. You may want to change this for production scenarios, see https://aka.ms/aspnetcore-hsts.
-                app.UseHsts();
-            }
-
-            app.UseHttpsRedirection();
-            app.UseStaticFiles();
-
-            app.UseRouting();
-
-            app.UseAuthorization();
-
-            app.MapControllerRoute(
-                name: "default",
-                pattern: "{controller=Home}/{action=Index}/{id?}");
-            app.MapRazorPages();
-
-            app.Run();
+        if (app.Environment.IsDevelopment())
+        {
+            app.UseMigrationsEndPoint();
         }
+        else
+        {
+            app.UseExceptionHandler("/Home/Error");
+            app.UseHsts();
+        }
+
+        // Add middleware to handle 404 errors
+        app.UseStatusCodePagesWithReExecute("/Home/NotFound");
+
+        app.UseHttpsRedirection();
+        app.UseStaticFiles();
+
+        app.UseRouting();
+
+        app.UseAuthentication();  
+        app.UseAuthorization();   
+
+        app.MapControllerRoute(
+            name: "default",
+            pattern: "{controller=Home}/{action=Index}/{id?}");
+        app.MapRazorPages();
+
+        app.Run();
     }
 }

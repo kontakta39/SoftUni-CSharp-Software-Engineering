@@ -65,7 +65,7 @@ public class GenreController : Controller
 
         if (genre == null)
         {
-            return RedirectToAction(nameof(Index));
+            return NotFound();
         }
 
         GenreEditViewModel editModel = new GenreEditViewModel()
@@ -85,6 +85,12 @@ public class GenreController : Controller
         }
 
         Genre genre = _context.Genres.FirstOrDefault(g => g.Id == id)!;
+
+        if (genre == null)
+        {
+            return NotFound();
+        }
+
         genre.Name = editModel.Name;
 
         await _context.SaveChangesAsync();
@@ -104,6 +110,11 @@ public class GenreController : Controller
             })
             .AsNoTracking()
             .FirstOrDefaultAsync();
+
+        if (genre == null)
+        {
+            return NotFound();
+        }
 
         return View(genre);
     }

@@ -42,4 +42,7 @@ public static class ModelConstants
     public const int OrderTotalQuantityMaxLength = 50;
 
     public const int OrderAlbumQuantityMinValue = 1;
+
+    public const int ApplicationUserNameMinLength = 3;
+    public const int ApplicationUserNameMaxLength = 20;
 }

@@ -1,4 +1,4 @@
-﻿using Microsoft.AspNetCore.Identity;
+﻿using MusicWebStore.Data.Models;
 using System.ComponentModel.DataAnnotations;
 using System.ComponentModel.DataAnnotations.Schema;
 using static MusicWebStore.Constants.ModelConstants;
@@ -29,7 +29,7 @@ public class Order
     public string BuyerId { get; set; } = null!;
 
     [ForeignKey(nameof(BuyerId))]
-    public IdentityUser Buyer { get; set; } = null!;
+    public ApplicationUser Buyer { get; set; } = null!;
 	
 	public bool IsCompleted { get; set; } = false;
 

@@ -187,7 +187,7 @@ public class AlbumController : Controller
 
         if (albumCheck == null)
         {
-            return RedirectToAction(nameof(Index));
+            return NotFound();
         }
 
         AlbumDetailsViewModel? album = await _context.Albums
@@ -213,7 +213,8 @@ public class AlbumController : Controller
                         Id = r.Id,
                         AlbumId = r.AlbumId,
                         UserId = r.UserId,
-                        Username = r.User.UserName!,
+                        FirstName = r.User.FirstName!,
+                        LastName = r.User.LastName!,
                         ReviewDate = r.ReviewDate,
                         ReviewText = r.ReviewText,
                         Rating = r.Rating,
@@ -233,7 +234,7 @@ public class AlbumController : Controller
 
         if (album == null)
         {
-            return RedirectToAction(nameof(Index));
+            return NotFound();
         }
 
         List<Genre> allGenres = await _context.Genres
@@ -423,6 +424,11 @@ public class AlbumController : Controller
             })
             .AsNoTracking()
             .FirstOrDefaultAsync();
+
+        if (deleteAlbum == null)
+        {
+            return NotFound();
+        }
 
         return View(deleteAlbum);
     }

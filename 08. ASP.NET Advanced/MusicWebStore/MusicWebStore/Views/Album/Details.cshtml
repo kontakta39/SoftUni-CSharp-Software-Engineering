@@ -110,7 +110,7 @@
                 {
                     <div class="card mb-3">
                         <div class="card-body">
-                            <h6 class="card-subtitle mb-2 text-muted">Review by: @review.Username</h6>
+                            <h6 class="card-subtitle mb-2 text-muted">Review by: @review.FirstName @review.LastName</h6>
                             <p class="card-text">@review.ReviewText</p>
                             <div class="d-flex align-items-center">
                                 <div>
@@ -123,7 +123,14 @@
                                         <h6 class="card-subtitle text-muted">Rating: @review.Rating stars</h6>
                                     }
 
-                                    <h6 class="card-subtitle text-muted" style="margin-top: 5px;">Published on: @review.ReviewDate.ToShortDateString()</h6>
+                                    @if (review.IsEdited)
+                                    {
+                                        <h6 class="card-subtitle text-muted" style="margin-top: 5px;">Edited on: @review.ReviewDate.ToShortDateString()</h6>
+                                    }
+                                    else
+                                    {
+                                        <h6 class="card-subtitle text-muted" style="margin-top: 5px;">Published on: @review.ReviewDate.ToShortDateString()</h6>
+                                    }
                                 </div>
                                 @if (review.UserId == userId)
                                 {

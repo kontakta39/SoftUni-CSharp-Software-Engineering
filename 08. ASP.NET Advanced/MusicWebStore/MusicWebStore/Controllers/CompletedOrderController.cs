@@ -69,7 +69,7 @@ public class CompletedOrderController : Controller
 
         if (orderToComplete == null)
         {
-            return RedirectToAction("Cart", "Order");
+            return NotFound();
         }
         else
         {
@@ -107,7 +107,7 @@ public class CompletedOrderController : Controller
 
         if (orderCheck == null)
         {
-            return RedirectToAction(nameof(OrdersList));
+            return NotFound();
         }
 
         //Take the current album from the order that should be returned
@@ -117,7 +117,7 @@ public class CompletedOrderController : Controller
 
          if (albumFromTheOrder == null)
         {
-            return RedirectToAction(nameof(OrdersList));
+            return NotFound();
         }
 
         //Check if the current album is in stock
@@ -127,7 +127,7 @@ public class CompletedOrderController : Controller
 
         if (album == null)
         {
-            return RedirectToAction(nameof(OrdersList));
+            return NotFound();
         }
 
         album.Stock += albumFromTheOrder.Quantity;

@@ -1,4 +1,4 @@
-﻿using Microsoft.AspNetCore.Identity;
+﻿using MusicWebStore.Data.Models;
 using System.ComponentModel.DataAnnotations;
 using System.ComponentModel.DataAnnotations.Schema;
 using static MusicWebStore.Constants.ModelConstants;
@@ -20,7 +20,7 @@ public class Review
     public string UserId { get; set; } = null!;
 
     [ForeignKey(nameof(UserId))]
-    public IdentityUser User { get; set; } = null!;
+    public ApplicationUser User { get; set; } = null!;
 
     [Required]
     [DisplayFormat(DataFormatString = "{0:dd-MM-yyyy}")]

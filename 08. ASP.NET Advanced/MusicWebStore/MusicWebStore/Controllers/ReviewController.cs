@@ -42,7 +42,7 @@ public class ReviewController : Controller
 
         if (existingReview != null)
         {
-            return RedirectToAction("Details", "Album", new { id = album.Id });
+            return NotFound();
         }
 
         ReviewAddViewModel addReview = new ReviewAddViewModel();
@@ -60,7 +60,7 @@ public class ReviewController : Controller
 
         if (album == null)
         {
-            return RedirectToAction("Index", "Album");
+            return NotFound();
         }
 
         string userId = User.FindFirstValue(ClaimTypes.NameIdentifier) ?? string.Empty;
@@ -102,7 +102,7 @@ public class ReviewController : Controller
 
         if (findReview == null)
         {
-            return RedirectToAction("Index", "Album");
+            return NotFound();
         }
 
         //Find the certain album, where the review is published
@@ -112,7 +112,7 @@ public class ReviewController : Controller
 
         if (album == null)
         {
-            return RedirectToAction("Index", "Album");
+            return NotFound();
         }
 
         string userId = User.FindFirstValue(ClaimTypes.NameIdentifier) ?? string.Empty;
@@ -144,7 +144,7 @@ public class ReviewController : Controller
 
         if (findReview == null)
         {
-            return RedirectToAction("Index", "Album");
+            return NotFound();
         }
 
         //Find the certain album, where the review is published
@@ -154,7 +154,7 @@ public class ReviewController : Controller
 
         if (album == null)
         {
-            return RedirectToAction("Index", "Album");
+            return NotFound();
         }
 
         string userId = User.FindFirstValue(ClaimTypes.NameIdentifier) ?? string.Empty;

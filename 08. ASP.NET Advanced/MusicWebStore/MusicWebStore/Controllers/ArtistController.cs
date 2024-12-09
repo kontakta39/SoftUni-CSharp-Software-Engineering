@@ -166,7 +166,7 @@ public class ArtistController : Controller
 
         if (artistCheck == null)
         {
-            return RedirectToAction(nameof(Index));
+            return NotFound();
         }
 
         Genre? currentGenre = await _context.Genres
@@ -196,7 +196,7 @@ public class ArtistController : Controller
 
         if (artist == null)
         {
-            return RedirectToAction(nameof(Index));
+            return NotFound();
         }
 
         List<Genre> allGenres = await _context.Genres
@@ -226,9 +226,6 @@ public class ArtistController : Controller
         List<Genre> genres = await _context.Genres
             .Where(g => g.IsDeleted == false)
             .ToListAsync();
-
-        //editArtist.Genres = genres;
-        //editArtist.NationalityOptions = CountriesConstants.CountriesList();
 
         TempData["CurrentImageUrl"] = await _context.Artists
             .Where(a => a.Id == id && a.IsDeleted == false)
@@ -373,6 +370,11 @@ public class ArtistController : Controller
             })
             .AsNoTracking()
             .FirstOrDefaultAsync();
+
+        if (deleteArtist == null)
+        {
+            return NotFound();
+        }
 
         return View(deleteArtist);
     }
