@@ -23,7 +23,7 @@ public class OrderController : Controller
 
         if (buyerId == null)
         {
-            return RedirectToPage("/Account/Login", new { area = "Identity" });
+            return RedirectToAction("LogIn", "Account");
         }
 
         List<OrderCartViewModel>? model = await _context.OrdersAlbums
@@ -52,7 +52,7 @@ public class OrderController : Controller
 
         if (buyerId == null)
         {
-            return RedirectToPage("/Account/Login", new { area = "Identity" });
+            return RedirectToAction("LogIn", "Account");
         }
 
         Order? order = await _context.Orders
@@ -198,7 +198,7 @@ public class OrderController : Controller
 
         if (buyerId == null)
         {
-            return RedirectToPage("/Account/Login", new { area = "Identity" });
+            return RedirectToAction("LogIn", "Account");
         }
 
         OrderAlbum? orderAlbumToBeDeleted = await _context.OrdersAlbums

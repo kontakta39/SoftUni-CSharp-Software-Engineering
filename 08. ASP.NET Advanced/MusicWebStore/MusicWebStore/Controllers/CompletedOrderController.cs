@@ -24,7 +24,7 @@ public class CompletedOrderController : Controller
 
         if (buyerId == null)
         {
-            return RedirectToPage("/Account/Login", new { area = "Identity" });
+            return RedirectToAction("LogIn", "Account");
         }
 
         //Fetch all completed orders by a certain buyer
@@ -60,7 +60,7 @@ public class CompletedOrderController : Controller
 
         if (buyerId == null)
         {
-            return RedirectToPage("/Account/Login", new { area = "Identity" });
+            return RedirectToAction("LogIn", "Account");
         }
 
         Order? orderToComplete = await _context.Orders
@@ -97,7 +97,7 @@ public class CompletedOrderController : Controller
 
         if (buyerId == null)
         {
-            return RedirectToPage("/Account/Login", new { area = "Identity" });
+            return RedirectToAction("LogIn", "Account");
         }
 
         //Find the order from which the album should be returned
@@ -149,5 +149,4 @@ public class CompletedOrderController : Controller
     {
         return View();
     }
-
 }

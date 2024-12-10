@@ -3,6 +3,8 @@ using Microsoft.AspNetCore.Identity;
 using Microsoft.AspNetCore.Mvc;
 using Microsoft.EntityFrameworkCore;
 using MusicWebStore.Data.Models;
+using MusicWebStore.ViewModels;
+using System.Security.Claims;
 
 namespace MusicWebStore.Controllers;
 
@@ -17,18 +19,21 @@ public class AccountController : Controller
         _userManager = userManager;
     }
 
-    [HttpPost]
-    public async Task<IActionResult> LogOut()
-    {
-        await _signInManager.SignOutAsync();
-        return RedirectToAction("Index", "Home");
-    }
-
     [HttpGet]
     [Authorize(Roles = "Administrator")]
     public async Task<IActionResult> ManageUsers()
     {
-        List<ApplicationUser>? users = await _userManager.Users.ToListAsync();
+        string userId = User.FindFirstValue(ClaimTypes.NameIdentifier) ?? string.Empty;
+
+        if (userId == null)
+        {
+            return RedirectToAction("LogIn", "Account");
+        }
+
+        List<ApplicationUser>? users = await _userManager.Users
+            .Where(u => u.Email != "kontakta39@mail.bg" && u.Id != userId)
+            .ToListAsync();
+
         List<(ApplicationUser User, IList<string> Roles)>? userRoles = new List<(ApplicationUser User, IList<string> Roles)>();
 
         foreach (ApplicationUser user in users)
@@ -56,5 +61,114 @@ public class AccountController : Controller
         await _userManager.AddToRoleAsync(user, role);
 
         return RedirectToAction(nameof(ManageUsers));
+    }
+
+    [HttpGet]
+    public IActionResult Register()
+    {
+        RegisterViewModel register = new RegisterViewModel();
+        return View(register);
+    }
+
+    [HttpPost]
+    public async Task<IActionResult> Register(RegisterViewModel register)
+    {
+        if (!ModelState.IsValid)
+        {
+            return View(register);
+        }
+
+        ApplicationUser? userCheck = await _userManager.FindByEmailAsync(register.Email);
+
+        if (userCheck != null)
+        {
+            //Clear the email field and ModelState
+            ModelState.Remove(nameof(register.Email));
+            register.Email = string.Empty;
+
+            ViewData["ErrorMessage"] = "There is already registered user with this email.";
+            return View(register);
+        }
+
+        ApplicationUser user = new ApplicationUser
+        {
+            UserName = register.Email,
+            Email = register.Email,
+            FirstName = register.FirstName,
+            LastName = register.LastName,
+            EmailConfirmed = false
+        };
+
+        IdentityResult result = await _userManager.CreateAsync(user, register.Password);
+
+        if (result.Succeeded)
+        {
+            //Adding a Guest role to the newly registered user
+            await _userManager.AddToRoleAsync(user, "Guest");
+
+            await _signInManager.SignInAsync(user, isPersistent: false);
+            return RedirectToAction("Index", "Home");
+        }
+
+        foreach (var error in result.Errors)
+        {
+            ModelState.AddModelError(string.Empty, error.Description);
+        }
+
+        return View(register);
+    }
+
+    [HttpGet]
+    public IActionResult LogIn()
+    {
+        LoginViewModel login = new LoginViewModel();
+        return View(login);
+    }
+
+    [HttpPost]
+    [ValidateAntiForgeryToken]
+    public async Task<IActionResult> LogIn(LoginViewModel model)
+    {
+        if (ModelState.IsValid)
+        {
+            ApplicationUser? user = await _userManager.FindByEmailAsync(model.Email);
+
+            if (user == null)
+            {
+                ViewData["ErrorMessage"] = "No user found with this email address.";
+                return View(model);
+            }
+
+            if (await _userManager.IsLockedOutAsync(user))
+            {
+                ViewData["ErrorMessage"] = "Your account is locked due to multiple failed login attempts. Try again later.";
+                return View(model);
+            }
+
+            var result = await _signInManager.PasswordSignInAsync(user, model.Password, isPersistent: false, lockoutOnFailure: true);
+
+            if (result.Succeeded)
+            {
+                await _userManager.ResetAccessFailedCountAsync(user); // Reset failed attempts on successful login
+                return RedirectToAction("Index", "Home");
+            }
+            else if (result.IsLockedOut)
+            {
+                ViewData["ErrorMessage"] = "Your account is locked. Please try again in 30 minutes.";
+            }
+            else
+            {
+                ViewData["ErrorMessage"] = "Invalid login attempt.";
+            }
+        }
+
+        return View(model);
+    }
+
+    [HttpPost]
+    public async Task<IActionResult> LogOut()
+    {
+        await _signInManager.SignOutAsync();
+        return RedirectToAction("Index", "Home");
     }
 }

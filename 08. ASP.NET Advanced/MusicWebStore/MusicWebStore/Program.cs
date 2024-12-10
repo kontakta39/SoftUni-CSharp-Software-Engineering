@@ -29,6 +29,9 @@ public class Program
             options.Password.RequireDigit = identityOptions.Password.RequireDigit;
             options.Password.RequireNonAlphanumeric = identityOptions.Password.RequireNonAlphanumeric;
             options.Password.RequireUppercase = identityOptions.Password.RequireUppercase;
+            options.Lockout.DefaultLockoutTimeSpan = identityOptions.Lockout.DefaultLockoutTimeSpan;
+            options.Lockout.MaxFailedAccessAttempts = identityOptions.Lockout.MaxFailedAccessAttempts;
+            options.Lockout.AllowedForNewUsers = identityOptions.Lockout.AllowedForNewUsers;
         })
         .AddEntityFrameworkStores<MusicStoreDbContext>()
         .AddDefaultTokenProviders();

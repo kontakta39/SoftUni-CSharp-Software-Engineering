@@ -33,7 +33,7 @@ public class ReviewController : Controller
 
         if (userId == null)
         {
-            return RedirectToPage("/Account/Login", new { area = "Identity" });
+            return RedirectToAction("LogIn", "Account");
         }
 
         // Check if the user has already reviewed this album
@@ -67,7 +67,7 @@ public class ReviewController : Controller
 
         if (string.IsNullOrEmpty(userId))
         {
-            return RedirectToPage("/Account/Login", new { area = "Identity" });
+            return RedirectToAction("LogIn", "Account");
         }
 
         if (!ModelState.IsValid)
@@ -119,7 +119,7 @@ public class ReviewController : Controller
 
         if (userId == null)
         {
-            return RedirectToPage("/Account/Login", new { area = "Identity" });
+            return RedirectToAction("LogIn", "Account");
         }
 
         ReviewEditViewModel editReview = new ReviewEditViewModel()
@@ -161,7 +161,7 @@ public class ReviewController : Controller
 
         if (userId == null)
         {
-            return RedirectToPage("/Account/Login", new { area = "Identity" });
+            return RedirectToAction("LogIn", "Account");
         }
 
         if (!ModelState.IsValid)
