@@ -17,18 +17,19 @@ public class MusicStoreDbContext : IdentityDbContext<ApplicationUser, Applicatio
     public virtual DbSet<Order> Orders { get; set; }
     public virtual DbSet<OrderAlbum> OrdersAlbums { get; set; }
     public virtual DbSet<Review> Reviews { get; set; }
+    public virtual DbSet<Blog> Blogs { get; set; }
 
     protected override void OnModelCreating(ModelBuilder modelBuilder)
     {
         base.OnModelCreating(modelBuilder);
 
         modelBuilder
-                .Entity<Genre>()
-                .HasData(
-                    new Genre { Name = "Blues" },
-                    new Genre { Name = "Heavy Metal" },
-                    new Genre { Name = "Jazz" },
-                    new Genre { Name = "Pop" },
-                    new Genre { Name = "Rock" });
+            .Entity<Genre>()
+            .HasData(
+                new Genre { Name = "Blues" },
+                new Genre { Name = "Heavy Metal" },
+                new Genre { Name = "Jazz" },
+                new Genre { Name = "Pop" },
+                new Genre { Name = "Rock" });
     }
 }

@@ -3,26 +3,26 @@
 @inject UserManager<ApplicationUser> UserManager
 
 <ul class="navbar-nav">
-@if (SignInManager.IsSignedIn(User))
-{
-    ApplicationUser? user = await UserManager.GetUserAsync(User);
+    @if (SignInManager.IsSignedIn(User))
+    {
+        ApplicationUser? user = await UserManager.GetUserAsync(User);
 
-    <li class="nav-item">
-            <a class="nav-link text-dark">Logged in as @user.FirstName @user.LastName</a>
-    </li>
-    <li class="nav-item">
-        <form class="form-inline" asp-controller="Account" asp-action="LogOut" method="post">
-            <button type="submit" class="nav-link btn btn-link text-dark">Log Out</button>
-        </form>
-    </li>
-}
-else
-{
-    <li class="nav-item">
-        <a class="nav-link text-dark" asp-controller="Account" asp-action="Register">Register</a>
-    </li>
-    <li class="nav-item">
-        <a class="nav-link text-dark" asp-controller="Account" asp-action="LogIn">Log In</a>
-    </li>
-}
+        <li class="nav-item">
+                <a class="nav-link text-dark">Logged in as @user.FirstName @user.LastName</a>
+        </li>
+        <li class="nav-item">
+            <form class="form-inline" asp-controller="Account" asp-action="LogOut" method="post">
+                <button type="submit" class="nav-link btn btn-link text-dark">Log Out</button>
+            </form>
+        </li>
+    }
+    else
+    {
+        <li class="nav-item">
+            <a class="nav-link text-dark" asp-controller="Account" asp-action="Register">Register</a>
+        </li>
+        <li class="nav-item">
+            <a class="nav-link text-dark" asp-controller="Account" asp-action="LogIn">Log In</a>
+        </li>
+    }
 </ul>

@@ -3,7 +3,7 @@
 public class OrderCartViewModel
 {
     public Guid Id { get; set; } // Order Id
-    public Guid AlbumId { get; set; } // Add this property for the Album Id
+    public Guid AlbumId { get; set; } // Property for the Album Id
     public string AlbumTitle { get; set; } = null!;
     public string ImageUrl { get; set; } = null!;
     public int Quantity { get; set; }

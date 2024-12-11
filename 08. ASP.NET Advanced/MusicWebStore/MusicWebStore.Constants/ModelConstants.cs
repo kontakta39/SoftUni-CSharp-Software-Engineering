@@ -48,4 +48,9 @@ public static class ModelConstants
 
     public const int PasswordMinLength = 6;
     public const int PasswordMaxLength = 20;
+
+    public const int BlogTitleMinLength = 1;
+    public const int BlogTitleMaxLength = 100;
+
+    public const int BlogContentMinLength = 200;
 }

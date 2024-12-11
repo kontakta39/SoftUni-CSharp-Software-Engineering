@@ -13,4 +13,6 @@ public class ApplicationUser : IdentityUser
     [Required]
     [StringLength(ApplicationUserNameMaxLength, MinimumLength = ApplicationUserNameMinLength)]
     public string LastName { get; set; } = null!;
+
+    public HashSet<Blog> Blogs { get; set; } = new HashSet<Blog>();
 }
