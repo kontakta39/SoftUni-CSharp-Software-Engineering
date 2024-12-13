@@ -39,6 +39,14 @@ public class Program
         builder.Services.AddControllersWithViews();
         builder.Services.AddRazorPages();
 
+        // Define folder paths for the ImageHandler
+        string artistFinalFolderPath = Path.Combine(Directory.GetCurrentDirectory(), "wwwroot", "img", "Artists Images");
+        string albumFinalFolderPath = Path.Combine(Directory.GetCurrentDirectory(), "wwwroot", "img", "Albums Covers");
+
+        // Register ImageHandler as a singleton service
+        builder.Services.AddSingleton(new ImageHandler(albumFinalFolderPath));
+        builder.Services.AddSingleton(new ImageHandler(artistFinalFolderPath));
+
         WebApplication? app = builder.Build();
 
         // Initialize roles and admin user
