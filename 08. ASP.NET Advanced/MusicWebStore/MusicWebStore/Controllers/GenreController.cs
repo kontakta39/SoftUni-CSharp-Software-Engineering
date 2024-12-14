@@ -1,7 +1,6 @@
 ﻿using Microsoft.AspNetCore.Authorization;
 using Microsoft.AspNetCore.Mvc;
-using Microsoft.EntityFrameworkCore;
-using MusicWebStore.Data;
+using MusicWebStore.Services;
 using MusicWebStore.ViewModels;
 
 namespace MusicWebStore.Controllers;
@@ -9,11 +8,11 @@ namespace MusicWebStore.Controllers;
 [Authorize]
 public class GenreController : Controller
 {
-    private readonly MusicStoreDbContext _context;
+    private readonly IGenreService _genreService;
 
-    public GenreController(MusicStoreDbContext context)
+    public GenreController(IGenreService genreService)
     {
-        _context = context;
+        _genreService = genreService;
     }
 
     public async Task<IActionResult> Index()
@@ -23,17 +22,7 @@ public class GenreController : Controller
             return RedirectToAction("AccessDenied", "Home");
         }
 
-        List<GenreIndexViewModel> genres = await _context.Genres
-            .Where(g => g.IsDeleted == false)
-            .Select(g => new GenreIndexViewModel()
-            {
-                Id = g.Id,
-                Name = g.Name
-            })
-            .OrderBy(g => g.Name)
-            .AsNoTracking()
-            .ToListAsync();
-
+        List<GenreIndexViewModel> genres = await _genreService.Index();
         return View(genres);
     }
 
@@ -62,37 +51,24 @@ public class GenreController : Controller
             return View(addGenre);
         }
 
-        Genre genre = new Genre()
-        {
-            Name = addGenre.Name
-        };
-
-        await _context.Genres.AddAsync(genre);
-        await _context.SaveChangesAsync();
-
+        await _genreService.Add(addGenre);
         return RedirectToAction(nameof(Index));
     }
 
     [HttpGet]
-    public IActionResult Edit(Guid id)
+    public async Task<IActionResult> Edit(Guid id)
     {
         if (!User.IsInRole("Administrator"))
         {
             return RedirectToAction("AccessDenied", "Home");
         }
 
-        Genre? genre = _context.Genres
-            .FirstOrDefault(g => g.Id == id && g.IsDeleted == false);
+        GenreEditViewModel editModel = await _genreService.Edit(id);
 
-        if (genre == null)
+        if (editModel == null)
         {
-            return NotFound();
+            return RedirectToAction("NotFound", "Home");
         }
-
-        GenreEditViewModel editModel = new GenreEditViewModel()
-        {
-            Name = genre.Name
-        };
 
         return View(editModel);
     }
@@ -110,16 +86,12 @@ public class GenreController : Controller
             return View(editModel);
         }
 
-        Genre genre = _context.Genres.FirstOrDefault(g => g.Id == id && g.IsDeleted == false)!;
+        editModel = await _genreService.Edit(editModel, id);
 
-        if (genre == null)
+        if (editModel == null)
         {
-            return NotFound();
+            return RedirectToAction("NotFound", "Home");
         }
-
-        genre.Name = editModel.Name;
-
-        await _context.SaveChangesAsync();
 
         return RedirectToAction(nameof(Index));
     }
@@ -132,19 +104,11 @@ public class GenreController : Controller
             return RedirectToAction("AccessDenied", "Home");
         }
 
-        GenreDeleteViewModel? genre = await _context.Genres
-            .Where(g => g.Id == id && g.IsDeleted == false)
-            .Select(g => new GenreDeleteViewModel()
-            {
-                Id = id,
-                Name = g.Name
-            })
-            .AsNoTracking()
-            .FirstOrDefaultAsync();
+        GenreDeleteViewModel genre = await _genreService.Delete(id);
 
         if (genre == null)
         {
-            return NotFound();
+            return RedirectToAction("NotFound", "Home");
         }
 
         return View(genre);
@@ -158,16 +122,7 @@ public class GenreController : Controller
             return RedirectToAction("AccessDenied", "Home");
         }
 
-        Genre? genre = await _context.Genres
-           .Where(g => g.Id == model.Id && g.IsDeleted == false)
-           .FirstOrDefaultAsync();
-
-        if (genre != null)
-        {
-            genre.IsDeleted = true;
-            await _context.SaveChangesAsync();
-        }
-
+        await _genreService.Delete(model);
         return RedirectToAction(nameof(Index));
     }
 }

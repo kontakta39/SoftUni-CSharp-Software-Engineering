@@ -21,7 +21,9 @@ Project("{9A19103F-16F7-4668-BE54-9A1E7A4F7556}") = "MusicWebStore.ViewModels", 
 EndProject
 Project("{2150E333-8FDC-42A3-9474-1A3956D46DE8}") = "Services", "Services", "{0FC27BD0-9861-41B5-8701-4289D9567227}"
 EndProject
-Project("{FAE04EC0-301F-11D3-BF4B-00C04F79EFBC}") = "MusicWebStore.Services", "MusicWebStore.Services\MusicWebStore.Services.csproj", "{20CF45E3-02FC-4185-8436-32972C3F9389}"
+Project("{9A19103F-16F7-4668-BE54-9A1E7A4F7556}") = "MusicWebStore.Services", "MusicWebStore.Services\MusicWebStore.Services.csproj", "{20CF45E3-02FC-4185-8436-32972C3F9389}"
+EndProject
+Project("{FAE04EC0-301F-11D3-BF4B-00C04F79EFBC}") = "MusicWebStore.Services.Interfaces", "MusicWebStore.Services.Interfaces\MusicWebStore.Services.Interfaces.csproj", "{BB76C7F9-045C-4E73-859D-BC0AE85FC65F}"
 EndProject
 Global
 	GlobalSection(SolutionConfigurationPlatforms) = preSolution
@@ -53,6 +55,10 @@ Global
 		{20CF45E3-02FC-4185-8436-32972C3F9389}.Debug|Any CPU.Build.0 = Debug|Any CPU
 		{20CF45E3-02FC-4185-8436-32972C3F9389}.Release|Any CPU.ActiveCfg = Release|Any CPU
 		{20CF45E3-02FC-4185-8436-32972C3F9389}.Release|Any CPU.Build.0 = Release|Any CPU
+		{BB76C7F9-045C-4E73-859D-BC0AE85FC65F}.Debug|Any CPU.ActiveCfg = Debug|Any CPU
+		{BB76C7F9-045C-4E73-859D-BC0AE85FC65F}.Debug|Any CPU.Build.0 = Debug|Any CPU
+		{BB76C7F9-045C-4E73-859D-BC0AE85FC65F}.Release|Any CPU.ActiveCfg = Release|Any CPU
+		{BB76C7F9-045C-4E73-859D-BC0AE85FC65F}.Release|Any CPU.Build.0 = Release|Any CPU
 	EndGlobalSection
 	GlobalSection(SolutionProperties) = preSolution
 		HideSolutionNode = FALSE
@@ -63,6 +69,7 @@ Global
 		{8D995526-1160-47C6-9EA1-26261B494C83} = {C4F92B0A-83F5-4741-BB37-203FFC96EA8E}
 		{7892F5D4-DA3B-4DB8-AD4A-9B81C1842CA6} = {C6611CF4-F891-4DAE-9870-FFBA8922BF63}
 		{20CF45E3-02FC-4185-8436-32972C3F9389} = {0FC27BD0-9861-41B5-8701-4289D9567227}
+		{BB76C7F9-045C-4E73-859D-BC0AE85FC65F} = {0FC27BD0-9861-41B5-8701-4289D9567227}
 	EndGlobalSection
 	GlobalSection(ExtensibilityGlobals) = postSolution
 		SolutionGuid = {72A5F984-22E5-451B-81AC-42FBA4D06ECC}

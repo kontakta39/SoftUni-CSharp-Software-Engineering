@@ -12,6 +12,8 @@
 
   <ItemGroup>
     <ProjectReference Include="..\MusicWebStore.Data.Models\MusicWebStore.Data.Models.csproj" />
+    <ProjectReference Include="..\MusicWebStore.Data\MusicWebStore.Data.csproj" />
+    <ProjectReference Include="..\MusicWebStore.Services.Interfaces\MusicWebStore.Services.Interfaces.csproj" />
   </ItemGroup>
 
 </Project>
