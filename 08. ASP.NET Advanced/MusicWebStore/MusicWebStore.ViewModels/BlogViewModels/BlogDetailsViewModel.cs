@@ -1,21 +1,16 @@
-﻿using MusicWebStore.Data.Models;
-using System.ComponentModel.DataAnnotations.Schema;
-using System.ComponentModel.DataAnnotations;
+﻿using System.ComponentModel.DataAnnotations;
 
 namespace MusicWebStore.ViewModels;
 
 public class BlogDetailsViewModel
 {
-    [Key]
+    [Required]
     public Guid Id { get; set; } = Guid.NewGuid();
 
     [Required]
     public string Title { get; set; } = null!;
 
     public string? ImageUrl { get; set; } = null!;
-
-    [Required]
-    public string PublisherId { get; set; } = null!;
 
     [Required]
     public string PublisherName { get; set; } = null!;

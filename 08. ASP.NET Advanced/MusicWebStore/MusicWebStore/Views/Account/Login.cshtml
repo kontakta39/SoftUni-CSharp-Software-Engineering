@@ -5,13 +5,15 @@
     ViewData["Title"] = "Log in";
 }
 
-<h1>@ViewData["Title"]</h1>
+<div class="d-flex justify-content-center align-items-center mb-3 mt-3">
+    <h1>@ViewData["Title"]</h1>
+</div>
+<hr style="margin-bottom: 50px;" />
 
-<div class="row">
+<div class="d-flex flex-column justify-content-center align-items-center">
     <div class="col-md-4">
         <section>
             <form asp-action="LogIn" method="post">
-                <hr />
                 <!-- Display general error messages (except Email and Password) -->
                 @if (!string.IsNullOrEmpty(ViewData["ErrorMessage"]?.ToString()))
                 {
@@ -39,9 +41,3 @@
         </section>
     </div>
 </div>
-
-@section Scripts {
-    @{
-        await Html.RenderPartialAsync("_ValidationScriptsPartial");
-    }
-}

@@ -1,4 +1,5 @@
-﻿using Microsoft.AspNetCore.Mvc;
+﻿using Microsoft.AspNetCore.Authorization;
+using Microsoft.AspNetCore.Mvc;
 using Microsoft.EntityFrameworkCore;
 using MusicWebStore.Constants;
 using MusicWebStore.Data;
@@ -20,8 +21,14 @@ public class ArtistController : Controller
     }
 
     [HttpGet]
+    [Authorize]
     public async Task<IActionResult> Index()
     {
+        if (!User.IsInRole("Administrator"))
+        {
+            return RedirectToAction("AccessDenied", "Home");
+        }
+
         List<ArtistIndexViewModel> artists = await _context.Artists
             .Where(a => a.IsDeleted == false)
             .Select(a => new ArtistIndexViewModel()
@@ -38,8 +45,14 @@ public class ArtistController : Controller
     }
 
     [HttpGet]
+    [Authorize]
     public async Task<IActionResult> Add()
     {
+        if (!User.IsInRole("Administrator"))
+        {
+            return RedirectToAction("AccessDenied", "Home");
+        }
+
         List<Genre> allGenres = await _context.Genres
             .Where(g => g.IsDeleted == false)
             .ToListAsync();
@@ -52,8 +65,14 @@ public class ArtistController : Controller
     }
 
     [HttpPost]
+    [Authorize]
     public async Task<IActionResult> Add(ArtistAddViewModel addArtist)
     {
+        if (!User.IsInRole("Administrator"))
+        {
+            return RedirectToAction("AccessDenied", "Home");
+        }
+
         List<Genre> allGenres = await _context.Genres
             .Where(g => g.IsDeleted == false)
             .ToListAsync();
@@ -75,7 +94,6 @@ public class ArtistController : Controller
             addArtist.NationalityOptions = CountriesConstants.CountriesList();
 
             //Handle image upload (only store the filename in TempData if ModelState is not valid)
-            // Handle image upload
             if (addArtist.ImageFile != null)
             {
                 string validationError = ImageHandler.ValidateImage(addArtist.ImageFile, allowedContentTypes, allowedExtensions);
@@ -103,7 +121,6 @@ public class ArtistController : Controller
 
         Artist artist = new Artist()
         {
-            Id = addArtist.Id,
             Name = addArtist.Name,
             Biography = addArtist.Biography,
             Nationality = addArtist.Nationality,
@@ -177,8 +194,14 @@ public class ArtistController : Controller
     }
 
     [HttpGet]
+    [Authorize]
     public async Task<IActionResult> Edit(Guid id)
     {
+        if (!User.IsInRole("Administrator"))
+        {
+            return RedirectToAction("AccessDenied", "Home");
+        }
+
         Artist? artist = _context.Artists
             .FirstOrDefault(a => a.Id == id && a.IsDeleted == false);
 
@@ -193,7 +216,6 @@ public class ArtistController : Controller
 
         ArtistEditViewModel? editArtist = new ArtistEditViewModel
         {
-            Id = artist.Id,
             Name = artist.Name,
             Biography = artist.Biography,
             Nationality = artist.Nationality,
@@ -209,8 +231,14 @@ public class ArtistController : Controller
     }
 
     [HttpPost]
+    [Authorize]
     public async Task<IActionResult> Edit(ArtistEditViewModel editArtist, Guid id)
     {
+        if (!User.IsInRole("Administrator"))
+        {
+            return RedirectToAction("AccessDenied", "Home");
+        }
+
         List<Genre> genres = await _context.Genres
             .Where(g => g.IsDeleted == false)
             .ToListAsync();
@@ -326,8 +354,14 @@ public class ArtistController : Controller
     }
 
     [HttpGet]
+    [Authorize]
     public async Task<IActionResult> Delete(Guid id)
     {
+        if (!User.IsInRole("Administrator"))
+        {
+            return RedirectToAction("AccessDenied", "Home");
+        }
+
         ArtistDeleteViewModel? deleteArtist = await _context.Artists
             .Where(p => p.Id == id && p.IsDeleted == false)
             .Select(p => new ArtistDeleteViewModel()
@@ -347,8 +381,14 @@ public class ArtistController : Controller
     }
 
     [HttpPost]
+    [Authorize]
     public async Task<IActionResult> Delete(ArtistDeleteViewModel deleteArtist)
     {
+        if (!User.IsInRole("Administrator"))
+        {
+            return RedirectToAction("AccessDenied", "Home");
+        }
+
         Artist? artist = await _context.Artists
            .Where(p => p.Id == deleteArtist.Id && p.IsDeleted == false)
            .FirstOrDefaultAsync();

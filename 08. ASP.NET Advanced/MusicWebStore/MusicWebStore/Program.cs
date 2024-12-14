@@ -36,16 +36,25 @@ public class Program
         .AddEntityFrameworkStores<MusicStoreDbContext>()
         .AddDefaultTokenProviders();
 
+        // Configure cookie authentication for login and access denied paths
+        builder.Services.ConfigureApplicationCookie(options =>
+        {
+            options.LoginPath = "/Account/Login";
+            options.AccessDeniedPath = "/Home/AccessDenied"; 
+        });
+
         builder.Services.AddControllersWithViews();
         builder.Services.AddRazorPages();
 
         // Define folder paths for the ImageHandler
-        string artistFinalFolderPath = Path.Combine(Directory.GetCurrentDirectory(), "wwwroot", "img", "Artists Images");
-        string albumFinalFolderPath = Path.Combine(Directory.GetCurrentDirectory(), "wwwroot", "img", "Albums Covers");
+        string artistFolderPath = Path.Combine(Directory.GetCurrentDirectory(), "wwwroot", "img", "Artists Images");
+        string albumFolderPath = Path.Combine(Directory.GetCurrentDirectory(), "wwwroot", "img", "Albums Covers");
+        string blogFolderPath = Path.Combine(Directory.GetCurrentDirectory(), "wwwroot", "img", "Blogs Images");
 
         // Register ImageHandler as a singleton service
-        builder.Services.AddSingleton(new ImageHandler(albumFinalFolderPath));
-        builder.Services.AddSingleton(new ImageHandler(artistFinalFolderPath));
+        builder.Services.AddSingleton(new ImageHandler(albumFolderPath));
+        builder.Services.AddSingleton(new ImageHandler(artistFolderPath));
+        builder.Services.AddSingleton(new ImageHandler(blogFolderPath));
 
         WebApplication? app = builder.Build();
 

@@ -13,12 +13,21 @@
 <div class="row">
     <div class="col-sm-12 offset-lg-2 col-lg-8 offset-xl-3 col-xl-6">
         <form asp-action="Edit" method="post" enctype="multipart/form-data">
-            <div class="mb-2">
-                <label asp-for="@Model.Title" class="form-label-add-edit">Title</label>
-                <input asp-for="@Model.Title" class="form-control" aria-required="true" />
-                <span asp-validation-for="@Model.Title" class="text-danger"></span>
-            </div>
-
+            @if (User.IsInRole("Administrator"))
+            { 
+                <div class="mb-2">
+                    <label asp-for="@Model.Title" class="form-label-add-edit">Title</label>
+                    <input asp-for="@Model.Title" class="form-control" aria-required="true" />
+                    <span asp-validation-for="@Model.Title" class="text-danger"></span>
+                </div>
+            }
+            else if (User.IsInRole("Moderator"))
+            {
+                <div class="mb-2">
+                    <label asp-for="@Model.Title" class="form-label-add-edit">Title</label>
+                    <input asp-for="@Model.Title" class="form-control" aria-required="true" readonly />
+                </div>
+            }
             <div class="row">
                 <div class="col-sm-6 mb-2">
                     <label asp-for="@Model.Stock" class="form-label-add-edit">Stock</label>
@@ -41,24 +50,40 @@
                     <span asp-validation-for="@Model.Price" class="text-danger"></span>
                 </div>
             </div>
-
-            <div class="row">
-                <div class="col-sm-6 mb-2">
-                    <label asp-for="@Model.GenreId" class="form-label-add-edit">Genre</label>
-                    <select asp-for="@Model.GenreId" class="form-control" aria-required="true" asp-items="@(new SelectList(Model.Genres, "Id", "Name"))" id="genreDropdown">
-                        <option value="">Select genre</option>
-                    </select>
-                    <span asp-validation-for="@Model.GenreId" class="text-danger"></span>
+            @if (User.IsInRole("Administrator"))
+            {
+                <div class="row">
+                    <div class="col-sm-6 mb-2">
+                        <label asp-for="@Model.GenreId" class="form-label-add-edit">Genre</label>
+                        <select asp-for="@Model.GenreId" class="form-control" aria-required="true" asp-items="@(new SelectList(Model.Genres, "Id", "Name"))" id="genreDropdown">
+                            <option value="">Select genre</option>
+                        </select>
+                        <span asp-validation-for="@Model.GenreId" class="text-danger"></span>
+                    </div>
+                    <div class="col-sm-6 mb-2">
+                        <label asp-for="@Model.ArtistId" class="form-label-add-edit">Artist</label>
+                        <select asp-for="@Model.ArtistId" class="form-control" aria-required="true" asp-items="@(new SelectList(Model.Artists, "Id", "Name"))" id="artistDropdown" data-selected-artist="@Model.ArtistId">
+                            <option value="">Select artist</option>
+                        </select>
+                        <span asp-validation-for="@Model.ArtistId" class="text-danger"></span>
+                    </div>
                 </div>
-                <div class="col-sm-6 mb-2">
-                    <label asp-for="@Model.ArtistId" class="form-label-add-edit">Artist</label>
-                    <select asp-for="@Model.ArtistId" class="form-control" aria-required="true" asp-items="@(new SelectList(Model.Artists, "Id", "Name"))" id="artistDropdown" data-selected-artist="@Model.ArtistId">
-                        <option value="">Select artist</option>
-                    </select>
-                    <span asp-validation-for="@Model.ArtistId" class="text-danger"></span>
+            }
+            else if (User.IsInRole("Moderator"))
+            {
+                <div class="row">
+                    <div class="col-sm-6 mb-2">
+                        <label asp-for="@Model.GenreId" class="form-label-add-edit">Genre</label>
+                        <input type="hidden" name="GenreId" value="@Model.GenreId" />
+                        <input type="text" class="form-control" value="@Model.Genres.FirstOrDefault(g => g.Id == Model.GenreId)?.Name" readonly />
+                    </div>
+                    <div class="col-sm-6 mb-2">
+                        <label asp-for="@Model.ArtistId" class="form-label-add-edit">Artist</label>
+                        <input type="hidden" name="ArtistId" value="@Model.ArtistId" />
+                        <input type="text" class="form-control" value="@Model.Artists.FirstOrDefault(a => a.Id == Model.ArtistId)?.Name" readonly />
+                    </div>
                 </div>
-            </div>
-
+            }
             <div class="row">
                 <div class="col-sm-6 mb-2">
                     <label asp-for="@Model.ReleaseDate" class="form-label-add-edit">Release Date (Optional)</label>
@@ -70,26 +95,38 @@
                 </div>
             </div>
 
-            <div class="mb-2">
-                <label asp-for="@Model.ImageFile" class="form-label-add-edit">Upload Image</label>
-                <div class="input-group">
-                    <!-- Text input field for displaying the selected file name -->
-                    <input type="text" class="form-control" id="fileName" placeholder="No file chosen" value="@Model.ImageUrl" disabled />
+            @if (User.IsInRole("Administrator"))
+            {
+                <div class="mb-2">
+                    <label asp-for="@Model.ImageFile" class="form-label-add-edit">Upload Image</label>
+                    <div class="input-group">
+                        <!-- Text input field for displaying the selected file name -->
+                        <input type="text" class="form-control" id="fileName" placeholder="No file chosen" value="@Model.ImageUrl" disabled />
 
-                    <!-- Hidden file input element -->
-                    <input type="file" asp-for="@Model.ImageFile" class="d-none" id="imageFileInput" onchange="document.getElementById('fileName').value = this.files[0].name" />
+                        <!-- Hidden file input element -->
+                        <input type="file" asp-for="@Model.ImageFile" class="d-none" id="imageFileInput" onchange="document.getElementById('fileName').value = this.files[0].name" />
 
-                    <!-- Button to trigger file input -->
-                    <button class="btn btn-outline-secondary" type="button" onclick="document.getElementById('imageFileInput').click()">Upload</button>
+                        <!-- Button to trigger file input -->
+                        <button class="btn btn-outline-secondary" type="button" onclick="document.getElementById('imageFileInput').click()">Upload</button>
+                    </div>
                 </div>
-            </div>
 
+                <script src="~/js/genreArtistFilter.js"></script>
+            }
+            else if (User.IsInRole("Moderator"))
+            {
+                <div class="mb-2">
+                    <label asp-for="@Model.ImageFile" class="form-label-add-edit">Upload Image</label>
+                    <div class="input-group">
+                        <input type="text" class="form-control" id="fileName" placeholder="No file chosen" value="@Model.ImageUrl" readonly />
+                    </div>
+                </div>
+            }
             <div class="mb-2">
                 <label asp-for="@Model.Description" class="form-label-add-edit">Description</label>
                 <textarea asp-for="@Model.Description" class="form-control" aria-required="true" rows="5"></textarea>
                 <span asp-validation-for="@Model.Description" class="text-danger"></span>
             </div>
-
             <div class="mb-2">
                 <input class="btn btn-warning btn-dark-text w-100 py-2 fw-bold rounded" type="submit" value="Save" />
             </div>
@@ -98,5 +135,3 @@
 </div>
 
 <!-- Link to external JavaScript file -->
-@* <script src="~/js/clearImage.js"></script> *@
-<script src="~/js/genreArtistFilter.js"></script>

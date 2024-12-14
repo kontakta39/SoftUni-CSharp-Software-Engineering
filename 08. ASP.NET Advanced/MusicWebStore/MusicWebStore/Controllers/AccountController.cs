@@ -20,9 +20,14 @@ public class AccountController : Controller
     }
 
     [HttpGet]
-    [Authorize(Roles = "Administrator")]
+    [Authorize]
     public async Task<IActionResult> ManageUsers()
     {
+        if (!User.IsInRole("Administrator"))
+        {
+            return RedirectToAction("AccessDenied", "Home");
+        }
+
         string userId = User.FindFirstValue(ClaimTypes.NameIdentifier) ?? string.Empty;
 
         if (userId == null)
@@ -46,9 +51,14 @@ public class AccountController : Controller
     }
 
     [HttpPost]
-    [Authorize(Roles = "Administrator")]
+    [Authorize]
     public async Task<IActionResult> ChangeRole(string userId, string role)
     {
+        if (!User.IsInRole("Administrator"))
+        {
+            return RedirectToAction("AccessDenied", "Home");
+        }
+
         ApplicationUser? user = await _userManager.FindByIdAsync(userId);
         
         if (user == null)

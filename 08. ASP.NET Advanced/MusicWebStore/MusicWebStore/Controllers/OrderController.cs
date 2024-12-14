@@ -43,8 +43,8 @@ public class OrderController : Controller
 		return View(model);
 	}
 
-    [Authorize]
     [HttpPost]
+    [Authorize]
     public async Task<IActionResult> AddToCart(Guid id)
     {
         int quantity = 1;
@@ -129,8 +129,8 @@ public class OrderController : Controller
         return RedirectToAction(nameof(Cart));
     }
 
-    [Authorize]
     [HttpPost]
+    [Authorize]
     public async Task<IActionResult> UpdateQuantity(Guid id, Guid albumId, int quantity)
     {
         if (quantity < 1)
@@ -190,8 +190,8 @@ public class OrderController : Controller
         });
     }
 
-    [Authorize]
     [HttpPost]
+    [Authorize]
     public async Task<IActionResult> RemoveFromCart(Guid id, Guid albumId)
     {
         string? buyerId = User.FindFirstValue(ClaimTypes.NameIdentifier);

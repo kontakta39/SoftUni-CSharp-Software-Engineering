@@ -8,9 +8,6 @@ namespace MusicWebStore.ViewModels;
 public class ArtistEditViewModel
 {
     [Required]
-    public Guid Id { get; set; }
-
-    [Required]
     [StringLength(ArtistNameMaxLength, MinimumLength = ArtistNameMinLength)]
     public string Name { get; set; } = null!;
 

@@ -6,19 +6,17 @@ namespace MusicWebStore.Controllers;
 
 public class HomeController : Controller
 {
-    private readonly ILogger<HomeController> _logger;
-
-    public HomeController(ILogger<HomeController> logger)
-    {
-        _logger = logger;
-    }
-
     public IActionResult Index()
     {
         return View();
     }
 
-    // Action for custom 404 page
+    public IActionResult AccessDenied()
+    {
+        return View();
+    }
+
+    //Action for custom 404 page
     public IActionResult NotFound()
     {
         return View("404");
@@ -26,7 +24,7 @@ public class HomeController : Controller
 
     public IActionResult Cause500Error()
     {
-        // Simulate a 500 error by throwing an exception
+        //Simulate a 500 error by throwing an exception
         throw new Exception("This is a test 500 error");
     }
 

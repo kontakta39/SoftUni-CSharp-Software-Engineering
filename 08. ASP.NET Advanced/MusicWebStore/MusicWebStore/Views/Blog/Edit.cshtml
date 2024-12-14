@@ -1,0 +1,41 @@
+﻿@using MusicWebStore.ViewModels
+@model BlogEditViewModel
+
+@{
+    ViewData["Title"] = "Edit post";
+}
+
+<div class="d-flex justify-content-between align-items-center mb-3" style="margin-top: 20px;">
+    <h2>@ViewData["Title"]</h2>
+</div>
+<hr />
+
+<form asp-action="Edit" method="post" enctype="multipart/form-data">
+    <div class="form-group">
+        <label asp-for="Title" class="control-label"></label>
+        <input asp-for="Title" class="form-control" />
+        <span asp-validation-for="Title" class="text-danger"></span>
+    </div>
+
+    <div class="form-group">
+        <label asp-for="@Model.ImageFile" class="form-label-add-edit">Upload Image</label>
+        <div class="input-group">
+            <!-- Text input field for displaying the selected file name -->
+            <input type="text" class="form-control" id="fileName" placeholder="No file chosen" value="@Model.ImageUrl" disabled />
+
+            <!-- Hidden file input element -->
+            <input type="file" asp-for="@Model.ImageFile" class="d-none" id="imageFileInput" onchange="document.getElementById('fileName').value = this.files[0].name" />
+
+            <!-- Button to trigger file input -->
+            <button class="btn btn-outline-secondary" type="button" onclick="document.getElementById('imageFileInput').click()">Upload</button>
+        </div>
+    </div>
+
+    <div class="form-group">
+        <label asp-for="Content" class="control-label"></label>
+        <textarea asp-for="Content" class="form-control"></textarea>
+        <span asp-validation-for="Content" class="text-danger"></span>
+    </div>
+
+    <input class="btn btn-warning btn-dark-text w-100 py-2 fw-bold rounded" type="submit" value="Save" />
+</form>

@@ -8,9 +8,6 @@ namespace MusicWebStore.ViewModels;
 public class GenreEditViewModel
 {
     [Required]
-    public Guid Id { get; set; }
-
-    [Required]
     [StringLength(GenreNameMaxLength, MinimumLength = GenreNameMinLength)]
     public string Name { get; set; } = null!;
 }

@@ -2,39 +2,47 @@ document.addEventListener("DOMContentLoaded", () => {
     const genreDropdown = document.getElementById("genreDropdown");
     const artistDropdown = document.getElementById("artistDropdown");
 
-    // Деактивиране на артисти по подразбиране, ако няма избран жанр
+    //Store the initial genre and artist
+    const initialGenreId = genreDropdown.value;
+    const initialArtistId = artistDropdown.getAttribute("data-selected-artist");
+
+    //Disable artist dropdown by default if no genre is selected
     artistDropdown.disabled = !genreDropdown.value;
 
-    // Проверка при зареждане на страницата, ако има избран жанр
-    const initialGenreId = genreDropdown.value;
+    //Check on page load if a genre is already selected
     if (initialGenreId) {
-        // Зареждаме артистите от този жанр
-        fetchArtistsByGenre(initialGenreId);
+        fetchArtistsByGenre(initialGenreId, initialArtistId);
     }
 
-    // Обработчик за смяна на жанра
+    //Event handler for genre change
     genreDropdown.addEventListener("change", async () => {
         const genreId = genreDropdown.value;
-        artistDropdown.innerHTML = '<option value="">Select artist</option>'; // Reset artist dropdown
+        artistDropdown.innerHTML = '<option value="">Select artist</option>'; //Reset artist dropdown
 
-        // Ако няма избран жанр, деактивираме падащото меню за артисти
+        //Disable artist dropdown if no genre is selected
         if (!genreId) {
             artistDropdown.disabled = true;
             return;
         }
 
-        // Ако има избран жанр, активираме падащото меню за артисти
+        // Enable artist dropdown if a genre is selected
         artistDropdown.disabled = false;
-        await fetchArtistsByGenre(genreId);
+
+        //If the selected genre is the initial one, restore the associated artist
+        if (genreId === initialGenreId && initialArtistId) {
+            await fetchArtistsByGenre(genreId, initialArtistId);
+        } else {
+            await fetchArtistsByGenre(genreId);
+        }
     });
 
-    // Функция за зареждане на артисти по жанр
-    async function fetchArtistsByGenre(genreId) {
+    //Function to fetch artists by genre
+    async function fetchArtistsByGenre(genreId, selectedArtistId = "") {
         try {
             const response = await fetch(`/Album/GetArtistsByGenre?genreId=${genreId}`);
             const data = await response.json();
 
-            // Изчистваме падащото меню за артисти и добавяме новите
+            //Clear the artist dropdown and populate it with new data
             artistDropdown.innerHTML = '<option value="">Select artist</option>';
             data.forEach(artist => {
                 const option = document.createElement("option");
@@ -43,10 +51,9 @@ document.addEventListener("DOMContentLoaded", () => {
                 artistDropdown.appendChild(option);
             });
 
-            //Ако има предварително избран артист, го задържаме
-            const initialArtistId = artistDropdown.getAttribute('data-selected-artist');
-            if (initialArtistId) {
-                artistDropdown.value = initialArtistId;
+            //If there is a preselected artist, set it
+            if (selectedArtistId) {
+                artistDropdown.value = selectedArtistId;
             }
         } catch (error) {
             console.error("Error fetching artists:", error);
