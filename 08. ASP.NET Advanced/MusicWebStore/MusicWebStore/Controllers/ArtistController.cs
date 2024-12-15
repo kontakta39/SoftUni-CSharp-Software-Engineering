@@ -6,7 +6,6 @@ using MusicWebStore.Data;
 using MusicWebStore.Data.Models;
 using MusicWebStore.Services;
 using MusicWebStore.ViewModels;
-using System.Collections.Generic;
 
 namespace MusicWebStore.Controllers;
 
@@ -65,6 +64,41 @@ public class ArtistController : Controller
                 .ToListAsync();
 
             addArtist.NationalityOptions = CountriesConstants.CountriesList();
+
+            //Handle image upload (only store the filename in TempData if ModelState is not valid)
+            if (addArtist.ImageFile != null)
+            {
+                //Validate the uploaded image
+                string[] allowedContentTypes = { "image/jpg", "image/jpeg", "image/png", "image/gif", "image/webp" };
+                string[] allowedExtensions = { ".jpg", ".jpeg", ".png", ".gif", ".webp" };
+
+                if (!allowedContentTypes.Contains(addArtist.ImageFile.ContentType) ||
+                    !allowedExtensions.Contains(Path.GetExtension(addArtist.ImageFile.FileName).ToLower()))
+                {
+                    ModelState.AddModelError("ImageFile", "Please upload a valid image file (JPG, JPEG, PNG, GIF, WEBP).");
+                }
+                else
+                {
+                    string tempFileName = Path.GetFileName(addArtist.ImageFile.FileName);
+                    string tempSavePath = Path.Combine(Directory.GetCurrentDirectory(), "wwwroot", "img", "Temp", tempFileName);
+
+                    //Save the file temporarily
+                    Directory.CreateDirectory(Path.GetDirectoryName(tempSavePath)); //Ensure the tmp folder exists
+                    using (FileStream? stream = new FileStream(tempSavePath, FileMode.Create))
+                    {
+                        await addArtist.ImageFile.CopyToAsync(stream);
+                    }
+
+                    addArtist.ImageUrl = tempFileName;
+                    TempData["ImageUrl"] = tempFileName; //Store the file name temporarily
+                }
+            }
+            else if (TempData["ImageUrl"] != null)
+            {
+                addArtist.ImageUrl = TempData["ImageUrl"].ToString(); //Retrieve the file name from TempData
+            }
+
+            TempData.Keep("ImageUrl"); //Preserve TempData for subsequent requests
 
             return View(addArtist);
         }
@@ -135,11 +169,11 @@ public class ArtistController : Controller
 
         TempData["CurrentImageUrl"] = artistCheck.ImageUrl;
 
-        // Validate the uploaded image using ImageHandler
+        //Validate the uploaded image using ImageHandler
         string[] allowedContentTypes = { "image/jpg", "image/jpeg", "image/png", "image/gif", "image/webp" };
         string[] allowedExtensions = { ".jpg", ".jpeg", ".png", ".gif", ".webp" };
 
-        // Ensure that the ImageHandler is properly initialized
+        //Ensure that the ImageHandler is properly initialized
         string tempFolderPath = Path.Combine(Directory.GetCurrentDirectory(), "wwwroot", "img", "Temp");
         string finalFolderPath = Path.Combine(Directory.GetCurrentDirectory(), "wwwroot", "img", "Artists Images");
 
@@ -154,7 +188,7 @@ public class ArtistController : Controller
             //Handle image upload (only store the filename in TempData if ModelState is not valid)
             if (editArtist.ImageFile != null)
             {
-                // Delete the old image if it's not the default one
+                //Delete the old image if it's not the default one
                 string validationError = ImageHandler.ValidateImage(editArtist.ImageFile, allowedContentTypes, allowedExtensions);
 
                 if (!string.IsNullOrEmpty(validationError))
@@ -165,24 +199,24 @@ public class ArtistController : Controller
                 {
                     if (artistCheck.ImageUrl != null)
                     {
-                        // Use ImageHandler to delete the old image
+                        //Use ImageHandler to delete the old image
                         _imageHandler.DeleteImage(artistCheck.ImageUrl, finalFolderPath);
                     }
 
-                    // Save the file temporarily using ImageHandler
+                    //Save the file temporarily using ImageHandler
                     string tempFileName = await ImageHandler.SaveTempImageAsync(editArtist.ImageFile, tempFolderPath);
                     editArtist.ImageUrl = tempFileName;
-                    TempData["NewImageUrl"] = tempFileName; // Store the file name temporarily
+                    TempData["NewImageUrl"] = tempFileName; //Store the file name temporarily
                 }
             }
             else if (TempData["NewImageUrl"] != null)
             {
-                editArtist.ImageUrl = TempData["NewImageUrl"].ToString(); // Retrieve the file name from TempData
-                TempData.Keep("NewImageUrl"); // Preserve TempData for subsequent requests
+                editArtist.ImageUrl = TempData["NewImageUrl"].ToString(); //Retrieve the file name from TempData
+                TempData.Keep("NewImageUrl"); //Preserve TempData for subsequent requests
             }
             else
             {
-                editArtist.ImageUrl = TempData["CurrentImageUrl"].ToString(); // Retrieve the file name from TempData
+                editArtist.ImageUrl = TempData["CurrentImageUrl"].ToString(); //Retrieve the file name from TempData
             }
 
             return View(editArtist);

@@ -45,7 +45,9 @@ public class Program
 
         builder.Services.AddControllersWithViews();
         builder.Services.AddRazorPages();
+        builder.Services.AddScoped<IAccountInterface, AccountService>();
         builder.Services.AddScoped<IGenreService, GenreService>();
+        builder.Services.AddScoped<IArtistInterface, ArtistService>();
 
         // Define folder paths for the ImageHandler
         string artistFolderPath = Path.Combine(Directory.GetCurrentDirectory(), "wwwroot", "img", "Artists Images");

@@ -1,8 +1,8 @@
 ﻿using Microsoft.AspNetCore.Authorization;
 using Microsoft.AspNetCore.Identity;
 using Microsoft.AspNetCore.Mvc;
-using Microsoft.EntityFrameworkCore;
 using MusicWebStore.Data.Models;
+using MusicWebStore.Services;
 using MusicWebStore.ViewModels;
 using System.Security.Claims;
 
@@ -10,11 +10,13 @@ namespace MusicWebStore.Controllers;
 
 public class AccountController : Controller
 {
+    private readonly IAccountInterface _accountService;
     private readonly SignInManager<ApplicationUser> _signInManager;
     private readonly UserManager<ApplicationUser> _userManager;
 
-    public AccountController(SignInManager<ApplicationUser> signInManager, UserManager<ApplicationUser> userManager)
+    public AccountController(IAccountInterface accountService, SignInManager<ApplicationUser> signInManager, UserManager<ApplicationUser> userManager)
     {
+        _accountService = accountService;
         _signInManager = signInManager;
         _userManager = userManager;
     }
@@ -35,16 +37,11 @@ public class AccountController : Controller
             return RedirectToAction("LogIn", "Account");
         }
 
-        List<ApplicationUser>? users = await _userManager.Users
-            .Where(u => u.Email != "kontakta39@mail.bg" && u.Id != userId)
-            .ToListAsync();
+        List<(ApplicationUser User, IList<string> Roles)>? userRoles = await _accountService.ManageUsers(userId);
 
-        List<(ApplicationUser User, IList<string> Roles)>? userRoles = new List<(ApplicationUser User, IList<string> Roles)>();
-
-        foreach (ApplicationUser user in users)
+        if (userRoles == null)
         {
-            IList<string>? roles = await _userManager.GetRolesAsync(user);
-            userRoles.Add((user, roles));
+            return NotFound();
         }
 
         return View(userRoles);
@@ -66,10 +63,7 @@ public class AccountController : Controller
             return NotFound();
         }
 
-        IList<string>? currentRoles = await _userManager.GetRolesAsync(user);
-        await _userManager.RemoveFromRolesAsync(user, currentRoles);
-        await _userManager.AddToRoleAsync(user, role);
-
+        await _accountService.ChangeRole(user, role);
         return RedirectToAction(nameof(ManageUsers));
     }
 
@@ -88,41 +82,23 @@ public class AccountController : Controller
             return View(register);
         }
 
-        ApplicationUser? userCheck = await _userManager.FindByEmailAsync(register.Email);
-
-        if (userCheck != null)
+        try
         {
-            //Clear the email field and ModelState
-            ModelState.Remove(nameof(register.Email));
-            register.Email = string.Empty;
+            IdentityResult result = await _accountService.Register(register);
 
-            ViewData["ErrorMessage"] = "There is already registered user with this email.";
-            return View(register);
+            if (result.Succeeded)
+            {
+                return RedirectToAction("Index", "Home");
+            }
+
+            foreach (IdentityError error in result.Errors)
+            {
+                ModelState.AddModelError(string.Empty, error.Description);
+            }
         }
-
-        ApplicationUser user = new ApplicationUser
+        catch (Exception ex)
         {
-            UserName = register.Email,
-            Email = register.Email,
-            FirstName = register.FirstName,
-            LastName = register.LastName,
-            EmailConfirmed = false
-        };
-
-        IdentityResult result = await _userManager.CreateAsync(user, register.Password);
-
-        if (result.Succeeded)
-        {
-            //Adding a Guest role to the newly registered user
-            await _userManager.AddToRoleAsync(user, "Guest");
-
-            await _signInManager.SignInAsync(user, isPersistent: false);
-            return RedirectToAction("Index", "Home");
-        }
-
-        foreach (var error in result.Errors)
-        {
-            ModelState.AddModelError(string.Empty, error.Description);
+            ViewData["ErrorMessage"] = ex.Message;
         }
 
         return View(register);
@@ -141,35 +117,14 @@ public class AccountController : Controller
     {
         if (ModelState.IsValid)
         {
-            ApplicationUser? user = await _userManager.FindByEmailAsync(model.Email);
+            var (success, errorMessage) = await _accountService.LogIn(model.Email, model.Password);
 
-            if (user == null)
+            if (success)
             {
-                ViewData["ErrorMessage"] = "No user found with this email address.";
-                return View(model);
-            }
-
-            if (await _userManager.IsLockedOutAsync(user))
-            {
-                ViewData["ErrorMessage"] = "Your account is locked due to multiple failed login attempts. Try again later.";
-                return View(model);
-            }
-
-            var result = await _signInManager.PasswordSignInAsync(user, model.Password, isPersistent: false, lockoutOnFailure: true);
-
-            if (result.Succeeded)
-            {
-                await _userManager.ResetAccessFailedCountAsync(user); // Reset failed attempts on successful login
                 return RedirectToAction("Index", "Home");
             }
-            else if (result.IsLockedOut)
-            {
-                ViewData["ErrorMessage"] = "Your account is locked. Please try again in 30 minutes.";
-            }
-            else
-            {
-                ViewData["ErrorMessage"] = "Invalid login attempt.";
-            }
+
+            ViewData["ErrorMessage"] = errorMessage;
         }
 
         return View(model);
