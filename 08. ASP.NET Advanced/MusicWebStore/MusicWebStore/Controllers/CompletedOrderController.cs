@@ -2,6 +2,7 @@
 using Microsoft.AspNetCore.Mvc;
 using Microsoft.EntityFrameworkCore;
 using MusicWebStore.Data;
+using MusicWebStore.Services;
 using MusicWebStore.ViewModels;
 using System.Security.Claims;
 
@@ -10,10 +11,12 @@ namespace MusicWebStore.Controllers;
 [Authorize]
 public class CompletedOrderController : Controller
 {
+    private readonly ICompletedOrderInterface _completedOrderService;
     private readonly MusicStoreDbContext _context;
 
-    public CompletedOrderController(MusicStoreDbContext context)
+    public CompletedOrderController(ICompletedOrderInterface completedOrderService, MusicStoreDbContext context)
     {
+        _completedOrderService = completedOrderService;
         _context = context;
     }
 
@@ -28,27 +31,7 @@ public class CompletedOrderController : Controller
         }
 
         //Fetch all completed orders by a certain buyer
-        List<CompletedOrderViewModel> completedOrders = await _context.Orders
-        .Where(or => or.BuyerId == buyerId && or.IsCompleted == true)
-        .Select(or => new CompletedOrderViewModel
-        {
-            Id = or.Id,
-            OrderNumber = or.OrderNumber,
-            OrderDate = or.OrderDate,
-            TotalPrice = or.TotalPrice,
-            OrderedAlbums = or.OrdersAlbums
-                .Select(oa => new OrderedAlbumViewModel()
-                {
-                    AlbumId = oa.AlbumId,
-                    AlbumImageUrl = oa.Album.ImageUrl!,
-                    AlbumTitle = oa.Album.Title,
-                    AlbumQuantity = oa.Quantity,
-                    AlbumPrice = oa.Price,
-                    isReturned = oa.isReturned
-                })
-                .ToList()
-        })
-        .ToListAsync();
+        List<CompletedOrderViewModel> completedOrders = await _completedOrderService.OrdersList(buyerId);
 
         return View(completedOrders);
     }
@@ -58,28 +41,20 @@ public class CompletedOrderController : Controller
     {
         string buyerId = User.FindFirstValue(ClaimTypes.NameIdentifier) ?? string.Empty;
 
-        if (buyerId == null)
+        if (string.IsNullOrEmpty(buyerId))
         {
             return RedirectToAction("LogIn", "Account");
         }
 
-        Order? orderToComplete = await _context.Orders
-            .Where(or => or.Id == id && or.BuyerId == buyerId && or.IsCompleted == false)
-            .FirstOrDefaultAsync();
+        Order? orderToComplete = await _completedOrderService.CompleteOrder(id, buyerId);
 
         if (orderToComplete == null)
         {
             return NotFound();
         }
-        else
-        {
-            orderToComplete.IsCompleted = true;
-        }
 
-        // Store the order number in TempData
+        //Store the order number in TempData for use in the view
         TempData["OrderNumber"] = orderToComplete.OrderNumber;
-
-        await _context.SaveChangesAsync();
 
         return RedirectToAction("OrderSuccess", "CompletedOrder");
     }
@@ -100,46 +75,25 @@ public class CompletedOrderController : Controller
             return RedirectToAction("LogIn", "Account");
         }
 
-        //Find the order from which the album should be returned
-        Order? orderCheck = await _context.Orders
-            .Where(or => or.Id == Id && or.BuyerId == buyerId && or.IsCompleted == true)
-            .FirstOrDefaultAsync();
+        //Call the service to handle the return logic
+        OrderAlbum? albumFromOrder = await _completedOrderService.ReturnAlbum(Id, albumId, buyerId);
 
-        if (orderCheck == null)
+        if (albumFromOrder == null)
         {
-            return NotFound();
+            return NotFound(); 
         }
 
-        //Take the current album from the order that should be returned
-        OrderAlbum? albumFromTheOrder = await _context.OrdersAlbums
-            .Where(a => a.OrderId == Id && a.AlbumId == albumId && a.isReturned == false)
+        //Retrieve the album and order details to show in TempData
+        Order? order = await _context.Orders
+            .Where(o => o.Id == Id && o.BuyerId == buyerId && o.IsCompleted == true)
             .FirstOrDefaultAsync();
 
-         if (albumFromTheOrder == null)
+        if (order != null && albumFromOrder != null)
         {
-            return NotFound();
+            //Store the album title and order number in TempData for the return success page
+            TempData["AlbumTitle"] = albumFromOrder.Album.Title;
+            TempData["OrderNumber"] = order.OrderNumber;
         }
-
-        //Check if the current album is in stock
-        Album? album = await _context.Albums
-            .Where(a => a.Id == albumId)
-            .FirstOrDefaultAsync();
-
-        if (album == null)
-        {
-            return NotFound();
-        }
-
-        album.Stock += albumFromTheOrder.Quantity;
-        album.IsDeleted = false;
-        
-        albumFromTheOrder.isReturned = true;
-
-        // Store the album title and the order number in TempData
-        TempData["AlbumTitle"] = albumFromTheOrder.Album.Title;
-        TempData["OrderNumber"] = orderCheck.OrderNumber;
-
-        await _context.SaveChangesAsync();
 
         return RedirectToAction("ReturnSuccess", "CompletedOrder");
     }

@@ -49,6 +49,7 @@ public class Program
         builder.Services.AddScoped<IGenreService, GenreService>();
         builder.Services.AddScoped<IArtistInterface, ArtistService>();
         builder.Services.AddScoped<IOrderInterface, OrderService>();
+        builder.Services.AddScoped<ICompletedOrderInterface, CompletedOrderService>();
 
         // Define folder paths for the ImageHandler
         string artistFolderPath = Path.Combine(Directory.GetCurrentDirectory(), "wwwroot", "img", "Artists Images");
