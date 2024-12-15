@@ -58,19 +58,12 @@ public class GenreService : IGenreService
         return editModel;
     }
 
-    public async Task<GenreEditViewModel> Edit(GenreEditViewModel editModel, Guid id)
+    public async Task Edit(GenreEditViewModel editModel, Guid id)
     {
         Genre genre = _context.Genres.FirstOrDefault(g => g.Id == id && g.IsDeleted == false)!;
-
-        if (genre == null)
-        {
-            return null;
-        }
-
         genre.Name = editModel.Name;
 
         await _context.SaveChangesAsync();
-        return editModel;
     }
 
     public async Task<GenreDeleteViewModel> Delete(Guid id)

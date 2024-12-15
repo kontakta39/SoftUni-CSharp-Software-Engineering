@@ -67,7 +67,7 @@ public class GenreController : Controller
 
         if (editModel == null)
         {
-            return RedirectToAction("NotFound", "Home");
+            return NotFound();
         }
 
         return View(editModel);
@@ -86,12 +86,7 @@ public class GenreController : Controller
             return View(editModel);
         }
 
-        editModel = await _genreService.Edit(editModel, id);
-
-        if (editModel == null)
-        {
-            return RedirectToAction("NotFound", "Home");
-        }
+        await _genreService.Edit(editModel, id);
 
         return RedirectToAction(nameof(Index));
     }
