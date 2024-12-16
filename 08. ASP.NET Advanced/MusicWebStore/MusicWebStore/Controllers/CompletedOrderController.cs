@@ -32,7 +32,6 @@ public class CompletedOrderController : Controller
 
         //Fetch all completed orders by a certain buyer
         List<CompletedOrderViewModel> completedOrders = await _completedOrderService.OrdersList(buyerId);
-
         return View(completedOrders);
     }
 
@@ -46,17 +45,17 @@ public class CompletedOrderController : Controller
             return RedirectToAction("LogIn", "Account");
         }
 
-        Order? orderToComplete = await _completedOrderService.CompleteOrder(id, buyerId);
-
-        if (orderToComplete == null)
+        try
+        {
+            Order? orderToComplete = await _completedOrderService.CompleteOrder(id, buyerId);
+            //Store the order number in TempData for use in the view
+            TempData["OrderNumber"] = orderToComplete.OrderNumber;
+            return RedirectToAction("OrderSuccess", "CompletedOrder");
+        }
+        catch (ArgumentNullException)
         {
             return NotFound();
         }
-
-        //Store the order number in TempData for use in the view
-        TempData["OrderNumber"] = orderToComplete.OrderNumber;
-
-        return RedirectToAction("OrderSuccess", "CompletedOrder");
     }
 
     [HttpGet]
@@ -75,27 +74,33 @@ public class CompletedOrderController : Controller
             return RedirectToAction("LogIn", "Account");
         }
 
-        //Call the service to handle the return logic
-        OrderAlbum? albumFromOrder = await _completedOrderService.ReturnAlbum(Id, albumId, buyerId);
-
-        if (albumFromOrder == null)
+        try
         {
-            return NotFound(); 
+            //Call the service to handle the return logic
+            OrderAlbum? albumFromOrder = await _completedOrderService.ReturnAlbum(Id, albumId, buyerId);
+
+            //Retrieve the album and order details to show in TempData
+            Order? order = await _context.Orders
+                .Where(o => o.Id == Id && o.BuyerId == buyerId && o.IsCompleted == true)
+                .FirstOrDefaultAsync();
+
+            if (order != null && albumFromOrder != null)
+            {
+                //Store the album title and order number in TempData for the return success page
+                TempData["AlbumTitle"] = albumFromOrder.Album.Title;
+                TempData["OrderNumber"] = order.OrderNumber;
+            }
+            else
+            {
+                return NotFound();
+            }
+
+            return RedirectToAction("ReturnSuccess", "CompletedOrder");
         }
-
-        //Retrieve the album and order details to show in TempData
-        Order? order = await _context.Orders
-            .Where(o => o.Id == Id && o.BuyerId == buyerId && o.IsCompleted == true)
-            .FirstOrDefaultAsync();
-
-        if (order != null && albumFromOrder != null)
+        catch (ArgumentNullException)
         {
-            //Store the album title and order number in TempData for the return success page
-            TempData["AlbumTitle"] = albumFromOrder.Album.Title;
-            TempData["OrderNumber"] = order.OrderNumber;
-        }
-
-        return RedirectToAction("ReturnSuccess", "CompletedOrder");
+            return NotFound();
+        } 
     }
 
     [HttpGet]

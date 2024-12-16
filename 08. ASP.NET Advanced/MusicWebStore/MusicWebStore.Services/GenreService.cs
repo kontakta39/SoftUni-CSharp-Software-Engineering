@@ -47,7 +47,7 @@ public class GenreService : IGenreService
 
         if (genre == null)
         {
-            return null;
+            throw new ArgumentNullException();
         }
 
         GenreEditViewModel editModel = new GenreEditViewModel()
@@ -61,8 +61,13 @@ public class GenreService : IGenreService
     public async Task Edit(GenreEditViewModel editModel, Guid id)
     {
         Genre genre = _context.Genres.FirstOrDefault(g => g.Id == id && g.IsDeleted == false)!;
-        genre.Name = editModel.Name;
 
+        if (genre == null)
+        {
+            throw new ArgumentNullException();
+        }
+
+        genre.Name = editModel.Name;
         await _context.SaveChangesAsync();
     }
 
@@ -80,7 +85,7 @@ public class GenreService : IGenreService
 
         if (genre == null)
         {
-            return null;
+            throw new ArgumentNullException();
         }
 
         return genre;
@@ -96,6 +101,10 @@ public class GenreService : IGenreService
         {
             genre.IsDeleted = true;
             await _context.SaveChangesAsync();
+        }
+        else
+        {
+            throw new ArgumentNullException();
         }
     }
 }

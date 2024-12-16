@@ -9,5 +9,5 @@ public interface IAccountInterface
     public Task<List<(ApplicationUser, IList<string>)>> ManageUsers(string userId);
     Task ChangeRole(ApplicationUser user, string role);
     Task<IdentityResult> Register(RegisterViewModel register);
-    Task<(bool Success, string ErrorMessage)> LogIn(string email, string password);
+    Task LogIn(string email, string password);
 }

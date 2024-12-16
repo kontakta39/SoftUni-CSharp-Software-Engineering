@@ -49,7 +49,7 @@ public class CompletedOrderService : ICompletedOrderInterface
 
         if (orderToComplete == null)
         {
-            return null;
+            throw new ArgumentNullException();
         }
 
         //Mark the order as completed
@@ -68,7 +68,7 @@ public class CompletedOrderService : ICompletedOrderInterface
 
         if (order == null)
         {
-            return null; 
+            throw new ArgumentNullException(); 
         }
 
         //Find the album in the order that is not yet returned
@@ -78,7 +78,7 @@ public class CompletedOrderService : ICompletedOrderInterface
 
         if (albumFromOrder == null)
         {
-            return null;
+            throw new ArgumentNullException();
         }
 
         //Find the album in the stock
@@ -88,7 +88,7 @@ public class CompletedOrderService : ICompletedOrderInterface
 
         if (album == null)
         {
-            return null; 
+            throw new ArgumentNullException();
         }
 
         //Update stock and availability

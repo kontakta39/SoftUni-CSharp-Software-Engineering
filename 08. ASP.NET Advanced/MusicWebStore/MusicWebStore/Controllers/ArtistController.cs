@@ -44,8 +44,15 @@ public class ArtistController : Controller
             return RedirectToAction("AccessDenied", "Home");
         }
 
-        ArtistAddViewModel addArtist = await _artistService.Add();
-        return View(addArtist);
+        try
+        {
+            ArtistAddViewModel addArtist = await _artistService.Add();
+            return View(addArtist);
+        }
+        catch (ArgumentException)
+        {
+            return NotFound();
+        }
     }
 
     [HttpPost]
@@ -57,48 +64,44 @@ public class ArtistController : Controller
             return RedirectToAction("AccessDenied", "Home");
         }
 
+        string tempFolderPath = Path.Combine(Directory.GetCurrentDirectory(), "wwwroot", "img", "Temp");
+        string finalFolderPath = Path.Combine(Directory.GetCurrentDirectory(), "wwwroot", "img", "Albums Covers");
+
         if (!ModelState.IsValid)
         {
             addArtist.Genres = await _context.Genres
                 .Where(g => !g.IsDeleted)
                 .ToListAsync();
 
+            if (!addArtist.Genres.Any())
+            {
+                return NotFound();
+            }
+
             addArtist.NationalityOptions = CountriesConstants.CountriesList();
 
-            //Handle image upload (only store the filename in TempData if ModelState is not valid)
+            //Handle image upload
             if (addArtist.ImageFile != null)
             {
-                //Validate the uploaded image
-                string[] allowedContentTypes = { "image/jpg", "image/jpeg", "image/png", "image/gif", "image/webp" };
-                string[] allowedExtensions = { ".jpg", ".jpeg", ".png", ".gif", ".webp" };
+                string validationError = ImageHandler.ValidateImage(addArtist.ImageFile);
 
-                if (!allowedContentTypes.Contains(addArtist.ImageFile.ContentType) ||
-                    !allowedExtensions.Contains(Path.GetExtension(addArtist.ImageFile.FileName).ToLower()))
+                if (!string.IsNullOrEmpty(validationError))
                 {
-                    ModelState.AddModelError("ImageFile", "Please upload a valid image file (JPG, JPEG, PNG, GIF, WEBP).");
+                    ModelState.AddModelError("ImageFile", validationError);
                 }
                 else
                 {
-                    string tempFileName = Path.GetFileName(addArtist.ImageFile.FileName);
-                    string tempSavePath = Path.Combine(Directory.GetCurrentDirectory(), "wwwroot", "img", "Temp", tempFileName);
-
-                    //Save the file temporarily
-                    Directory.CreateDirectory(Path.GetDirectoryName(tempSavePath)); //Ensure the tmp folder exists
-                    using (FileStream? stream = new FileStream(tempSavePath, FileMode.Create))
-                    {
-                        await addArtist.ImageFile.CopyToAsync(stream);
-                    }
-
+                    string tempFileName = await ImageHandler.SaveTempImageAsync(addArtist.ImageFile, tempFolderPath);
                     addArtist.ImageUrl = tempFileName;
-                    TempData["ImageUrl"] = tempFileName; //Store the file name temporarily
+                    TempData["ImageUrl"] = tempFileName; //Store temporarily
                 }
             }
             else if (TempData["ImageUrl"] != null)
             {
-                addArtist.ImageUrl = TempData["ImageUrl"].ToString(); //Retrieve the file name from TempData
+                addArtist.ImageUrl = TempData["ImageUrl"].ToString(); //Retrieve the file name
             }
 
-            TempData.Keep("ImageUrl"); //Preserve TempData for subsequent requests
+            TempData.Keep("ImageUrl");
 
             return View(addArtist);
         }
@@ -106,29 +109,28 @@ public class ArtistController : Controller
         try
         {
             string tempDataImageUrl = TempData["ImageUrl"]?.ToString();
-            await _artistService.Add(addArtist, tempDataImageUrl);
-
+            await _artistService.Add(addArtist, tempFolderPath, finalFolderPath, tempDataImageUrl);
             TempData.Remove("ImageUrl");
             return RedirectToAction(nameof(Index));
         }
-        catch (Exception ex)
+        catch (ArgumentNullException)
         {
-            ModelState.AddModelError(string.Empty, ex.Message);
-            return View(addArtist);
+            return NotFound();
         }
     }
 
     [HttpGet]
     public async Task<IActionResult> Details(Guid id)
     {
-        ArtistDetailsViewModel? artist = await _artistService.Details(id);
-
-        if (artist == null)
+        try
+        {
+            ArtistDetailsViewModel? artist = await _artistService.Details(id);
+            return View(artist);
+        }
+        catch (ArgumentNullException)
         {
             return NotFound();
         }
-
-        return View(artist);
     }
 
     [HttpGet]
@@ -140,14 +142,15 @@ public class ArtistController : Controller
             return RedirectToAction("AccessDenied", "Home");
         }
 
-        ArtistEditViewModel? editArtist = await _artistService.Edit(id);
-
-        if (editArtist == null)
+        try
+        {
+            ArtistEditViewModel? editArtist = await _artistService.Edit(id);
+            return View(editArtist);
+        }
+        catch (ArgumentException)
         {
             return NotFound();
         }
-
-        return View(editArtist);
     }
 
     [HttpPost]
@@ -169,10 +172,6 @@ public class ArtistController : Controller
 
         TempData["CurrentImageUrl"] = artistCheck.ImageUrl;
 
-        //Validate the uploaded image using ImageHandler
-        string[] allowedContentTypes = { "image/jpg", "image/jpeg", "image/png", "image/gif", "image/webp" };
-        string[] allowedExtensions = { ".jpg", ".jpeg", ".png", ".gif", ".webp" };
-
         //Ensure that the ImageHandler is properly initialized
         string tempFolderPath = Path.Combine(Directory.GetCurrentDirectory(), "wwwroot", "img", "Temp");
         string finalFolderPath = Path.Combine(Directory.GetCurrentDirectory(), "wwwroot", "img", "Artists Images");
@@ -183,13 +182,18 @@ public class ArtistController : Controller
             .Where(g => g.IsDeleted == false)
             .ToListAsync();
 
+            if (!editArtist.Genres.Any())
+            {
+                return NotFound();
+            }
+
             editArtist.NationalityOptions = CountriesConstants.CountriesList();
 
             //Handle image upload (only store the filename in TempData if ModelState is not valid)
             if (editArtist.ImageFile != null)
             {
                 //Delete the old image if it's not the default one
-                string validationError = ImageHandler.ValidateImage(editArtist.ImageFile, allowedContentTypes, allowedExtensions);
+                string validationError = ImageHandler.ValidateImage(editArtist.ImageFile);
 
                 if (!string.IsNullOrEmpty(validationError))
                 {
@@ -224,19 +228,17 @@ public class ArtistController : Controller
 
         try
         {
-            string newImageUrl = TempData["NewImageUrl"].ToString();
-            await _artistService.Edit(editArtist, id, newImageUrl);
+            string tempImageUrl = TempData["NewImageUrl"].ToString();
+            await _artistService.Edit(editArtist, id, tempFolderPath, finalFolderPath, tempImageUrl);
 
-            // Clean up TempData
             TempData.Remove("CurrentImageUrl");
             TempData.Remove("NewImageUrl");
 
             return RedirectToAction("Details", "Artist", new { id = artistCheck.Id });
         }
-        catch (Exception ex)
+        catch (ArgumentNullException)
         {
-            ModelState.AddModelError(string.Empty, ex.Message);
-            return View(editArtist);
+            return NotFound();
         }
     }
 
@@ -249,14 +251,15 @@ public class ArtistController : Controller
             return RedirectToAction("AccessDenied", "Home");
         }
 
-        ArtistDeleteViewModel? deleteArtist = await _artistService.Delete(id);
-
-        if (deleteArtist == null)
+        try
+        {
+            ArtistDeleteViewModel? deleteArtist = await _artistService.Delete(id);
+            return View(deleteArtist);
+        }
+        catch (ArgumentNullException)
         {
             return NotFound();
         }
-
-        return View(deleteArtist);
     }
 
     [HttpPost]
@@ -268,7 +271,14 @@ public class ArtistController : Controller
             return RedirectToAction("AccessDenied", "Home");
         }
 
-       await _artistService.Delete(deleteArtist);
-        return RedirectToAction(nameof(Index));
+        try
+        {
+            await _artistService.Delete(deleteArtist);
+            return RedirectToAction(nameof(Index));
+        }
+        catch (ArgumentNullException)
+        {
+            return NotFound();
+        }
     }
 }

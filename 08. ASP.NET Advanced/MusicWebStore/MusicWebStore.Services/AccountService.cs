@@ -25,7 +25,7 @@ public class AccountService : IAccountInterface
 
         if (users == null)
         {
-            return null;
+            throw new ArgumentNullException();
         }
 
         List<(ApplicationUser User, IList<string> Roles)>? userRoles = new List<(ApplicationUser User, IList<string> Roles)>();
@@ -52,7 +52,7 @@ public class AccountService : IAccountInterface
 
         if (userCheck != null)
         {
-            throw new Exception("There is already registered user with this email.");
+            throw new ArgumentException("A user with this email has already been registered.");
         }
 
         ApplicationUser user = new ApplicationUser
@@ -75,32 +75,32 @@ public class AccountService : IAccountInterface
         return result;
     }
 
-    public async Task<(bool Success, string ErrorMessage)> LogIn(string email, string password)
+    public async Task LogIn(string email, string password)
     {
         ApplicationUser? user = await _userManager.FindByEmailAsync(email);
+
         if (user == null)
         {
-            return (false, "No user found with this email address.");
+            throw new ArgumentException("No user found with this email address.");
         }
 
         if (await _userManager.IsLockedOutAsync(user))
         {
-            return (false, "Your account is locked due to multiple failed login attempts. Try again later.");
+            throw new ArgumentException("Your account is locked due to multiple failed login attempts. Try again later.");
         }
 
         var result = await _signInManager.PasswordSignInAsync(user, password, isPersistent: false, lockoutOnFailure: true);
         if (result.Succeeded)
         {
             await _userManager.ResetAccessFailedCountAsync(user);
-            return (true, string.Empty);
         }
         else if (result.IsLockedOut)
         {
-            return (false, "Your account is locked. Please try again in 30 minutes.");
+            throw new ArgumentException("Your account is locked. Please try again in 30 minutes.");
         }
         else
         {
-            return (false, "Invalid login attempt.");
+            throw new ArgumentException("Invalid login attempt.");
         }
     }
 }

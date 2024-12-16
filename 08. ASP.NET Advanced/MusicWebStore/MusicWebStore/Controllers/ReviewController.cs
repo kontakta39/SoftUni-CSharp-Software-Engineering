@@ -30,9 +30,15 @@ public class ReviewController : Controller
             return RedirectToAction("LogIn", "Account");
         }
 
-        ReviewAddViewModel addReview = await _reviewService.Add(id, userId);
-
-        return View(addReview);
+        try
+        {
+            ReviewAddViewModel addReview = await _reviewService.Add(id, userId);
+            return View(addReview);
+        }
+        catch (ArgumentNullException)
+        {
+            return NotFound();
+        }
     }
 
     [HttpPost]
@@ -45,16 +51,17 @@ public class ReviewController : Controller
             return RedirectToAction("LogIn", "Account");
         }
 
+        Album? album = await _context.Albums.FirstOrDefaultAsync(a => a.Id == id);
+
+        if (album == null)
+        {
+            return NotFound();
+        }
+
         if (!ModelState.IsValid)
         {
-            Album? album = await _context.Albums.FirstOrDefaultAsync(a => a.Id == id);
-
-            if (album != null)
-            {
-                addReview.AlbumTitle = album.Title;
-                addReview.AlbumId = album.Id;
-            }
-
+            addReview.AlbumTitle = album.Title;
+            addReview.AlbumId = album.Id;
             return View(addReview);
         }
 
@@ -72,14 +79,15 @@ public class ReviewController : Controller
     [HttpGet]
     public async Task<IActionResult> Edit(Guid id, Guid albumId)
     {
-        ReviewEditViewModel editReview = await _reviewService.Edit(id, albumId);
-
-        if (editReview == null)
+        try
+        {
+            ReviewEditViewModel editReview = await _reviewService.Edit(id, albumId);
+            return View(editReview);
+        }
+        catch (ArgumentNullException)
         {
             return NotFound();
         }
-
-        return View(editReview);
     }
 
     [HttpPost]
@@ -96,13 +104,14 @@ public class ReviewController : Controller
         .Where(a => a.Id == albumId)
         .FirstOrDefaultAsync();
 
+        if (album == null)
+        {
+            return NotFound();
+        }
+
         if (!ModelState.IsValid)
         {
-            if (album != null)
-            {
-                editReview.AlbumTitle = album.Title;
-            }
-
+            editReview.AlbumTitle = album.Title;
             return View(editReview);
         }
 

@@ -75,7 +75,7 @@ public class BlogService : IBlogInterface
 
         if (findBlog == null)
         {
-            return null;
+            throw new ArgumentNullException();
         }
 
         BlogDetailsViewModel blog = new BlogDetailsViewModel()
@@ -99,7 +99,7 @@ public class BlogService : IBlogInterface
 
         if (findBlog == null)
         {
-            return null;
+            throw new ArgumentNullException();
         }
 
         BlogEditViewModel editBlog = new BlogEditViewModel()
@@ -190,6 +190,10 @@ public class BlogService : IBlogInterface
         {
             blog.IsDeleted = true;
             await _context.SaveChangesAsync();
+        }
+        else
+        {
+            throw new ArgumentNullException();
         }
     }
 }

@@ -15,11 +15,6 @@ public class OrderService : IOrderInterface
 
     public async Task<List<OrderCartViewModel>> Cart(string buyerId)
     {
-        if (string.IsNullOrEmpty(buyerId))
-        {
-            return null;
-        }
-
         List<OrderCartViewModel> model = await _context.OrdersAlbums
             .Where(oa => !oa.Order.IsCompleted && oa.Order.BuyerId == buyerId)
             .Select(oa => new OrderCartViewModel
@@ -37,13 +32,8 @@ public class OrderService : IOrderInterface
         return model;
     }
 
-    public async Task<bool> AddToCart(Guid albumId, string buyerId)
+    public async Task AddToCart(Guid albumId, string buyerId)
     {
-        if (string.IsNullOrEmpty(buyerId))
-        {
-            return false;
-        }
-
         int quantity = 1;
 
         //Check if the order exists
@@ -74,6 +64,10 @@ public class OrderService : IOrderInterface
 
             _context.Orders.Add(order);
         }
+        else
+        {
+            throw new ArgumentException("You have not completed your previous order.");
+        }
 
         //Check if the album exists and is there enough quantity
         Album? album = await _context.Albums
@@ -82,7 +76,7 @@ public class OrderService : IOrderInterface
 
         if (album == null || album.Stock < quantity)
         {
-            return false;
+            throw new ArgumentException("There is not enough quantity.");
         }
 
         //Check if the album is not already added to the Cart
@@ -92,7 +86,7 @@ public class OrderService : IOrderInterface
 
         if (existingOrderAlbum != null)
         {
-            return false;
+            throw new ArgumentException("The album has already been added to the cart.");
         }
 
         order.OrdersAlbums.Add(new OrderAlbum
@@ -114,7 +108,6 @@ public class OrderService : IOrderInterface
         }
 
         await _context.SaveChangesAsync();
-        return true;
     }
 
     public async Task<(bool, string?, decimal, int)> UpdateQuantity(Guid orderId, Guid albumId, int quantity)
@@ -174,27 +167,11 @@ public class OrderService : IOrderInterface
         }
 
         await _context.SaveChangesAsync();
-
         return (true, null, orderAlbum.Price, album.Stock);
     }
 
     public async Task RemoveFromCart(Guid orderId, Guid albumId, string buyerId)
     {
-        if (orderId == Guid.Empty)
-        {
-            throw new ArgumentNullException();
-        }
-
-        if (albumId == Guid.Empty)
-        {
-            throw new ArgumentNullException();
-        }
-
-        if (string.IsNullOrEmpty(buyerId))
-        {
-            throw new ArgumentNullException();
-        }
-
         OrderAlbum? orderAlbumToBeDeleted = await _context.OrdersAlbums
             .Where(oa => oa.OrderId == orderId && oa.AlbumId == albumId)
             .FirstOrDefaultAsync();
@@ -214,8 +191,7 @@ public class OrderService : IOrderInterface
         }
 
         Order? currentOrder = await _context.Orders
-            .Where(o => o.Id == orderId && o.BuyerId == buyerId &&
-                        o.IsCompleted == false)
+            .Where(o => o.Id == orderId && o.BuyerId == buyerId && o.IsCompleted == false)
             .FirstOrDefaultAsync();
 
         if (currentOrder == null)

@@ -37,8 +37,15 @@ public class AlbumController : Controller
             return RedirectToAction("AccessDenied", "Home");
         }
 
-        AlbumAddViewModel addAlbum = await _albumService.Add();
-        return View(addAlbum);
+        try
+        {
+            AlbumAddViewModel addAlbum = await _albumService.Add();
+            return View(addAlbum);
+        }
+        catch (ArgumentException)
+        {
+            return NotFound();
+        }
     }
 
     [HttpPost]
@@ -50,7 +57,6 @@ public class AlbumController : Controller
             return RedirectToAction("AccessDenied", "Home"); 
         }
 
-        //Ensure that the ImageHandler is properly initialized
         string tempFolderPath = Path.Combine(Directory.GetCurrentDirectory(), "wwwroot", "img", "Temp");
         string finalFolderPath = Path.Combine(Directory.GetCurrentDirectory(), "wwwroot", "img", "Albums Covers");
 
@@ -65,6 +71,11 @@ public class AlbumController : Controller
                 .Where(a => a.IsDeleted == false)
                 .AsNoTracking()
                 .ToListAsync();
+
+            if (allGenres == null || allArtists == null)
+            { 
+                return NotFound();
+            }
 
             //Handle image upload
             if (addAlbum.ImageFile != null)
@@ -119,20 +130,28 @@ public class AlbumController : Controller
             .Select(a => new { a.Id, a.Name })
             .ToListAsync();
 
+        if (!artists.Any())
+        {
+            return NotFound();
+        }
+
         return Json(artists);
     }
 
     [HttpGet]
     public async Task<IActionResult> Details(Guid id)
     {
-        AlbumDetailsViewModel? album = await _albumService.Details(id);
-
-        if (album == null)
+        try
+        {
+            AlbumDetailsViewModel? album = await _albumService.Details(id);
+            return View(album);
+        }
+        catch (ArgumentNullException)
         {
             return NotFound();
         }
 
-        return View(album);
+
     }
 
     [HttpGet]
@@ -144,14 +163,15 @@ public class AlbumController : Controller
             return RedirectToAction("AccessDenied", "Home");
         }
 
-        AlbumEditViewModel? editAlbum = await _albumService.Edit(id);
-
-        if (editAlbum == null)
+        try
+        {
+            AlbumEditViewModel? editAlbum = await _albumService.Edit(id);
+            return View(editAlbum);
+        }
+        catch (ArgumentNullException)
         {
             return NotFound();
         }
-
-        return View(editAlbum);
     }
 
     [HttpPost]
@@ -166,6 +186,11 @@ public class AlbumController : Controller
         Album album = _context.Albums
         .FirstOrDefault(a => a.Id == id && a.IsDeleted == false)!;
 
+        if (album == null)
+        {
+            return NotFound();
+        }
+
         //Ensure that the ImageHandler is properly initialized
         string tempFolderPath = Path.Combine(Directory.GetCurrentDirectory(), "wwwroot", "img", "Temp");
         string finalFolderPath = Path.Combine(Directory.GetCurrentDirectory(), "wwwroot", "img", "Albums Covers");
@@ -179,6 +204,11 @@ public class AlbumController : Controller
         .Where(a => a.IsDeleted == false)
         .AsNoTracking()
         .ToListAsync();
+
+        if (!allGenres.Any() || !allArtists.Any())
+        {
+            return NotFound();
+        }
 
         if (User.IsInRole("Administrator"))
         {
@@ -266,14 +296,15 @@ public class AlbumController : Controller
             return RedirectToAction("AccessDenied", "Home");
         }
 
-        AlbumDeleteViewModel? deleteAlbum = await _albumService.Delete(id);
-
-        if (deleteAlbum == null)
+        try
+        {
+            AlbumDeleteViewModel? deleteAlbum = await _albumService.Delete(id);
+            return View(deleteAlbum);
+        }
+        catch (ArgumentNullException)
         {
             return NotFound();
         }
-
-        return View(deleteAlbum);
     }
 
     [HttpPost]
@@ -285,7 +316,14 @@ public class AlbumController : Controller
             return RedirectToAction("AccessDenied", "Home");
         }
 
-        await _albumService.Delete(deleteAlbum);
-        return RedirectToAction(nameof(Index));
+        try
+        {
+            await _albumService.Delete(deleteAlbum);
+            return RedirectToAction(nameof(Index));
+        }
+        catch (ArgumentNullException)
+        {
+            return NotFound();
+        }
     }
 }

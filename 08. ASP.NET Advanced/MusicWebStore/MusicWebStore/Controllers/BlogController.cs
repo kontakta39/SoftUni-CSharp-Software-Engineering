@@ -105,14 +105,16 @@ public class BlogController : Controller
     [HttpGet]
     public async Task<IActionResult> Details(Guid id)
     {
-        BlogDetailsViewModel blog = await _blogService.Details(id);
-
-        if (blog == null)
+        try
+        {
+            BlogDetailsViewModel blog = await _blogService.Details(id);
+            return View(blog);
+        }
+        catch (ArgumentNullException)
         {
             return NotFound();
         }
 
-        return View(blog);
     }
 
     [HttpGet]
@@ -131,14 +133,15 @@ public class BlogController : Controller
             return RedirectToAction("LogIn", "Account");
         }
 
-        BlogEditViewModel editBlog = await _blogService.Edit(id, publisherId);
-
-        if (editBlog == null)
+        try
+        {
+            BlogEditViewModel editBlog = await _blogService.Edit(id, publisherId);
+            return View(editBlog);
+        }
+        catch (ArgumentNullException)
         {
             return NotFound();
         }
-
-        return View(editBlog);
     }
 
     [HttpPost]
@@ -160,6 +163,11 @@ public class BlogController : Controller
         Blog? blogCheck = await _context.Blogs
             .Where(b => b.Id == id && b.PublisherId == publisherId && b.IsDeleted == false)
             .FirstOrDefaultAsync();
+
+        if (blogCheck == null)
+        {
+            return NotFound();
+        }
 
         TempData["CurrentImageUrl"] = blogCheck.ImageUrl;
 
@@ -262,7 +270,14 @@ public class BlogController : Controller
             return RedirectToAction("LogIn", "Account");
         }
 
-        await _blogService.Delete(deleteBlog, publisherId);
-        return RedirectToAction(nameof(Index));
+        try
+        {
+            await _blogService.Delete(deleteBlog, publisherId);
+            return RedirectToAction(nameof(Index));
+        }
+        catch (ArgumentNullException)
+        {
+            return NotFound();
+        }
     }
 }

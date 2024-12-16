@@ -1,10 +1,12 @@
 ﻿using Microsoft.AspNetCore.Authorization;
 using Microsoft.AspNetCore.Identity;
 using Microsoft.AspNetCore.Mvc;
+using Microsoft.EntityFrameworkCore;
 using MusicWebStore.Data.Models;
 using MusicWebStore.Services;
 using MusicWebStore.ViewModels;
 using System.Security.Claims;
+using System.Security.Policy;
 
 namespace MusicWebStore.Controllers;
 
@@ -37,14 +39,15 @@ public class AccountController : Controller
             return RedirectToAction("LogIn", "Account");
         }
 
-        List<(ApplicationUser User, IList<string> Roles)>? userRoles = await _accountService.ManageUsers(userId);
-
-        if (userRoles == null)
+        try
+        {
+            List<(ApplicationUser User, IList<string> Roles)>? userRoles = await _accountService.ManageUsers(userId);
+            return View(userRoles);
+        }
+        catch (ArgumentNullException)
         {
             return NotFound();
         }
-
-        return View(userRoles);
     }
 
     [HttpPost]
@@ -96,9 +99,9 @@ public class AccountController : Controller
                 ModelState.AddModelError(string.Empty, error.Description);
             }
         }
-        catch (Exception ex)
+        catch (ArgumentException ex)
         {
-            ViewData["ErrorMessage"] = ex.Message;
+            ModelState.AddModelError("", ex.Message);
         }
 
         return View(register);
@@ -117,14 +120,14 @@ public class AccountController : Controller
     {
         if (ModelState.IsValid)
         {
-            var (success, errorMessage) = await _accountService.LogIn(model.Email, model.Password);
-
-            if (success)
+            try
             {
-                return RedirectToAction("Index", "Home");
+                await _accountService.LogIn(model.Email, model.Password);
             }
-
-            ViewData["ErrorMessage"] = errorMessage;
+            catch (ArgumentException ex)
+            {
+                ModelState.AddModelError("", ex.Message);
+            }
         }
 
         return View(model);

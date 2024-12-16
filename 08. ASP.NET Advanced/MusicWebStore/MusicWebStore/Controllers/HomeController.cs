@@ -22,12 +22,6 @@ public class HomeController : Controller
         return View("404");
     }
 
-    public IActionResult Cause500Error()
-    {
-        //Simulate a 500 error by throwing an exception
-        throw new Exception("This is a test 500 error");
-    }
-
     [ResponseCache(Duration = 0, Location = ResponseCacheLocation.None, NoStore = true)]
     public IActionResult Error()
     {

@@ -40,6 +40,11 @@ public class ArtistService : IArtistInterface
            .Where(g => g.IsDeleted == false)
            .ToListAsync();
 
+        if (!allGenres.Any())
+        {
+            throw new ArgumentException();
+        }
+
         ArtistAddViewModel addArtist = new ArtistAddViewModel();
         addArtist.NationalityOptions = CountriesConstants.CountriesList();
         addArtist.Genres = allGenres;
@@ -47,11 +52,8 @@ public class ArtistService : IArtistInterface
         return addArtist;
     }
 
-    public async Task Add(ArtistAddViewModel addArtist, string tempDataImageUrl)
+    public async Task Add(ArtistAddViewModel addArtist, string tempFolderPath, string finalFolderPath, string tempImageUrl)
     {
-        string tempFolderPath = Path.Combine(Directory.GetCurrentDirectory(), "wwwroot", "img", "Temp");
-        string finalFolderPath = Path.Combine(Directory.GetCurrentDirectory(), "wwwroot", "img", "Artists Images");
-
         Artist artist = new Artist
         {
             Name = addArtist.Name,
@@ -68,13 +70,13 @@ public class ArtistService : IArtistInterface
         {
             artist.ImageUrl = await _imageHandler.SaveFinalImageAsync(addArtist.ImageFile);
         }
-        else if (!string.IsNullOrEmpty(tempDataImageUrl))
+        else if (!string.IsNullOrEmpty(tempImageUrl))
         {
-            string finalFileName = ImageHandler.MoveImageToFinalFolder(tempDataImageUrl, tempFolderPath, finalFolderPath);
+            string finalFileName = ImageHandler.MoveImageToFinalFolder(tempImageUrl, tempFolderPath, finalFolderPath);
 
             if (finalFileName == null)
             {
-                throw new InvalidOperationException("The temporary file is missing. Please re-upload the image.");
+                throw new ArgumentNullException();
             }
 
             artist.ImageUrl = finalFileName;
@@ -92,12 +94,17 @@ public class ArtistService : IArtistInterface
 
         if (artistCheck == null)
         {
-            return null;
+            throw new ArgumentNullException();
         }
 
         Genre? currentGenre = await _context.Genres
             .Where(g => g.Id == artistCheck.GenreId)
             .FirstOrDefaultAsync();
+
+        if (currentGenre == null)
+        {
+            throw new ArgumentNullException();
+        }
 
         ArtistDetailsViewModel? artist = new ArtistDetailsViewModel()
         {
@@ -121,12 +128,17 @@ public class ArtistService : IArtistInterface
 
         if (artist == null)
         {
-            return null;
+            throw new ArgumentException();
         }
 
         List<Genre> allGenres = await _context.Genres
             .Where(g => g.IsDeleted == false)
             .ToListAsync();
+
+        if (!allGenres.Any())
+        { 
+            throw new ArgumentException();
+        }
 
         ArtistEditViewModel? editArtist = new ArtistEditViewModel
         {
@@ -144,13 +156,15 @@ public class ArtistService : IArtistInterface
         return editArtist;
     }
 
-    public async Task Edit(ArtistEditViewModel editArtist, Guid id, string newImageUrl)
+    public async Task Edit(ArtistEditViewModel editArtist, Guid id, string tempFolderPath, string finalFolderPath, string tempImageUrl)
     {
-        string tempFolderPath = Path.Combine(Directory.GetCurrentDirectory(), "wwwroot", "img", "Temp");
-        string finalFolderPath = Path.Combine(Directory.GetCurrentDirectory(), "wwwroot", "img", "Artists Images");
-
         Artist artist = _context.Artists
            .FirstOrDefault(a => a.Id == id && a.IsDeleted == false)!;
+
+        if (artist == null)
+        {
+            throw new ArgumentNullException();
+        }
 
         artist.Name = editArtist.Name;
         artist.Biography = editArtist.Biography;
@@ -174,9 +188,9 @@ public class ArtistService : IArtistInterface
             string fileName = await _imageHandler.SaveFinalImageAsync(editArtist.ImageFile);
             artist.ImageUrl = fileName; //Save the file name in the database
         }
-        else if (newImageUrl != null && artist.ImageUrl != null)
+        else if (tempImageUrl != null && artist.ImageUrl != null)
         {
-            string fileName = newImageUrl;
+            string fileName = tempImageUrl;
             string currentTempFilePath = Path.Combine(Directory.GetCurrentDirectory(), tempFolderPath, fileName);
 
             if (File.Exists(currentTempFilePath))
@@ -187,7 +201,7 @@ public class ArtistService : IArtistInterface
             }
             else
             {
-                throw new InvalidOperationException("The temporary file is missing. Please re-upload the image.");
+                throw new ArgumentNullException();
             }
         }
 
@@ -208,7 +222,7 @@ public class ArtistService : IArtistInterface
 
         if (deleteArtist == null)
         {
-            return null;
+            throw new ArgumentNullException();
         }
 
         return deleteArtist;
@@ -224,6 +238,10 @@ public class ArtistService : IArtistInterface
         {
             artist.IsDeleted = true;
             await _context.SaveChangesAsync();
+        }
+        else
+        {
+            throw new ArgumentNullException();
         }
     }
 }

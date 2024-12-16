@@ -51,8 +51,15 @@ public class GenreController : Controller
             return View(addGenre);
         }
 
-        await _genreService.Add(addGenre);
-        return RedirectToAction(nameof(Index));
+        try
+        {
+            await _genreService.Add(addGenre);
+            return RedirectToAction(nameof(Index));
+        }
+        catch (ArgumentNullException)
+        {
+            return NotFound();
+        }
     }
 
     [HttpGet]
@@ -63,14 +70,15 @@ public class GenreController : Controller
             return RedirectToAction("AccessDenied", "Home");
         }
 
-        GenreEditViewModel editModel = await _genreService.Edit(id);
-
-        if (editModel == null)
+        try
+        {
+            GenreEditViewModel editModel = await _genreService.Edit(id);
+            return View(editModel);
+        }
+        catch (ArgumentNullException)
         {
             return NotFound();
         }
-
-        return View(editModel);
     }
 
     [HttpPost]
@@ -86,9 +94,15 @@ public class GenreController : Controller
             return View(editModel);
         }
 
-        await _genreService.Edit(editModel, id);
-
-        return RedirectToAction(nameof(Index));
+        try
+        {
+            await _genreService.Edit(editModel, id);
+            return RedirectToAction(nameof(Index));
+        }
+        catch (ArgumentNullException)
+        {
+            return NotFound();
+        }
     }
 
     [HttpGet]
@@ -99,14 +113,15 @@ public class GenreController : Controller
             return RedirectToAction("AccessDenied", "Home");
         }
 
-        GenreDeleteViewModel genre = await _genreService.Delete(id);
-
-        if (genre == null)
+        try
         {
-            return RedirectToAction("NotFound", "Home");
+            GenreDeleteViewModel genre = await _genreService.Delete(id);
+            return View(genre);
         }
-
-        return View(genre);
+        catch (ArgumentNullException)
+        {
+            return NotFound();
+        }
     }
 
     [HttpPost]
@@ -117,7 +132,14 @@ public class GenreController : Controller
             return RedirectToAction("AccessDenied", "Home");
         }
 
-        await _genreService.Delete(model);
-        return RedirectToAction(nameof(Index));
+        try
+        {
+            await _genreService.Delete(model);
+            return RedirectToAction(nameof(Index));
+        }
+        catch (ArgumentNullException)
+        {
+            return NotFound();
+        }
     }
 }

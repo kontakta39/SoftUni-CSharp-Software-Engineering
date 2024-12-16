@@ -51,6 +51,11 @@ public class AlbumService : IAlbumInterface
             .AsNoTracking()
             .ToListAsync();
 
+        if (!addAlbum.Genres.Any() || !addAlbum.Artists.Any())
+        {
+            throw new ArgumentException();
+        }
+
         return addAlbum;
     }
 
@@ -103,7 +108,7 @@ public class AlbumService : IAlbumInterface
 
         if (albumCheck == null)
         {
-            return null;
+            throw new ArgumentNullException();
         }
 
         AlbumDetailsViewModel? album = await _context.Albums
@@ -151,7 +156,7 @@ public class AlbumService : IAlbumInterface
 
         if (album == null)
         {
-            return null;
+            throw new ArgumentNullException();
         }
 
         List<Genre> allGenres = await _context.Genres
@@ -163,6 +168,11 @@ public class AlbumService : IAlbumInterface
             .Where(a => a.IsDeleted == false)
             .AsNoTracking()
             .ToListAsync();
+
+        if (!allGenres.Any() || !allArtists.Any())
+        {
+            throw new ArgumentException();
+        }
 
         AlbumEditViewModel? editAlbum = new AlbumEditViewModel()
         {
@@ -264,7 +274,7 @@ public class AlbumService : IAlbumInterface
 
         if (deleteAlbum == null)
         {
-            return null;
+            throw new ArgumentNullException();
         }
 
         return deleteAlbum;
@@ -276,10 +286,14 @@ public class AlbumService : IAlbumInterface
            .Where(p => p.Id == deleteAlbum.Id && p.IsDeleted == false)
            .FirstOrDefaultAsync();
 
-        if (album != null && album?.Stock == 0)
+        if (album != null)
         {
             album.IsDeleted = true;
             await _context.SaveChangesAsync();
+        }
+        else
+        { 
+            throw new ArgumentNullException();
         }
     }
 }

@@ -21,7 +21,7 @@ public class ReviewService : IReviewInterface
 
         if (album == null)
         {
-            return null;
+            throw new ArgumentNullException();
         }
 
         //Check if the user has already reviewed this album
@@ -30,7 +30,7 @@ public class ReviewService : IReviewInterface
 
         if (existingReview != null)
         {
-            return null;
+            throw new ArgumentNullException();
         }
 
         ReviewAddViewModel addReview = new ReviewAddViewModel();
@@ -71,7 +71,7 @@ public class ReviewService : IReviewInterface
 
         if (findReview == null)
         {
-            return null;
+            throw new ArgumentNullException();
         }
 
         //Find the certain album, where the review is published
@@ -81,7 +81,7 @@ public class ReviewService : IReviewInterface
 
         if (album == null)
         {
-            return null;
+            throw new ArgumentNullException();
         }
 
         ReviewEditViewModel editReview = new ReviewEditViewModel()

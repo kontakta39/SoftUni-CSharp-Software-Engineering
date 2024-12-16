@@ -21,13 +21,12 @@ public class OrderController : Controller
 	{
 		string buyerId = User.FindFirstValue(ClaimTypes.NameIdentifier) ?? string.Empty;
 
-        List<OrderCartViewModel>? model = await _orderService.Cart(buyerId);
-
-        if (model == null)
+        if (string.IsNullOrEmpty(buyerId))
         {
             return NotFound();
         }
 
+        List<OrderCartViewModel>? model = await _orderService.Cart(buyerId);
 		return View(model);
 	}
 
@@ -42,11 +41,13 @@ public class OrderController : Controller
             return RedirectToAction("LogIn", "Account");
         }
 
-        bool success = await _orderService.AddToCart(id, buyerId);
-
-        if (!success)
+        try
         {
-            return NotFound();
+            await _orderService.AddToCart(id, buyerId);
+        }
+        catch (ArgumentException ex)
+        {
+            ModelState.AddModelError("", ex.Message);
         }
 
         return RedirectToAction(nameof(Cart));
