@@ -1,4 +1,5 @@
-﻿using Microsoft.AspNetCore.Authorization;
+﻿using System.Security.Policy;
+using Microsoft.AspNetCore.Authorization;
 using Microsoft.AspNetCore.Mvc;
 using Microsoft.EntityFrameworkCore;
 using MusicWebStore.Data;
@@ -10,31 +11,20 @@ namespace MusicWebStore.Controllers;
 
 public class AlbumController : Controller
 {
+    private readonly IAlbumInterface _albumService;
     private readonly MusicStoreDbContext _context;
     private readonly ImageHandler _imageHandler;
 
-    public AlbumController(MusicStoreDbContext context, ImageHandler imageHandler)
+    public AlbumController(IAlbumInterface albumService, MusicStoreDbContext context, ImageHandler imageHandler)
     {
+        _albumService = albumService;
         _context = context;
         _imageHandler = imageHandler;
     }
 
     public async Task<IActionResult> Index()
     {
-        List<AlbumIndexViewModel> albums = await _context.Albums
-           .Where(a => a.IsDeleted == false && a.Stock > 0)
-           .Select(a => new AlbumIndexViewModel() 
-           {
-             Id = a.Id,
-             Title = a.Title,
-             ImageUrl = a.ImageUrl,
-             Stock = a.Stock,
-             Price = a.Price,
-             Artist = a.Artist.Name,
-             Genre = a.Genre.Name
-           })
-            .ToListAsync(); 
-
+        List<AlbumIndexViewModel> albums = await _albumService.Index();
         return View(albums);
     }
 
@@ -47,20 +37,7 @@ public class AlbumController : Controller
             return RedirectToAction("AccessDenied", "Home");
         }
 
-        AlbumAddViewModel addAlbum = new AlbumAddViewModel();
-        addAlbum.Stock = addAlbum.Stock == 0 ? 1 : addAlbum.Stock; //Set default value for Stock if 0 or null
-        addAlbum.Price = addAlbum.Price == 0 ? 1.00m : addAlbum.Price; //Set default value for Price if 0 or null
-
-        addAlbum.Genres = await _context.Genres
-            .Where(g => _context.Artists.Any(a => a.GenreId == g.Id) && g.IsDeleted == false)
-            .AsNoTracking()
-            .ToListAsync();
-
-        addAlbum.Artists = await _context.Artists
-            .Where(a => a.IsDeleted == false)
-            .AsNoTracking()
-            .ToListAsync();
-
+        AlbumAddViewModel addAlbum = await _albumService.Add();
         return View(addAlbum);
     }
 
@@ -73,33 +50,26 @@ public class AlbumController : Controller
             return RedirectToAction("AccessDenied", "Home"); 
         }
 
-        List<Genre> allGenres = await _context.Genres
-            .Where(g => _context.Artists.Any(a => a.GenreId == g.Id) && g.IsDeleted == false)
-            .AsNoTracking()
-            .ToListAsync();
-
-        List<Artist> allArtists = await _context.Artists
-            .Where(a => a.IsDeleted == false)
-            .AsNoTracking()
-            .ToListAsync();
-
-        //Define allowed content types and extensions
-        string[] allowedContentTypes = { "image/jpg", "image/jpeg", "image/png", "image/gif", "image/webp" };
-        string[] allowedExtensions = { ".jpg", ".jpeg", ".png", ".gif", ".webp" };
-
         //Ensure that the ImageHandler is properly initialized
         string tempFolderPath = Path.Combine(Directory.GetCurrentDirectory(), "wwwroot", "img", "Temp");
         string finalFolderPath = Path.Combine(Directory.GetCurrentDirectory(), "wwwroot", "img", "Albums Covers");
 
         if (!ModelState.IsValid)
         {
-            addAlbum.Genres = allGenres;
-            addAlbum.Artists = allArtists;
+            List<Genre> allGenres = await _context.Genres
+                 .Where(g => _context.Artists.Any(a => a.GenreId == g.Id) && g.IsDeleted == false)
+                 .AsNoTracking()
+                 .ToListAsync();
+
+            List<Artist> allArtists = await _context.Artists
+                .Where(a => a.IsDeleted == false)
+                .AsNoTracking()
+                .ToListAsync();
 
             //Handle image upload
             if (addAlbum.ImageFile != null)
             {
-                string validationError = ImageHandler.ValidateImage(addAlbum.ImageFile, allowedContentTypes, allowedExtensions);
+                string validationError = ImageHandler.ValidateImage(addAlbum.ImageFile);
 
                 if (!string.IsNullOrEmpty(validationError))
                 {
@@ -122,48 +92,17 @@ public class AlbumController : Controller
             return View(addAlbum);
         }
 
-        Album album = new Album()
+        try
         {
-            Title = addAlbum.Title,
-            Label = addAlbum.Label,
-            ReleaseDate = string.IsNullOrEmpty(addAlbum.ReleaseDate)
-                         ? null
-                         : DateOnly.ParseExact(addAlbum.ReleaseDate, "yyyy-MM-dd", null),
-            Description = addAlbum.Description,
-            Price = addAlbum.Price,
-            Stock = addAlbum.Stock,
-            ArtistId = addAlbum.ArtistId,
-            GenreId = addAlbum.GenreId,
-        };
-
-        //Handle image upload
-        if (addAlbum.ImageFile != null)
-        {
-            string fileName = await _imageHandler.SaveFinalImageAsync(addAlbum.ImageFile);
-            album.ImageUrl = fileName;
+            string tempImageUrl = TempData["ImageUrl"].ToString();
+            await _albumService.Add(addAlbum, tempFolderPath, finalFolderPath, tempImageUrl);
+            TempData.Remove("ImageUrl");
+            return RedirectToAction(nameof(Index));
         }
-        else if (TempData["ImageUrl"] != null)
+        catch (ArgumentNullException)
         {
-            string tempFileName = TempData["ImageUrl"].ToString();
-            string finalFileName = ImageHandler.MoveImageToFinalFolder(tempFileName, tempFolderPath, finalFolderPath);
-
-            if (finalFileName != null)
-            {
-                album.ImageUrl = finalFileName;
-            }
-            else
-            {
-                ModelState.AddModelError("ImageFile", "The temporary file is missing. Please re-upload the image.");
-                return View(addAlbum);
-            }
+            return NotFound();
         }
-
-        await _context.Albums.AddAsync(album);
-        await _context.SaveChangesAsync();
-
-        TempData.Remove("ImageUrl");
-
-        return RedirectToAction(nameof(Index));
     }
 
     [HttpGet]
@@ -186,48 +125,12 @@ public class AlbumController : Controller
     [HttpGet]
     public async Task<IActionResult> Details(Guid id)
     {
-        Album? albumCheck = _context.Albums
-        .Where (a => a.Id == id && a.IsDeleted == false)
-        .FirstOrDefault();
+        AlbumDetailsViewModel? album = await _albumService.Details(id);
 
-        if (albumCheck == null)
+        if (album == null)
         {
             return NotFound();
         }
-
-        AlbumDetailsViewModel? album = await _context.Albums
-            .Where(a => a.Id == id && a.IsDeleted == false)
-            .Select(a => new AlbumDetailsViewModel()
-            {
-                Id = a.Id,
-                Title = a.Title,
-                Label = a.Label,
-                ReleaseDate = a.ReleaseDate,
-                Description = a.Description,
-                ImageUrl = a.ImageUrl,
-                Price = a.Price,
-                Stock = a.Stock,
-                Genre = a.Genre.Name,
-                Artist = a.Artist.Name,
-                ArtistId = a.Artist.Id,
-                IsDeleted = a.IsDeleted,
-                Reviews = _context.Reviews
-                    .Where(r => r.AlbumId == id)
-                    .Select(r => new ReviewIndexViewModel()
-                    {
-                        Id = r.Id,
-                        AlbumId = r.AlbumId,
-                        UserId = r.UserId,
-                        FirstName = r.User.FirstName!,
-                        LastName = r.User.LastName!,
-                        ReviewDate = r.ReviewDate,
-                        ReviewText = r.ReviewText,
-                        Rating = r.Rating,
-                        IsEdited = r.IsEdited
-                    })
-                    .ToList()
-            })
-            .FirstOrDefaultAsync();
 
         return View(album);
     }
@@ -241,40 +144,13 @@ public class AlbumController : Controller
             return RedirectToAction("AccessDenied", "Home");
         }
 
-        Album? album = _context.Albums
-        .Where(a => a.Id == a.Id && a.IsDeleted == false)
-        .FirstOrDefault();
+        AlbumEditViewModel? editAlbum = await _albumService.Edit(id);
 
-        if (album == null)
+        if (editAlbum == null)
         {
             return NotFound();
         }
 
-        List<Genre> allGenres = await _context.Genres
-            .Where(g => _context.Artists.Any(a => a.GenreId == g.Id) && g.IsDeleted == false)
-            .AsNoTracking()
-            .ToListAsync();
-
-        List<Artist> allArtists = await _context.Artists
-            .Where(a => a.IsDeleted == false)
-            .AsNoTracking()
-            .ToListAsync();
-
-        AlbumEditViewModel? editAlbum = new AlbumEditViewModel()
-        {
-            Title = album.Title,
-            Label = album.Label,
-            ReleaseDate = album.ReleaseDate.ToString(),
-            Description = album.Description,
-            ImageUrl = album.ImageUrl,
-            Price = album.Price,
-            Stock = album.Stock,
-            ArtistId = album.ArtistId,
-            GenreId = album.GenreId,
-            Genres = allGenres,
-            Artists = allArtists
-        };
-       
         return View(editAlbum);
     }
 
@@ -290,36 +166,22 @@ public class AlbumController : Controller
         Album album = _context.Albums
         .FirstOrDefault(a => a.Id == id && a.IsDeleted == false)!;
 
-        if (album == null)
-        {
-            return NotFound();
-        }
+        //Ensure that the ImageHandler is properly initialized
+        string tempFolderPath = Path.Combine(Directory.GetCurrentDirectory(), "wwwroot", "img", "Temp");
+        string finalFolderPath = Path.Combine(Directory.GetCurrentDirectory(), "wwwroot", "img", "Albums Covers");
+
+        List<Genre> allGenres = await _context.Genres
+        .Where(g => _context.Artists.Any(a => a.GenreId == g.Id) && g.IsDeleted == false)
+        .AsNoTracking()
+        .ToListAsync();
+
+        List<Artist> allArtists = await _context.Artists
+        .Where(a => a.IsDeleted == false)
+        .AsNoTracking()
+        .ToListAsync();
 
         if (User.IsInRole("Administrator"))
         {
-            //Validate the uploaded image using ImageHandler
-            string[] allowedContentTypes = { "image/jpg", "image/jpeg", "image/png", "image/gif", "image/webp" };
-            string[] allowedExtensions = { ".jpg", ".jpeg", ".png", ".gif", ".webp" };
-
-            //Ensure that the ImageHandler is properly initialized
-            string tempFolderPath = Path.Combine(Directory.GetCurrentDirectory(), "wwwroot", "img", "Temp");
-            string finalFolderPath = Path.Combine(Directory.GetCurrentDirectory(), "wwwroot", "img", "Albums Covers");
-
-            List<Genre> allGenres = await _context.Genres
-                .Where(g => _context.Artists.Any(a => a.GenreId == g.Id) && g.IsDeleted == false)
-                .AsNoTracking()
-                .ToListAsync();
-
-            List<Artist> allArtists = await _context.Artists
-                .Where(a => a.IsDeleted == false)
-                .AsNoTracking()
-                .ToListAsync();
-
-            TempData["CurrentImageUrl"] = await _context.Albums
-                .Where(a => a.Id == id && a.IsDeleted == false)
-                .Select(a => a.ImageUrl)
-                .FirstOrDefaultAsync();
-
             if (!ModelState.IsValid)
             {
                 editAlbum.Genres = allGenres;
@@ -329,10 +191,9 @@ public class AlbumController : Controller
                 if (editAlbum.ImageFile != null)
                 {
                     //Delete the old image if it's not the default one
-                    Album? albumCheck = _context.Albums
-                        .FirstOrDefault(a => a.Id == id && a.IsDeleted == false);
+                    TempData["CurrentImageUrl"] = album.ImageUrl;
 
-                    string validationError = ImageHandler.ValidateImage(editAlbum.ImageFile, allowedContentTypes, allowedExtensions);
+                    string validationError = ImageHandler.ValidateImage(editAlbum.ImageFile);
 
                     if (!string.IsNullOrEmpty(validationError))
                     {
@@ -340,10 +201,10 @@ public class AlbumController : Controller
                     }
                     else
                     {
-                        if (albumCheck.ImageUrl != null)
+                        if (album.ImageUrl != null)
                         {
                             //Use ImageHandler to delete the old image
-                            _imageHandler.DeleteImage(albumCheck.ImageUrl, finalFolderPath);
+                            _imageHandler.DeleteImage(album.ImageUrl, finalFolderPath);
                         }
 
                         //Save the file temporarily using ImageHandler
@@ -365,79 +226,35 @@ public class AlbumController : Controller
                 return View(editAlbum);
             }
 
-            album.Title = editAlbum.Title;
-            album.Label = editAlbum.Label;
-            album.ReleaseDate = string.IsNullOrEmpty(editAlbum.ReleaseDate)
-                        ? null
-                        : DateOnly.ParseExact(editAlbum.ReleaseDate, "yyyy-MM-dd", null);
-            album.Description = editAlbum.Description;
-            album.Price = editAlbum.Price;
-            album.Stock = editAlbum.Stock;
-            album.ArtistId = editAlbum.ArtistId;
-            album.GenreId = editAlbum.GenreId;
-
-            //Handle image upload (copy the file to server only if ModelState is valid)
-            if (editAlbum.ImageFile != null)
+            try
             {
-                //Delete the old image if it's not the default one
-                if (album.ImageUrl != null)
-                {
-                    _imageHandler.DeleteImage(album.ImageUrl, finalFolderPath);
-                }
-
-                //Save the file to the final folder using ImageHandler
-                string fileName = await _imageHandler.SaveFinalImageAsync(editAlbum.ImageFile);
-                album.ImageUrl = fileName; //Save the file name in the database
+                string role = "Administrator";
+                string tempImageUrl = TempData["NewImageUrl"].ToString();
+                await _albumService.Edit(editAlbum, id, tempFolderPath, finalFolderPath, tempImageUrl, role);
+                TempData.Remove("CurrentImageUrl");
+                TempData.Remove("NewImageUrl");
             }
-            else if (TempData["NewImageUrl"] != null && album.ImageUrl == null)
+            catch (ArgumentNullException)
             {
-                string fileName = TempData["NewImageUrl"].ToString();
-                string currentTempFilePath = Path.Combine(Directory.GetCurrentDirectory(), tempFolderPath, fileName);
-
-                if (System.IO.File.Exists(currentTempFilePath))
-                {
-                    //Use ImageHandler to move the image from temp to final folder
-                    ImageHandler.MoveImageToFinalFolder(fileName, tempFolderPath, finalFolderPath);
-                    album.ImageUrl = fileName; //Save the file name in the database
-                }
-                else
-                {
-                    ModelState.AddModelError("ImageFile", "The temporary file is missing. Please re-upload the image.");
-                    return View(editAlbum);
-                }
+                return NotFound();
             }
-
-            TempData.Remove("CurrentImageUrl");
-            TempData.Remove("NewImageUrl");
         }
         else if (User.IsInRole("Moderator"))
         {
             if (!ModelState.IsValid)
             {
-                editAlbum.Genres = await _context.Genres
-                .Where(g => g.IsDeleted == false)
-                .AsNoTracking()
-                .ToListAsync();
-
-                editAlbum.Artists = await _context.Artists
-                .Where(a => a.IsDeleted == false)
-                .AsNoTracking()
-                .ToListAsync();
+                editAlbum.Genres = allGenres;
+                editAlbum.Artists = allArtists;
 
                 return View(editAlbum);
             }
 
-            album.Label = editAlbum.Label;
-            album.ReleaseDate = string.IsNullOrEmpty(editAlbum.ReleaseDate)
-                        ? null
-                        : DateOnly.ParseExact(editAlbum.ReleaseDate, "yyyy-MM-dd", null);
-            album.Description = editAlbum.Description;
-            album.Price = editAlbum.Price;
-            album.Stock = editAlbum.Stock;
+            string role = "Moderator";
+            string tempImageUrl = TempData["NewImageUrl"].ToString();
+            await _albumService.Edit(editAlbum, id, tempFolderPath, finalFolderPath, tempImageUrl, role);
         }
 
-        await _context.SaveChangesAsync();
-        return RedirectToAction(nameof(Index));
+        return RedirectToAction("Details", "Album", new { id = album.Id });
     }
 
     [HttpGet]
@@ -449,16 +266,7 @@ public class AlbumController : Controller
             return RedirectToAction("AccessDenied", "Home");
         }
 
-        AlbumDeleteViewModel? deleteAlbum = await _context.Albums
-            .Where(p => p.Id == id && p.IsDeleted == false)
-            .Select(p => new AlbumDeleteViewModel()
-            {
-                Id = id,
-                Title = p.Title,
-                Artist = p.Artist.Name
-            })
-            .AsNoTracking()
-            .FirstOrDefaultAsync();
+        AlbumDeleteViewModel? deleteAlbum = await _albumService.Delete(id);
 
         if (deleteAlbum == null)
         {
@@ -477,16 +285,7 @@ public class AlbumController : Controller
             return RedirectToAction("AccessDenied", "Home");
         }
 
-        Album? album = await _context.Albums
-           .Where(p => p.Id == deleteAlbum.Id && p.IsDeleted == false)
-           .FirstOrDefaultAsync();
-
-        if (album != null && album?.Stock == 0)
-        {
-            album.IsDeleted = true;
-            await _context.SaveChangesAsync();
-        }
-
+        await _albumService.Delete(deleteAlbum);
         return RedirectToAction(nameof(Index));
     }
 }
