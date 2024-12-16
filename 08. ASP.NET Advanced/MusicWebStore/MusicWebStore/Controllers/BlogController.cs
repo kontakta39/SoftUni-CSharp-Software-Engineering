@@ -11,11 +11,13 @@ namespace MusicWebStore.Controllers;
 
 public class BlogController : Controller
 {
+    private readonly IBlogInterface _blogService;
     private readonly MusicStoreDbContext _context;
     private readonly ImageHandler _imageHandler;
 
-    public BlogController(MusicStoreDbContext context, ImageHandler imageHandler)
+    public BlogController(IBlogInterface blogService, MusicStoreDbContext context, ImageHandler imageHandler)
     {
+        _blogService = blogService;
         _context = context;
         _imageHandler = imageHandler;
     }
@@ -23,18 +25,7 @@ public class BlogController : Controller
     [HttpGet]
     public async Task<IActionResult> Index()
     {
-        List<BlogIndexViewModel> allBlogs = await _context.Blogs
-            .Where(b => b.IsDeleted == false)
-            .Select(b => new BlogIndexViewModel() 
-            {
-                Id = b.Id,
-                Title = b.Title,
-                PublisherName = $"{b.Publisher.FirstName} {b.Publisher.LastName}",
-                PublishDate = b.PublishDate,
-                ImageUrl = b.ImageUrl
-            })
-            .ToListAsync();
-
+        List<BlogIndexViewModel> allBlogs = await _blogService.Index();
         return View(allBlogs);
     }
 
@@ -53,7 +44,7 @@ public class BlogController : Controller
 
     [HttpPost]
     [Authorize]
-    public async Task<IActionResult> AddAsync(BlogAddViewModel addBlog)
+    public async Task<IActionResult> Add(BlogAddViewModel addBlog)
     {
         if (!User.IsInRole("Administrator"))
         {
@@ -67,11 +58,7 @@ public class BlogController : Controller
             return RedirectToAction("LogIn", "Account");
         }
 
-        // Define allowed content types and extensions
-        string[] allowedContentTypes = { "image/jpg", "image/jpeg", "image/png", "image/gif", "image/webp" };
-        string[] allowedExtensions = { ".jpg", ".jpeg", ".png", ".gif", ".webp" };
-
-        // Ensure that the ImageHandler is properly initialized
+        //Ensure that the ImageHandler is properly initialized
         string tempFolderPath = Path.Combine(Directory.GetCurrentDirectory(), "wwwroot", "img", "Temp");
         string finalFolderPath = Path.Combine(Directory.GetCurrentDirectory(), "wwwroot", "img", "Blogs Images");
 
@@ -80,7 +67,7 @@ public class BlogController : Controller
             //Handle image upload (only store the filename in TempData if ModelState is not valid)
             if (addBlog.ImageFile != null)
             {
-                string validationError = ImageHandler.ValidateImage(addBlog.ImageFile, allowedContentTypes, allowedExtensions);
+                string validationError = ImageHandler.ValidateImage(addBlog.ImageFile);
 
                 if (!string.IsNullOrEmpty(validationError))
                 {
@@ -90,78 +77,40 @@ public class BlogController : Controller
                 {
                     string tempFileName = await ImageHandler.SaveTempImageAsync(addBlog.ImageFile, tempFolderPath);
                     addBlog.ImageUrl = tempFileName;
-                    TempData["ImageUrl"] = tempFileName; // Store temporarily
+                    TempData["ImageUrl"] = tempFileName; //Store temporarily
                 }
             }
             else if (TempData["ImageUrl"] != null)
             {
-                addBlog.ImageUrl = TempData["ImageUrl"].ToString(); // Retrieve the file name
+                addBlog.ImageUrl = TempData["ImageUrl"].ToString(); //Retrieve the file name
             }
 
             TempData.Keep("ImageUrl");
-
             return View(addBlog);
         }
 
-        Blog blog = new Blog()
+        try
         {
-            Title = addBlog.Title,
-            PublisherId = publisherId,
-            Content = addBlog.Content
-        };
-
-        // Handle image upload
-        if (addBlog.ImageFile != null)
-        {
-            string fileName = await _imageHandler.SaveFinalImageAsync(addBlog.ImageFile);
-            blog.ImageUrl = fileName;
+            string tempImageUrl = TempData["ImageUrl"].ToString();
+            await _blogService.Add(addBlog, publisherId, tempFolderPath, finalFolderPath, tempImageUrl);
+            TempData.Remove("ImageUrl");
+            return RedirectToAction(nameof(Index));
         }
-        else if (TempData["ImageUrl"] != null)
+        catch (ArgumentNullException)
         {
-            string tempFileName = TempData["ImageUrl"].ToString();
-            string finalFileName = ImageHandler.MoveImageToFinalFolder(tempFileName, tempFolderPath, finalFolderPath);
-
-            if (finalFileName != null)
-            {
-                blog.ImageUrl = finalFileName;
-            }
-            else
-            {
-                ModelState.AddModelError("ImageFile", "The temporary file is missing. Please re-upload the image.");
-                return View(addBlog);
-            }
+            return NotFound();
         }
-
-        await _context.Blogs.AddAsync(blog);
-        await _context.SaveChangesAsync();
-
-        // Clean up TempData
-        TempData.Remove("ImageUrl");
-
-        return RedirectToAction(nameof(Index));
     }
 
     [HttpGet]
     public async Task<IActionResult> Details(Guid id)
     {
-        Blog? findBlog = await _context.Blogs
-            .Where(b => b.Id == id && b.IsDeleted == false)
-            .FirstOrDefaultAsync();
+        BlogDetailsViewModel blog = await _blogService.Details(id);
 
-        if (findBlog == null)
-        { 
+        if (blog == null)
+        {
             return NotFound();
         }
-
-        BlogDetailsViewModel blog = new BlogDetailsViewModel()
-        {
-            Id = findBlog.Id,
-            Title = findBlog.Title,
-            PublisherName = $"{findBlog.Publisher.FirstName} {findBlog.Publisher.LastName}",
-            PublishDate = findBlog.PublishDate,
-            ImageUrl = findBlog.ImageUrl,
-            Content = findBlog.Content
-        };
 
         return View(blog);
     }
@@ -182,21 +131,12 @@ public class BlogController : Controller
             return RedirectToAction("LogIn", "Account");
         }
 
-        Blog? findBlog = await _context.Blogs
-            .Where(b => b.Id == id && b.PublisherId == publisherId && b.IsDeleted == false)
-            .FirstOrDefaultAsync();
+        BlogEditViewModel editBlog = await _blogService.Edit(id, publisherId);
 
-        if (findBlog == null)
-        { 
+        if (editBlog == null)
+        {
             return NotFound();
         }
-
-        BlogEditViewModel editBlog = new BlogEditViewModel()
-        {
-            Title = findBlog.Title,
-            ImageUrl = findBlog.ImageUrl,
-            Content = findBlog.Content
-        };
 
         return View(editBlog);
     }
@@ -217,14 +157,11 @@ public class BlogController : Controller
             return RedirectToAction("LogIn", "Account");
         }
 
-        TempData["CurrentImageUrl"] = await _context.Blogs
+        Blog? blogCheck = await _context.Blogs
             .Where(b => b.Id == id && b.PublisherId == publisherId && b.IsDeleted == false)
-            .Select(b => b.ImageUrl)
             .FirstOrDefaultAsync();
 
-        // Validate the uploaded image using ImageHandler
-        string[] allowedContentTypes = { "image/jpg", "image/jpeg", "image/png", "image/gif", "image/webp" };
-        string[] allowedExtensions = { ".jpg", ".jpeg", ".png", ".gif", ".webp" };
+        TempData["CurrentImageUrl"] = blogCheck.ImageUrl;
 
         // Ensure that the ImageHandler is properly initialized
         string tempFolderPath = Path.Combine(Directory.GetCurrentDirectory(), "wwwroot", "img", "Temp");
@@ -235,11 +172,7 @@ public class BlogController : Controller
             //Handle image upload (only store the filename in TempData if ModelState is not valid)
             if (editBlog.ImageFile != null)
             {
-                // Delete the old image if it's not the default one
-                Blog? blogCheck = _context.Blogs
-                    .FirstOrDefault(b => b.Id == id && b.IsDeleted == false);
-
-                string validationError = ImageHandler.ValidateImage(editBlog.ImageFile, allowedContentTypes, allowedExtensions);
+                string validationError = ImageHandler.ValidateImage(editBlog.ImageFile);
 
                 if (!string.IsNullOrEmpty(validationError))
                 {
@@ -272,57 +205,18 @@ public class BlogController : Controller
             return View(editBlog);
         }
 
-        Blog? blog = await _context.Blogs
-            .Where(b => b.Id == id && b.PublisherId == publisherId && b.IsDeleted == false)
-            .FirstOrDefaultAsync();
-
-        if (blog == null)
+        try
+        {
+            string tempImageUrl = TempData["NewImageUrl"].ToString();
+            await _blogService.Edit(editBlog, id, publisherId, tempFolderPath, finalFolderPath, tempImageUrl);
+            TempData.Remove("CurrentImageUrl");
+            TempData.Remove("NewImageUrl");
+            return RedirectToAction("Details", "Blog", new { id = blogCheck.Id });
+        }
+        catch (ArgumentNullException)
         {
             return NotFound();
         }
-
-        blog.Title = editBlog.Title;
-        blog.ImageUrl = editBlog.ImageUrl;
-        blog.Content = editBlog.Content;
-
-        //Handle image upload (copy the file to server only if ModelState is valid)
-        if (editBlog.ImageFile != null)
-        {
-            // Delete the old image if it's not the default one
-            if (blog.ImageUrl != null)
-            {
-                _imageHandler.DeleteImage(blog.ImageUrl, finalFolderPath);
-            }
-
-            // Save the file to the final folder using ImageHandler
-            string fileName = await _imageHandler.SaveFinalImageAsync(editBlog.ImageFile);
-            blog.ImageUrl = fileName; // Save the file name in the database
-        }
-        else if (TempData["NewImageUrl"] != null && blog.ImageUrl != null)
-        {
-            string fileName = TempData["NewImageUrl"].ToString();
-            string currentTempFilePath = Path.Combine(Directory.GetCurrentDirectory(), tempFolderPath, fileName);
-
-            if (System.IO.File.Exists(currentTempFilePath))
-            {
-                // Use ImageHandler to move the image from temp to final folder
-                ImageHandler.MoveImageToFinalFolder(fileName, tempFolderPath, finalFolderPath);
-                blog.ImageUrl = fileName; // Save the file name in the database
-            }
-            else
-            {
-                ModelState.AddModelError("ImageFile", "The temporary file is missing. Please re-upload the image.");
-                return View(editBlog);
-            }
-        }
-
-        await _context.SaveChangesAsync();
-
-        // Clean up TempData
-        TempData.Remove("CurrentImageUrl");
-        TempData.Remove("NewImageUrl");
-
-        return RedirectToAction("Details", "Blog", new { id = blog.Id });
     }
 
     [HttpGet]
@@ -341,22 +235,15 @@ public class BlogController : Controller
             return RedirectToAction("LogIn", "Account");
         }
 
-        BlogDeleteViewModel? deleteBlog = await _context.Blogs
-            .Where(b => b.Id == id && b.IsDeleted == false)
-            .Select(b => new BlogDeleteViewModel()
-            {
-                Id = b.Id,
-                Title = b.Title
-            })
-            .AsNoTracking()
-            .FirstOrDefaultAsync();
-
-        if (deleteBlog == null)
+        try
+        {
+            BlogDeleteViewModel? deleteBlog = await _blogService.Delete(id, publisherId);
+            return View(deleteBlog);
+        }
+        catch (ArgumentNullException)
         {
             return NotFound();
         }
-
-        return View(deleteBlog);
     }
 
     [HttpPost]
@@ -375,16 +262,7 @@ public class BlogController : Controller
             return RedirectToAction("LogIn", "Account");
         }
 
-        Blog? blog = await _context.Blogs
-           .Where(b => b.Id == deleteBlog.Id && b.PublisherId == publisherId && b.IsDeleted == false)
-           .FirstOrDefaultAsync();
-
-        if (blog != null)
-        {
-            blog.IsDeleted = true;
-            await _context.SaveChangesAsync();
-        }
-
+        await _blogService.Delete(deleteBlog, publisherId);
         return RedirectToAction(nameof(Index));
     }
 }

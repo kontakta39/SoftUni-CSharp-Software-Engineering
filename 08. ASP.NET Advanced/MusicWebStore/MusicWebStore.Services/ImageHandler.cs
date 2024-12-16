@@ -11,8 +11,13 @@ public class ImageHandler
         _finalFolderPath = finalFolderPath;
     }
 
-    public static string ValidateImage(IFormFile imageFile, string[] allowedContentTypes, string[] allowedExtensions, long maxSizeInBytes = 5 * 1024 * 1024)
+    public static string ValidateImage(IFormFile imageFile, long maxSizeInBytes = 5 * 1024 * 1024)
     {
+
+        //Define allowed content types and extensions
+        string[] allowedContentTypes = { "image/jpg", "image/jpeg", "image/png", "image/gif", "image/webp" };
+        string[] allowedExtensions = { ".jpg", ".jpeg", ".png", ".gif", ".webp" };
+
         // Check if the file is null
         if (imageFile == null)
         {
@@ -104,10 +109,4 @@ public class ImageHandler
 
         return fileName; // Return the file name to store in the database
     }
-
-    //public bool IsValidImage(IFormFile imageFile, string[] allowedContentTypes, string[] allowedExtensions)
-    //{
-    //    return allowedContentTypes.Contains(imageFile.ContentType) &&
-    //           allowedExtensions.Contains(Path.GetExtension(imageFile.FileName).ToLower());
-    //}
 }
