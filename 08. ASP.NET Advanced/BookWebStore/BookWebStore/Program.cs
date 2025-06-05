@@ -16,7 +16,19 @@ namespace BookWebStore
                 options.UseSqlServer(connectionString));
             builder.Services.AddDatabaseDeveloperPageExceptionFilter();
 
-            builder.Services.AddDefaultIdentity<IdentityUser>(options => options.SignIn.RequireConfirmedAccount = true)
+            IdentityOptions? identityOptions = new IdentityOptions();
+            builder.Configuration.GetSection("IdentityOptions").Bind(identityOptions);
+
+            builder.Services.AddDefaultIdentity<IdentityUser>(options =>
+            {
+                options.SignIn.RequireConfirmedAccount = identityOptions.SignIn.RequireConfirmedAccount;
+                options.Password.RequireDigit = identityOptions.Password.RequireDigit;
+                options.Password.RequireNonAlphanumeric = identityOptions.Password.RequireNonAlphanumeric;
+                options.Password.RequireUppercase = identityOptions.Password.RequireUppercase;
+                options.Lockout.DefaultLockoutTimeSpan = identityOptions.Lockout.DefaultLockoutTimeSpan;
+                options.Lockout.MaxFailedAccessAttempts = identityOptions.Lockout.MaxFailedAccessAttempts;
+                options.Lockout.AllowedForNewUsers = identityOptions.Lockout.AllowedForNewUsers;
+            })
                 .AddEntityFrameworkStores<BookStoreDbContext>();
             builder.Services.AddControllersWithViews();
 
