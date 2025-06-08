@@ -1,13 +1,19 @@
 ﻿
 Microsoft Visual Studio Solution File, Format Version 12.00
 # Visual Studio Version 17
-VisualStudioVersion = 17.13.35913.81 d17.13
+VisualStudioVersion = 17.13.35913.81
 MinimumVisualStudioVersion = 10.0.40219.1
 Project("{FAE04EC0-301F-11D3-BF4B-00C04F79EFBC}") = "BookWebStore", "BookWebStore\BookWebStore.csproj", "{B5A5595E-70F3-45EC-AD97-27A72D99F4CB}"
 EndProject
 Project("{2150E333-8FDC-42A3-9474-1A3956D46DE8}") = "Data", "Data", "{02EA681E-C7D8-13C7-8484-4AC65E1B71E8}"
 EndProject
 Project("{FAE04EC0-301F-11D3-BF4B-00C04F79EFBC}") = "BookWebStore.Data", "BookWebStore.Data\BookWebStore.Data.csproj", "{005A10C0-463A-4184-9065-4550FE2FAD3B}"
+EndProject
+Project("{FAE04EC0-301F-11D3-BF4B-00C04F79EFBC}") = "BookWebStore.Data.Models", "BookWebStore.Data.Models\BookWebStore.Data.Models.csproj", "{AF2B1203-347B-4EC9-9122-7BA24CB09A5C}"
+EndProject
+Project("{2150E333-8FDC-42A3-9474-1A3956D46DE8}") = "Constants", "Constants", "{913680EB-E9B4-44C4-9E24-DE4C2F234BC8}"
+EndProject
+Project("{FAE04EC0-301F-11D3-BF4B-00C04F79EFBC}") = "BookWebStore.Constants", "BookWebStore.Constants\BookWebStore.Constants.csproj", "{8F7C3D9D-B351-4267-8A2C-E7DB1949B2E7}"
 EndProject
 Global
 	GlobalSection(SolutionConfigurationPlatforms) = preSolution
@@ -23,12 +29,22 @@ Global
 		{005A10C0-463A-4184-9065-4550FE2FAD3B}.Debug|Any CPU.Build.0 = Debug|Any CPU
 		{005A10C0-463A-4184-9065-4550FE2FAD3B}.Release|Any CPU.ActiveCfg = Release|Any CPU
 		{005A10C0-463A-4184-9065-4550FE2FAD3B}.Release|Any CPU.Build.0 = Release|Any CPU
+		{AF2B1203-347B-4EC9-9122-7BA24CB09A5C}.Debug|Any CPU.ActiveCfg = Debug|Any CPU
+		{AF2B1203-347B-4EC9-9122-7BA24CB09A5C}.Debug|Any CPU.Build.0 = Debug|Any CPU
+		{AF2B1203-347B-4EC9-9122-7BA24CB09A5C}.Release|Any CPU.ActiveCfg = Release|Any CPU
+		{AF2B1203-347B-4EC9-9122-7BA24CB09A5C}.Release|Any CPU.Build.0 = Release|Any CPU
+		{8F7C3D9D-B351-4267-8A2C-E7DB1949B2E7}.Debug|Any CPU.ActiveCfg = Debug|Any CPU
+		{8F7C3D9D-B351-4267-8A2C-E7DB1949B2E7}.Debug|Any CPU.Build.0 = Debug|Any CPU
+		{8F7C3D9D-B351-4267-8A2C-E7DB1949B2E7}.Release|Any CPU.ActiveCfg = Release|Any CPU
+		{8F7C3D9D-B351-4267-8A2C-E7DB1949B2E7}.Release|Any CPU.Build.0 = Release|Any CPU
 	EndGlobalSection
 	GlobalSection(SolutionProperties) = preSolution
 		HideSolutionNode = FALSE
 	EndGlobalSection
 	GlobalSection(NestedProjects) = preSolution
 		{005A10C0-463A-4184-9065-4550FE2FAD3B} = {02EA681E-C7D8-13C7-8484-4AC65E1B71E8}
+		{AF2B1203-347B-4EC9-9122-7BA24CB09A5C} = {02EA681E-C7D8-13C7-8484-4AC65E1B71E8}
+		{8F7C3D9D-B351-4267-8A2C-E7DB1949B2E7} = {913680EB-E9B4-44C4-9E24-DE4C2F234BC8}
 	EndGlobalSection
 	GlobalSection(ExtensibilityGlobals) = postSolution
 		SolutionGuid = {2D0647D0-6B50-4285-A954-39CF26C81E72}
