@@ -18,7 +18,12 @@
   </ItemGroup>
 
   <ItemGroup>
+    <ProjectReference Include="..\BookWebStore.Data.Models\BookWebStore.Data.Models.csproj" />
     <ProjectReference Include="..\BookWebStore.Data\BookWebStore.Data.csproj" />
+  </ItemGroup>
+
+  <ItemGroup>
+    <Folder Include="Views\Account\" />
   </ItemGroup>
 
 </Project>
