@@ -12,12 +12,14 @@ public class AccountController : Controller
     private readonly SignInManager<ApplicationUser> _signInManager;
     private readonly UserManager<ApplicationUser> _userManager;
     private readonly IConfiguration _configuration;
+    private readonly ILogger<AccountController> _logger;
 
-    public AccountController(SignInManager<ApplicationUser> signInManager, UserManager<ApplicationUser> userManager, IConfiguration configuration)
+    public AccountController(SignInManager<ApplicationUser> signInManager, UserManager<ApplicationUser> userManager, IConfiguration configuration, ILogger<AccountController> logger)
     {
         _signInManager = signInManager;
         _userManager = userManager;
         _configuration = configuration;
+        _logger = logger;
     }
 
     [HttpGet]
@@ -37,7 +39,7 @@ public class AccountController : Controller
 
         try
         {
-            ApplicationUser userCheck = await _userManager.FindByEmailAsync(register.Email);
+            ApplicationUser? userCheck = await _userManager.FindByEmailAsync(register.Email);
 
             if (userCheck != null)
             {
@@ -154,42 +156,115 @@ public class AccountController : Controller
         ApplicationUser? user = await _userManager.FindByEmailAsync(forgotPassword.Email);
         if (user == null)
         {
+            _logger.LogInformation($"Password reset attempt for non-existing user with email: {forgotPassword.Email}");
             return RedirectToAction("ForgotPasswordConfirmation", "Account");
         }
 
         string? token = await _userManager.GeneratePasswordResetTokenAsync(user);
         string? resetLink = Url.Action("ResetPassword", "Account", new { token, email = user.Email }, Request.Scheme);
 
-        //Reading SMTP settings from appsettings.json
-        string? smtpServer = _configuration["EmailSettings:SmtpServer"];
-        int smtpPort = int.Parse(_configuration["EmailSettings:SmtpPort"]);
-        string? smtpUser = _configuration["EmailSettings:SmtpUser"];
-        string? smtpPass = _configuration["EmailSettings:SmtpPass"];
-        bool enableSsl = bool.Parse(_configuration["EmailSettings:EnableSsl"]);
-
-        using SmtpClient? client = new SmtpClient(smtpServer, smtpPort)
+        try
         {
-            Credentials = new NetworkCredential(smtpUser, smtpPass),
-            EnableSsl = enableSsl,
-            DeliveryMethod = SmtpDeliveryMethod.Network,
-            UseDefaultCredentials = false
-        };
+            //Reading SMTP settings from appsettings.json
+            string? smtpServer = _configuration["EmailSettings:SmtpServer"];
+            int smtpPort = int.Parse(_configuration["EmailSettings:SmtpPort"]);
+            string? smtpUser = _configuration["EmailSettings:SmtpUser"];
+            string? smtpPass = _configuration["EmailSettings:SmtpPass"];
+            bool enableSsl = bool.Parse(_configuration["EmailSettings:EnableSsl"]);
 
-        var mailMessage = new MailMessage
+            using SmtpClient? client = new SmtpClient(smtpServer, smtpPort)
+            {
+                Credentials = new NetworkCredential(smtpUser, smtpPass),
+                EnableSsl = enableSsl,
+                DeliveryMethod = SmtpDeliveryMethod.Network,
+                UseDefaultCredentials = false
+            };
+
+            MailMessage? mailMessage = new MailMessage
+            {
+                From = new MailAddress(smtpUser),
+                Subject = "Reset Password",
+                Body = $"Click here to reset your password: <a href='{resetLink}'>Reset Password</a>",
+                IsBodyHtml = true
+            };
+
+            mailMessage.To.Add(forgotPassword.Email);
+            await client.SendMailAsync(mailMessage);
+
+            _logger.LogInformation($"Password reset email sent successfully to {forgotPassword.Email}");
+        }
+        catch (Exception ex)
         {
-            From = new MailAddress(smtpUser),
-            Subject = "Reset Password",
-            Body = $"Click here to reset your password: <a href='{resetLink}'>Reset Password</a>",
-            IsBodyHtml = true
-        };
-
-        mailMessage.To.Add(forgotPassword.Email);
-        await client.SendMailAsync(mailMessage);
+            _logger.LogError(ex, "Error sending password reset email.");
+            ModelState.AddModelError(string.Empty, "There was an error sending the password reset email.");
+            return View(forgotPassword);
+        }
 
         return RedirectToAction("ForgotPasswordConfirmation", "Account");
     }
 
+    [HttpGet]
     public IActionResult ForgotPasswordConfirmation()
+    {
+        return View();
+    }
+
+    [HttpGet]
+    public IActionResult ResetPassword(string token, string email)
+    {
+        if (string.IsNullOrWhiteSpace(token) || string.IsNullOrWhiteSpace(email))
+        {
+            return BadRequest("Invalid password reset token.");
+        }
+
+        ResetPasswordViewModel? model = new ResetPasswordViewModel
+        {
+            Token = token,
+            Email = email
+        };
+
+        return View(model);
+    }
+
+    [HttpPost]
+    [ValidateAntiForgeryToken]
+    public async Task<IActionResult> ResetPassword(ResetPasswordViewModel model)
+    {
+        if (!ModelState.IsValid)
+        {
+            //Log that the model validation failed
+            _logger.LogWarning("Reset password model validation failed for user: {Email}", model.Email);
+            return View(model);
+        }
+
+        ApplicationUser? user = await _userManager.FindByEmailAsync(model.Email);
+        if (user == null)
+        {
+            _logger.LogWarning("Reset password attempt for non-existing user with email: {Email}", model.Email);
+            return RedirectToAction("ResetPasswordConfirmation", "Account");
+        }
+
+        //Reset the password using the token
+        IdentityResult? result = await _userManager.ResetPasswordAsync(user, model.Token, model.Password);
+
+        if (result.Succeeded)
+        {
+            _logger.LogInformation("Password reset successfully for user: {Email}", model.Email);
+            return RedirectToAction("ResetPasswordConfirmation", "Account");
+        }
+
+        //If there are errors during password reset, log them
+        foreach (IdentityError error in result.Errors)
+        {
+            ModelState.AddModelError(string.Empty, error.Description);
+            _logger.LogError("Error resetting password for user {Email}: {ErrorDescription}", model.Email, error.Description);
+        }
+
+        return View(model);
+    }
+
+    [HttpGet]
+    public IActionResult ResetPasswordConfirmation()
     {
         return View();
     }

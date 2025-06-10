@@ -6,10 +6,11 @@ namespace BookWebStore.ViewModels;
 public class ResetPasswordViewModel
 {
     [Required]
-    public string UserId { get; set; } = null!;
-
-    [Required]
     public string Token { get; set; } = null!;
+
+    [Required(ErrorMessage = "The Email field is required.")]
+    [EmailAddress(ErrorMessage = "Please enter a valid email address.")]
+    public string Email { get; set; } = null!;
 
     [Required(ErrorMessage = "The Password field is required.")]
     [DataType(DataType.Password)]
