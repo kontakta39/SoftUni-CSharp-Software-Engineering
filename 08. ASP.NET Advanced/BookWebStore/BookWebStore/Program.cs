@@ -32,6 +32,7 @@ public class Program
         })
             .AddEntityFrameworkStores<BookStoreDbContext>();
         builder.Services.AddControllersWithViews();
+        builder.Services.AddRazorPages();
 
         WebApplication? app = builder.Build();
 
