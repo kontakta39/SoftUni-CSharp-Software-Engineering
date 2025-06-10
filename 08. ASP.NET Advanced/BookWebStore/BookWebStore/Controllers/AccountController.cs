@@ -2,6 +2,8 @@
 using BookWebStore.ViewModels;
 using Microsoft.AspNetCore.Identity;
 using Microsoft.AspNetCore.Mvc;
+using System.Net.Mail;
+using System.Net;
 
 namespace BookWebStore.Controllers;
 
@@ -9,11 +11,13 @@ public class AccountController : Controller
 {
     private readonly SignInManager<ApplicationUser> _signInManager;
     private readonly UserManager<ApplicationUser> _userManager;
+    private readonly IConfiguration _configuration;
 
-    public AccountController(SignInManager<ApplicationUser> signInManager, UserManager<ApplicationUser> userManager)
+    public AccountController(SignInManager<ApplicationUser> signInManager, UserManager<ApplicationUser> userManager, IConfiguration configuration)
     {
         _signInManager = signInManager;
         _userManager = userManager;
+        _configuration = configuration;
     }
 
     [HttpGet]
@@ -130,5 +134,63 @@ public class AccountController : Controller
     {
         await _signInManager.SignOutAsync();
         return RedirectToAction("Index", "Home");
+    }
+
+    [HttpGet]
+    public IActionResult ForgotPassword()
+    {
+        ForgotPasswordViewModel forgotPassword = new ForgotPasswordViewModel();
+        return View(forgotPassword);
+    }
+
+    [HttpPost]
+    public async Task<IActionResult> ForgotPassword(ForgotPasswordViewModel forgotPassword)
+    {
+        if (!ModelState.IsValid)
+        {
+            return View(forgotPassword);
+        }
+
+        ApplicationUser? user = await _userManager.FindByEmailAsync(forgotPassword.Email);
+        if (user == null)
+        {
+            return RedirectToAction("ForgotPasswordConfirmation", "Account");
+        }
+
+        string? token = await _userManager.GeneratePasswordResetTokenAsync(user);
+        string? resetLink = Url.Action("ResetPassword", "Account", new { token, email = user.Email }, Request.Scheme);
+
+        //Reading SMTP settings from appsettings.json
+        string? smtpServer = _configuration["EmailSettings:SmtpServer"];
+        int smtpPort = int.Parse(_configuration["EmailSettings:SmtpPort"]);
+        string? smtpUser = _configuration["EmailSettings:SmtpUser"];
+        string? smtpPass = _configuration["EmailSettings:SmtpPass"];
+        bool enableSsl = bool.Parse(_configuration["EmailSettings:EnableSsl"]);
+
+        using SmtpClient? client = new SmtpClient(smtpServer, smtpPort)
+        {
+            Credentials = new NetworkCredential(smtpUser, smtpPass),
+            EnableSsl = enableSsl,
+            DeliveryMethod = SmtpDeliveryMethod.Network,
+            UseDefaultCredentials = false
+        };
+
+        var mailMessage = new MailMessage
+        {
+            From = new MailAddress(smtpUser),
+            Subject = "Reset Password",
+            Body = $"Click here to reset your password: <a href='{resetLink}'>Reset Password</a>",
+            IsBodyHtml = true
+        };
+
+        mailMessage.To.Add(forgotPassword.Email);
+        await client.SendMailAsync(mailMessage);
+
+        return RedirectToAction("ForgotPasswordConfirmation", "Account");
+    }
+
+    public IActionResult ForgotPasswordConfirmation()
+    {
+        return View();
     }
 }

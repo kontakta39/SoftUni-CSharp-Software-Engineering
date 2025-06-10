@@ -1,6 +1,7 @@
 using BookWebStore.Data;
 using BookWebStore.Data.Models;
 using Microsoft.AspNetCore.Identity;
+using Microsoft.AspNetCore.Identity.UI.Services;
 using Microsoft.EntityFrameworkCore;
 
 namespace BookWebStore;
@@ -15,6 +16,7 @@ public class Program
         string? connectionString = builder.Configuration.GetConnectionString("BookStoreConnectionString") ?? throw new InvalidOperationException("Connection string 'BookStoreConnectionString' not found.");
         builder.Services.AddDbContext<BookStoreDbContext>(options =>
             options.UseSqlServer(connectionString));
+
         builder.Services.AddDatabaseDeveloperPageExceptionFilter();
 
         IdentityOptions? identityOptions = new IdentityOptions();
@@ -33,6 +35,8 @@ public class Program
             .AddEntityFrameworkStores<BookStoreDbContext>();
         builder.Services.AddControllersWithViews();
         builder.Services.AddRazorPages();
+
+        //builder.Services.AddTransient<IEmailSender, EmailSender>();
 
         WebApplication? app = builder.Build();
 
