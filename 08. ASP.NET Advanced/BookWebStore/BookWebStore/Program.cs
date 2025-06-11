@@ -1,7 +1,6 @@
 using BookWebStore.Data;
 using BookWebStore.Data.Models;
 using Microsoft.AspNetCore.Identity;
-using Microsoft.AspNetCore.Identity.UI.Services;
 using Microsoft.EntityFrameworkCore;
 
 namespace BookWebStore;
@@ -32,11 +31,17 @@ public class Program
             options.Lockout.MaxFailedAccessAttempts = identityOptions.Lockout.MaxFailedAccessAttempts;
             options.Lockout.AllowedForNewUsers = identityOptions.Lockout.AllowedForNewUsers;
         })
-            .AddEntityFrameworkStores<BookStoreDbContext>();
+            .AddEntityFrameworkStores<BookStoreDbContext>()
+            .AddDefaultTokenProviders();
+
+        // Configure cookie authentication for login and access denied paths
+        builder.Services.ConfigureApplicationCookie(options =>
+        {
+            options.LoginPath = "/Account/Login";
+        });
+
         builder.Services.AddControllersWithViews();
         builder.Services.AddRazorPages();
-
-        //builder.Services.AddTransient<IEmailSender, EmailSender>();
 
         WebApplication? app = builder.Build();
 
@@ -48,7 +53,6 @@ public class Program
         else
         {
             app.UseExceptionHandler("/Home/Error");
-            // The default HSTS value is 30 days. You may want to change this for production scenarios, see https://aka.ms/aspnetcore-hsts.
             app.UseHsts();
         }
 

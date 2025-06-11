@@ -1,0 +1,55 @@
+﻿@using Microsoft.AspNetCore.Identity
+@inject SignInManager<ApplicationUser> SignInManager
+
+@{
+    ViewData["Title"] = "Manage Account";
+}
+
+@if (SignInManager.IsSignedIn(User))
+{
+    <h1>Manage your account</h1>
+
+    <div class="row">
+        <div class="col-md-3">
+            <!-- Sidebar -->
+            <ul class="nav nav-pills flex-column">
+                <li class="nav-item">
+                    <a class="nav-link @(ViewData["ActivePage"]?.ToString() == "Profile" ? "active" : "")"
+                       href="@Url.Action("Manage", "Account", new { page = "Profile" })">Profile</a>
+                </li>
+                <li class="nav-item">
+                    <a class="nav-link @(ViewData["ActivePage"]?.ToString() == "Email" ? "active" : "")"
+                       href="@Url.Action("Manage", "Account", new { page = "Email" })">Email</a>
+                </li>
+                <li class="nav-item">
+                    <a class="nav-link @(ViewData["ActivePage"]?.ToString() == "ChangePassword" ? "active" : "")"
+                       href="@Url.Action("Manage", "Account", new { page = "ChangePassword" })">Change password</a>
+                </li>
+                <li class="nav-item">
+                    <a class="nav-link @(ViewData["ActivePage"]?.ToString() == "DeleteAccount" ? "active" : "")"
+                       href="@Url.Action("Manage", "Account", new { page = "DeleteAccount" })">Delete account</a>
+                </li>
+            </ul>
+        </div>
+
+        <div class="col-md-9">
+            <!-- В зависимост от стойността на ActivePage се показва съответния частичен изглед -->
+            @if (ViewData["ActivePage"]?.ToString() == "Profile")
+            {
+                @Html.Partial("_ProfilePartial")
+            }
+            else if (ViewData["ActivePage"]?.ToString() == "Email")
+            {
+                @Html.Partial("_EmailPartial")
+            }
+            else if (ViewData["ActivePage"]?.ToString() == "ChangePassword")
+            {
+                @Html.Partial("_ChangePasswordPartial")
+            }
+            else if (ViewData["ActivePage"]?.ToString() == "DeleteAccount")
+            {
+                @Html.Partial("_DeleteAccountPartial")
+            }
+        </div>
+    </div>
+}

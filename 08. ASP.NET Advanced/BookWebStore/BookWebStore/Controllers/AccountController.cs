@@ -31,7 +31,7 @@ public class AccountController : Controller
 
     [HttpPost]
     public async Task<IActionResult> Register(RegisterViewModel register)
-    {
+     {
         if (!ModelState.IsValid)
         {
             return View(register);
@@ -59,12 +59,8 @@ public class AccountController : Controller
 
             if (result.Succeeded)
             {
-                await _userManager.AddToRoleAsync(user, "Guest");
+                //await _userManager.AddToRoleAsync(user, "Guest");
                 await _signInManager.SignInAsync(user, isPersistent: false);
-            }
-
-            if (result.Succeeded)
-            {
                 return RedirectToAction("Index", "Home");
             }
 
@@ -109,6 +105,7 @@ public class AccountController : Controller
                 }
 
                 var result = await _signInManager.PasswordSignInAsync(user, model.Password, isPersistent: false, lockoutOnFailure: true);
+                
                 if (result.Succeeded)
                 {
                     await _userManager.ResetAccessFailedCountAsync(user);
@@ -128,7 +125,7 @@ public class AccountController : Controller
             }
         }
 
-        return View(model);
+        return RedirectToAction("Index", "Home");
     }
 
     [HttpPost]
@@ -268,4 +265,44 @@ public class AccountController : Controller
     {
         return View();
     }
+
+    [HttpGet]
+    public async Task<IActionResult> Manage(string page = "Profile")
+    {
+        ApplicationUser? user = await _userManager.GetUserAsync(User);
+        if (user == null)
+        {
+            return NotFound("User cannot be found.");
+        }
+
+        ViewData["ActivePage"] = page;
+
+        switch (page)
+        {
+            case "Profile":
+                ProfileViewModel profileModel = new ProfileViewModel
+                {
+                    Username = user.UserName!,
+                    PhoneNumber = user.PhoneNumber
+                };
+                return View("Manage", profileModel); 
+
+            //case "Email":
+            //    EmailViewModel emailModel = new EmailViewModel
+            //    {
+            //        Email = User.Identity?.Name 
+            //    };
+            //    return View("Manage", emailModel);
+
+            //case "ChangePassword":
+            //    return View("Manage", new ChangePasswordViewModel());
+
+            //case "DeleteAccount":
+            //    return View("Manage", new DeleteAccountViewModel());
+
+            default:
+                return View("Manage");
+        }
+    }
+
 }
