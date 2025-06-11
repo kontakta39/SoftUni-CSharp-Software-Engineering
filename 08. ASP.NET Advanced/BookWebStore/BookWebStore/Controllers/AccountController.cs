@@ -270,6 +270,7 @@ public class AccountController : Controller
     public async Task<IActionResult> Manage(string page = "Profile")
     {
         ApplicationUser? user = await _userManager.GetUserAsync(User);
+
         if (user == null)
         {
             return NotFound("User cannot be found.");
@@ -285,24 +286,27 @@ public class AccountController : Controller
                     Username = user.UserName!,
                     PhoneNumber = user.PhoneNumber
                 };
-                return View("Manage", profileModel); 
 
-            //case "Email":
-            //    EmailViewModel emailModel = new EmailViewModel
-            //    {
-            //        Email = User.Identity?.Name 
-            //    };
-            //    return View("Manage", emailModel);
+                return View("Manage", profileModel);
+            case "Email":
+                EmailViewModel emailModel = new EmailViewModel
+                {
+                    CurrentEmail = user.Email
+                };
 
-            //case "ChangePassword":
-            //    return View("Manage", new ChangePasswordViewModel());
-
-            //case "DeleteAccount":
-            //    return View("Manage", new DeleteAccountViewModel());
-
+                return View("Manage", emailModel);
+            case "ChangePassword":
+                return View("Manage", new ChangePasswordViewModel());
+            case "DeleteAccount":
+                return View("Manage");
             default:
                 return View("Manage");
         }
     }
 
+    [HttpGet]
+    public IActionResult DeletePersonalData()
+    {
+        return View();
+    }
 }

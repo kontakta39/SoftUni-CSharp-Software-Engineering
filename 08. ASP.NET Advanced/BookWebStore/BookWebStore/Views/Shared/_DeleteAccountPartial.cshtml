@@ -1,0 +1,18 @@
+﻿@{
+    ViewData["Title"] = "Delete account";
+}
+
+<h3>@ViewData["Title"]</h3>
+
+<div class="row">
+    <div class="col-md-6">
+        <p>This page allows you to permanently delete your account and all associated personal data. Once deleted, this action cannot be undone.</p>
+        <p>
+            <a id="delete" asp-action="DeletePersonalData" asp-controller="Account" class="btn btn-danger">Delete</a>
+        </p>
+    </div>
+</div>
+
+@section Scripts {
+    <partial name="_ValidationScriptsPartial" />
+}
