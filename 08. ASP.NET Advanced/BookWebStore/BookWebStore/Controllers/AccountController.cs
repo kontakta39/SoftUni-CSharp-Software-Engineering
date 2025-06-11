@@ -31,7 +31,7 @@ public class AccountController : Controller
 
     [HttpPost]
     public async Task<IActionResult> Register(RegisterViewModel register)
-     {
+    {
         if (!ModelState.IsValid)
         {
             return View(register);
@@ -39,16 +39,26 @@ public class AccountController : Controller
 
         try
         {
-            ApplicationUser? userCheck = await _userManager.FindByEmailAsync(register.Email);
+            ApplicationUser? userUsernameCheck = await _userManager.FindByNameAsync(register.Username);
+            ApplicationUser? userEmailCheck = await _userManager.FindByEmailAsync(register.Email);
 
-            if (userCheck != null)
+            if (userUsernameCheck != null)
             {
+                ModelState.Remove("Username");
+                register.Username = "";
+                throw new ArgumentException("A user with this username has already been registered.");
+            }
+
+            if (userEmailCheck != null)
+            {
+                ModelState.Remove("Email");
+                register.Email = "";
                 throw new ArgumentException("A user with this email has already been registered.");
             }
 
             ApplicationUser user = new ApplicationUser
             {
-                UserName = register.Email,
+                UserName = register.Username,
                 Email = register.Email,
                 FirstName = register.FirstName,
                 LastName = register.LastName,
@@ -61,20 +71,15 @@ public class AccountController : Controller
             {
                 //await _userManager.AddToRoleAsync(user, "Guest");
                 await _signInManager.SignInAsync(user, isPersistent: false);
-                return RedirectToAction("Index", "Home");
-            }
-
-            foreach (IdentityError error in result.Errors)
-            {
-                ModelState.AddModelError(string.Empty, error.Description);
             }
         }
         catch (ArgumentException ex)
         {
             ModelState.AddModelError("", ex.Message);
+            return View(register);
         }
 
-        return View(register);
+        return RedirectToAction("Index", "Home");
     }
 
     [HttpGet]
@@ -86,43 +91,45 @@ public class AccountController : Controller
 
     [HttpPost]
     [ValidateAntiForgeryToken]
-    public async Task<IActionResult> LogIn(LoginViewModel model)
+    public async Task<IActionResult> LogIn(LoginViewModel login)
     {
-        if (ModelState.IsValid)
+        if (!ModelState.IsValid)
         {
-            try
+            return View(login);
+        }
+
+        try
+        {
+            ApplicationUser? userUsernameCheck = await _userManager.FindByNameAsync(login.Username);
+
+            if (userUsernameCheck == null)
             {
-                ApplicationUser? user = await _userManager.FindByEmailAsync(model.Email);
-
-                if (user == null)
-                {
-                    throw new ArgumentException("No user found with this email address.");
-                }
-
-                if (await _userManager.IsLockedOutAsync(user))
-                {
-                    throw new ArgumentException("Your account is locked due to multiple failed login attempts. Try again later.");
-                }
-
-                var result = await _signInManager.PasswordSignInAsync(user, model.Password, isPersistent: false, lockoutOnFailure: true);
-                
-                if (result.Succeeded)
-                {
-                    await _userManager.ResetAccessFailedCountAsync(user);
-                }
-                else if (result.IsLockedOut)
-                {
-                    throw new ArgumentException("Your account is locked. Please try again in 30 minutes.");
-                }
-                else
-                {
-                    throw new ArgumentException("Invalid login attempt.");
-                }
+                throw new ArgumentException("No user found with this username.");
             }
-            catch (ArgumentException ex)
+
+            if (await _userManager.IsLockedOutAsync(userUsernameCheck))
             {
-                ModelState.AddModelError("", ex.Message);
+                throw new ArgumentException("Your account is locked due to multiple failed login attempts Try again later.");
             }
+
+            var result = await _signInManager.PasswordSignInAsync(userUsernameCheck, login.Password, isPersistent: false, lockoutOnFailure: true);
+
+            if (result.Succeeded)
+            {
+                await _userManager.ResetAccessFailedCountAsync(userUsernameCheck);
+            }
+            else if (result.IsLockedOut)
+            {
+                throw new ArgumentException("Your account is locked. Please try again in 30 minutes.");
+            }
+            else
+            {
+                throw new ArgumentException("Invalid login attempt.");
+            }
+        }
+        catch (ArgumentException ex)
+        {
+            ModelState.AddModelError("", ex.Message);
         }
 
         return RedirectToAction("Index", "Home");

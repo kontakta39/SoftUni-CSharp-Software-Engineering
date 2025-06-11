@@ -13,6 +13,10 @@ public class RegisterViewModel
     [StringLength(ApplicationUserNameMaxLength, MinimumLength = ApplicationUserNameMinLength, ErrorMessage = "The Last Name must be between 3 and 20 characters.")]
     public string LastName { get; set; } = null!;
 
+    [Required(ErrorMessage = "The Username field is required.")]
+    [StringLength(ApplicationUserNameMaxLength, MinimumLength = ApplicationUserNameMinLength, ErrorMessage = "The Username must be between 3 and 20 characters.")]
+    public string Username { get; set; } = null!;
+
     [Required(ErrorMessage = "The Email field is required.")]
     [EmailAddress(ErrorMessage = "Please enter a valid email address.")]
     public string Email { get; set; } = null!;
