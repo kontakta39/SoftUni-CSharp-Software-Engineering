@@ -12,14 +12,12 @@ public class AccountController : Controller
     private readonly SignInManager<ApplicationUser> _signInManager;
     private readonly UserManager<ApplicationUser> _userManager;
     private readonly IConfiguration _configuration;
-    private readonly ILogger<AccountController> _logger;
 
-    public AccountController(SignInManager<ApplicationUser> signInManager, UserManager<ApplicationUser> userManager, IConfiguration configuration, ILogger<AccountController> logger)
+    public AccountController(SignInManager<ApplicationUser> signInManager, UserManager<ApplicationUser> userManager, IConfiguration configuration)
     {
         _signInManager = signInManager;
         _userManager = userManager;
         _configuration = configuration;
-        _logger = logger;
     }
 
     [HttpGet]
@@ -104,6 +102,8 @@ public class AccountController : Controller
 
             if (userUsernameCheck == null)
             {
+                ModelState.Remove("Username");
+                login.Username = "";
                 throw new ArgumentException("No user found with this username.");
             }
 
@@ -130,6 +130,7 @@ public class AccountController : Controller
         catch (ArgumentException ex)
         {
             ModelState.AddModelError("", ex.Message);
+            return View(login);
         }
 
         return RedirectToAction("Index", "Home");
@@ -157,18 +158,18 @@ public class AccountController : Controller
             return View(forgotPassword);
         }
 
-        ApplicationUser? user = await _userManager.FindByEmailAsync(forgotPassword.Email);
-        if (user == null)
-        {
-            _logger.LogInformation($"Password reset attempt for non-existing user with email: {forgotPassword.Email}");
-            return RedirectToAction("ForgotPasswordConfirmation", "Account");
-        }
-
-        string? token = await _userManager.GeneratePasswordResetTokenAsync(user);
-        string? resetLink = Url.Action("ResetPassword", "Account", new { token, email = user.Email }, Request.Scheme);
-
         try
         {
+            ApplicationUser? user = await _userManager.FindByEmailAsync(forgotPassword.Email);
+
+            if (user == null)
+            {
+                throw new ArgumentException($"Password reset attempt for non-existing user with email: {forgotPassword.Email}");
+            }
+
+            string? token = await _userManager.GeneratePasswordResetTokenAsync(user);
+            string? resetLink = Url.Action("ResetPassword", "Account", new { token, email = user.Email }, Request.Scheme);
+
             //Reading SMTP settings from appsettings.json
             string? smtpServer = _configuration["EmailSettings:SmtpServer"];
             int smtpPort = int.Parse(_configuration["EmailSettings:SmtpPort"]);
@@ -184,23 +185,22 @@ public class AccountController : Controller
                 UseDefaultCredentials = false
             };
 
-            MailMessage? mailMessage = new MailMessage
+            using (MailMessage mailMessage = new MailMessage())
             {
-                From = new MailAddress(smtpUser),
-                Subject = "Reset Password",
-                Body = $"Click here to reset your password: <a href='{resetLink}'>Reset Password</a>",
-                IsBodyHtml = true
-            };
+                mailMessage.From = new MailAddress(smtpUser);
+                mailMessage.To.Add(forgotPassword.Email);
+                mailMessage.Subject = "Reset Password";
+                mailMessage.Body = $"Click here to reset your password: <a href='{resetLink}'>Reset Password</a>";
+                mailMessage.IsBodyHtml = true;
 
-            mailMessage.To.Add(forgotPassword.Email);
-            await client.SendMailAsync(mailMessage);
-
-            _logger.LogInformation($"Password reset email sent successfully to {forgotPassword.Email}");
+                await client.SendMailAsync(mailMessage);
+            }
         }
-        catch (Exception ex)
+        catch (ArgumentException ex)
         {
-            _logger.LogError(ex, "Error sending password reset email.");
-            ModelState.AddModelError(string.Empty, "There was an error sending the password reset email.");
+            ModelState.AddModelError("", ex.Message);
+            ModelState.Remove("Email");
+            forgotPassword.Email = "";
             return View(forgotPassword);
         }
 
@@ -236,35 +236,28 @@ public class AccountController : Controller
     {
         if (!ModelState.IsValid)
         {
-            //Log that the model validation failed
-            _logger.LogWarning("Reset password model validation failed for user: {Email}", model.Email);
             return View(model);
         }
 
-        ApplicationUser? user = await _userManager.FindByEmailAsync(model.Email);
-        if (user == null)
+        try
         {
-            _logger.LogWarning("Reset password attempt for non-existing user with email: {Email}", model.Email);
-            return RedirectToAction("ResetPasswordConfirmation", "Account");
+            ApplicationUser? user = await _userManager.FindByEmailAsync(model.Email);
+
+            if (user == null)
+            {
+                throw new ArgumentException($"Reset password attempt for non-existing user with email: {model.Email}");
+            }
+
+            //Reset the password using the token
+            IdentityResult? result = await _userManager.ResetPasswordAsync(user, model.Token, model.Password);
+        }
+        catch (ArgumentException ex)
+        {
+            ModelState.AddModelError("", ex.Message);
+            return View(model);
         }
 
-        //Reset the password using the token
-        IdentityResult? result = await _userManager.ResetPasswordAsync(user, model.Token, model.Password);
-
-        if (result.Succeeded)
-        {
-            _logger.LogInformation("Password reset successfully for user: {Email}", model.Email);
-            return RedirectToAction("ResetPasswordConfirmation", "Account");
-        }
-
-        //If there are errors during password reset, log them
-        foreach (IdentityError error in result.Errors)
-        {
-            ModelState.AddModelError(string.Empty, error.Description);
-            _logger.LogError("Error resetting password for user {Email}: {ErrorDescription}", model.Email, error.Description);
-        }
-
-        return View(model);
+        return RedirectToAction("Index", "Home");
     }
 
     [HttpGet]
