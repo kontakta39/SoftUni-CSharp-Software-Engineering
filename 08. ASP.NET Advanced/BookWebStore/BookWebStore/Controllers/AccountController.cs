@@ -1,9 +1,12 @@
-﻿using BookWebStore.Data.Models;
+﻿using System.Text;
+using BookWebStore.Data.Models;
 using BookWebStore.ViewModels;
+using Mailjet.Client;
+using Mailjet.Client.Resources;
 using Microsoft.AspNetCore.Identity;
 using Microsoft.AspNetCore.Mvc;
-using System.Net.Mail;
-using System.Net;
+using Newtonsoft.Json.Linq;
+
 
 namespace BookWebStore.Controllers;
 
@@ -167,33 +170,51 @@ public class AccountController : Controller
                 throw new ArgumentException($"Password reset attempt for non-existing user with email: {forgotPassword.Email}");
             }
 
+            //Generate password token for password reset
             string? token = await _userManager.GeneratePasswordResetTokenAsync(user);
             string? resetLink = Url.Action("ResetPassword", "Account", new { token, email = user.Email }, Request.Scheme);
 
-            //Reading SMTP settings from appsettings.json
-            string? smtpServer = _configuration["EmailSettings:SmtpServer"];
-            int smtpPort = int.Parse(_configuration["EmailSettings:SmtpPort"]);
-            string? smtpUser = _configuration["EmailSettings:SmtpUser"];
-            string? smtpPass = _configuration["EmailSettings:SmtpPass"];
-            bool enableSsl = bool.Parse(_configuration["EmailSettings:EnableSsl"]);
+            //Receiving the SMTP settings from appsettings.json
+            string apiKey = _configuration["MailJet:ApiKey"];
+            string apiSecret = _configuration["MailJet:ApiSecret"];
+            string fromEmail = _configuration["MailJet:FromEmail"];
+            string fromName = _configuration["MailJet:FromName"];
 
-            using SmtpClient? client = new SmtpClient(smtpServer, smtpPort)
+            //Creating the HTTP client for MailJet
+            using (var client = new HttpClient())
             {
-                Credentials = new NetworkCredential(smtpUser, smtpPass),
-                EnableSsl = enableSsl,
-                DeliveryMethod = SmtpDeliveryMethod.Network,
-                UseDefaultCredentials = false
-            };
+                var requestContent = new StringContent(
+                    new JObject(
+                        new JProperty("Messages", new JArray(
+                            new JObject(
+                                new JProperty("From", new JObject(
+                                    new JProperty("Email", fromEmail),
+                                    new JProperty("Name", fromName)
+                                )),
+                                new JProperty("To", new JArray(
+                                    new JObject(
+                                        new JProperty("Email", forgotPassword.Email),
+                                        new JProperty("Name", user.UserName)
+                                    )
+                                )),
+                                new JProperty("Subject", "Reset your password"),
+                                new JProperty("HTMLPart", $"<p>Click <a href='{resetLink}'>here</a> to reset your password.</p>"),
+                                new JProperty("TextPart", "To reset your password, click the link in the email.")
+                            )
+                        ))
+                    ).ToString(), Encoding.UTF8, "application/json"
+                );
 
-            using (MailMessage mailMessage = new MailMessage())
-            {
-                mailMessage.From = new MailAddress(smtpUser);
-                mailMessage.To.Add(forgotPassword.Email);
-                mailMessage.Subject = "Reset Password";
-                mailMessage.Body = $"Click here to reset your password: <a href='{resetLink}'>Reset Password</a>";
-                mailMessage.IsBodyHtml = true;
+                //Adding the API key for authorization
+                client.DefaultRequestHeaders.Add("Authorization", "Basic " + Convert.ToBase64String(Encoding.ASCII.GetBytes($"{apiKey}:{apiSecret}")));
 
-                await client.SendMailAsync(mailMessage);
+                //Sending the email
+                var response = await client.PostAsync("https://api.mailjet.com/v3.1/send", requestContent);
+
+                if (!response.IsSuccessStatusCode)
+                {
+                    throw new Exception($"Failed to send email. Status: {response.StatusCode}, Message: {await response.Content.ReadAsStringAsync()}");
+                }
             }
         }
         catch (ArgumentException ex)
@@ -201,6 +222,11 @@ public class AccountController : Controller
             ModelState.AddModelError("", ex.Message);
             ModelState.Remove("Email");
             forgotPassword.Email = "";
+            return View(forgotPassword);
+        }
+        catch (Exception ex)
+        {
+            ModelState.AddModelError("", $"Failed to send password reset email: {ex.Message}");
             return View(forgotPassword);
         }
 
@@ -248,6 +274,12 @@ public class AccountController : Controller
                 throw new ArgumentException($"Reset password attempt for non-existing user with email: {model.Email}");
             }
 
+            // Check if the new password is the same as the old one
+            if (await _userManager.CheckPasswordAsync(user, model.Password))
+            {
+                throw new ArgumentException("The new password cannot be the same as the old password.");
+            }
+
             //Reset the password using the token
             IdentityResult? result = await _userManager.ResetPasswordAsync(user, model.Token, model.Password);
         }
@@ -261,8 +293,9 @@ public class AccountController : Controller
     }
 
     [HttpGet]
-    public IActionResult ResetPasswordConfirmation()
+    public async Task<IActionResult> ResetPasswordConfirmation()
     {
+        await _signInManager.SignOutAsync();
         return View();
     }
 
