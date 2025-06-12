@@ -11,6 +11,12 @@ public class HomeController : Controller
         return View();
     }
 
+    //Action for custom 404 page
+    public new IActionResult NotFound()
+    {
+        return View("404");
+    }
+
     [ResponseCache(Duration = 0, Location = ResponseCacheLocation.None, NoStore = true)]
     public IActionResult Error()
     {

@@ -280,7 +280,7 @@ public class AccountController : Controller
 
         if (user == null)
         {
-            return NotFound("User cannot be found.");
+            return View("NotFound");
         }
 
         ViewData["ActivePage"] = page;
@@ -298,7 +298,7 @@ public class AccountController : Controller
             case "Email":
                 EmailViewModel emailModel = new EmailViewModel
                 {
-                    CurrentEmail = user.Email
+                    CurrentEmail = user.Email!
                 };
 
                 return View("Manage", emailModel);
