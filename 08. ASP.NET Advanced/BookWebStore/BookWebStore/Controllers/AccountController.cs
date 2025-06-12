@@ -5,7 +5,9 @@ using Mailjet.Client;
 using Mailjet.Client.Resources;
 using Microsoft.AspNetCore.Identity;
 using Microsoft.AspNetCore.Mvc;
+using Microsoft.VisualStudio.Web.CodeGenerators.Mvc.Templates.BlazorIdentity.Pages;
 using Newtonsoft.Json.Linq;
+using NuGet.Protocol.Plugins;
 
 
 namespace BookWebStore.Controllers;
@@ -340,6 +342,39 @@ public class AccountController : Controller
     [HttpGet]
     public IActionResult DeletePersonalData()
     {
-        return View();
+        DeletePersonalDataViewModel deleteAccount = new DeletePersonalDataViewModel();
+        return View(deleteAccount);
+    }
+
+    [HttpPost]
+    public async Task<IActionResult> DeletePersonalData(DeletePersonalDataViewModel deleteAccount)
+    {
+        if (!ModelState.IsValid)
+        {
+            return View(deleteAccount);
+        }
+
+        try
+        {
+            ApplicationUser? userEmailCheck = await _userManager.FindByEmailAsync(deleteAccount.Email);
+
+            if (userEmailCheck == null)
+            {
+                ModelState.Remove("Email");
+                deleteAccount.Email = "";
+                throw new ArgumentException("No user found with this email.");
+            }
+
+            var result = await _userManager.DeleteAsync(userEmailCheck);
+            //await _signInManager.SignOutAsync();
+
+        }
+        catch (ArgumentException ex)
+        {
+            ModelState.AddModelError("", ex.Message);
+            return View(deleteAccount);
+        }
+
+        return RedirectToAction("Index", "Home");
     }
 }
