@@ -427,6 +427,46 @@ public class AccountController : Controller
         return RedirectToAction("Manage", new { page = "Email" });
     }
 
+    [HttpPost]
+    public async Task<IActionResult> ChangePassword(ChangePasswordViewModel passwordViewModel)
+    {
+        ApplicationUser? user = await _userManager.GetUserAsync(User);
+
+        if (user == null)
+        {
+            return View("NotFound");
+        }
+
+        if (!ModelState.IsValid)
+        {
+            ViewData["ActivePage"] = "ChangePassword";
+            return View("Manage", passwordViewModel);
+        }
+
+        if (passwordViewModel.OldPassword == passwordViewModel.NewPassword)
+        {
+            ModelState.AddModelError("NewPassword", "The new password must be different from the old one.");
+            ViewData["ActivePage"] = "ChangePassword";
+            return View("Manage", passwordViewModel);
+        }
+
+        IdentityResult result;
+
+        try
+        {
+            result = await _userManager.ChangePasswordAsync(user, passwordViewModel.OldPassword!, passwordViewModel.NewPassword!);
+        }
+        catch (ArgumentException)
+        {
+            ModelState.AddModelError(string.Empty, "An error occurred while changing the password.");
+            ViewData["ActivePage"] = "ChangePassword";
+            return View("Manage", passwordViewModel);
+        }
+
+        await _signInManager.RefreshSignInAsync(user);
+        return RedirectToAction("Manage", new { page = "ChangePassword" });
+    }
+
     [HttpGet]
     public IActionResult DeletePersonalData()
     {
