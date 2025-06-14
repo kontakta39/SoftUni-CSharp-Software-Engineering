@@ -382,6 +382,51 @@ public class AccountController : Controller
         return RedirectToAction("Manage", new { page = "Profile" });
     }
 
+    [HttpPost]
+    public async Task<IActionResult> ChangeEmail(EmailViewModel emailViewModel)
+    {
+        ApplicationUser? user = await _userManager.FindByEmailAsync(emailViewModel.CurrentEmail);
+
+        if (user == null)
+        {
+            return View("NotFound");
+        }
+
+        if (!ModelState.IsValid)
+        {
+            ViewData["ActivePage"] = "Email";
+            return View("Manage", emailViewModel);
+        }
+
+        try
+        {
+            if (!string.IsNullOrWhiteSpace(emailViewModel.NewEmail))
+            {
+                bool emailExists = await _context.Users
+                    .AnyAsync(u => u.Email == emailViewModel.NewEmail);
+
+                if (emailExists)
+                {
+                    throw new ArgumentException("The email is already in use.");
+                }
+            }
+
+            user.Email = emailViewModel.NewEmail;
+            user.NormalizedEmail = emailViewModel.NewEmail.ToUpper();
+            await _context.SaveChangesAsync();
+        }
+        catch (ArgumentException ex)
+        {
+            ModelState.AddModelError("", ex.Message);
+            ModelState.Remove("NewEmail");
+            emailViewModel.NewEmail = "";
+            ViewData["ActivePage"] = "Email";
+            return View("Manage", emailViewModel);
+        }
+
+        return RedirectToAction("Manage", new { page = "Email" });
+    }
+
     [HttpGet]
     public IActionResult DeletePersonalData()
     {

@@ -7,5 +7,6 @@ public class EmailViewModel
     [Required]
     public string CurrentEmail { get; set; } = null!;
 
+    [EmailAddress(ErrorMessage = "Please enter a valid email address.")]
     public string? NewEmail { get; set; } 
 }
