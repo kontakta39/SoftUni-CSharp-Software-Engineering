@@ -1,14 +1,11 @@
 ﻿using System.Text;
+using BookWebStore.Data;
 using BookWebStore.Data.Models;
 using BookWebStore.ViewModels;
-using Mailjet.Client;
-using Mailjet.Client.Resources;
 using Microsoft.AspNetCore.Identity;
 using Microsoft.AspNetCore.Mvc;
-using Microsoft.VisualStudio.Web.CodeGenerators.Mvc.Templates.BlazorIdentity.Pages;
+using Microsoft.EntityFrameworkCore;
 using Newtonsoft.Json.Linq;
-using NuGet.Protocol.Plugins;
-
 
 namespace BookWebStore.Controllers;
 
@@ -17,12 +14,14 @@ public class AccountController : Controller
     private readonly SignInManager<ApplicationUser> _signInManager;
     private readonly UserManager<ApplicationUser> _userManager;
     private readonly IConfiguration _configuration;
+    private readonly BookStoreDbContext _context;
 
-    public AccountController(SignInManager<ApplicationUser> signInManager, UserManager<ApplicationUser> userManager, IConfiguration configuration)
+    public AccountController(SignInManager<ApplicationUser> signInManager, UserManager<ApplicationUser> userManager, IConfiguration configuration, BookStoreDbContext context)
     {
         _signInManager = signInManager;
         _userManager = userManager;
         _configuration = configuration;
+        _context = context;
     }
 
     [HttpGet]
@@ -337,6 +336,50 @@ public class AccountController : Controller
             default:
                 return View("Manage");
         }
+    }
+
+    [HttpPost]
+    public async Task<IActionResult> UpdateProfile(ProfileViewModel profileViewModel)
+    {
+        ApplicationUser? user = await _userManager.FindByNameAsync(profileViewModel.Username);
+
+        if (profileViewModel == null)
+        {
+            throw new ArgumentException("No user found with this username.");
+        }
+
+        if (!ModelState.IsValid)
+        {
+            ViewData["ActivePage"] = "Profile";
+            return View("Manage", profileViewModel);
+        }
+
+        try
+        {
+            if (!string.IsNullOrWhiteSpace(profileViewModel.PhoneNumber))
+            {
+                bool phoneExists = await _context.Users
+                    .AnyAsync(u => u.PhoneNumber == profileViewModel.PhoneNumber);
+
+                if (phoneExists)
+                {
+                    throw new ArgumentException("The phone number is already in use.");
+                }
+            }
+
+            user.PhoneNumber = profileViewModel.PhoneNumber;
+            await _context.SaveChangesAsync();
+        }
+        catch (ArgumentException ex)
+        {
+            ModelState.AddModelError("", ex.Message);
+            ModelState.Remove("PhoneNumber");
+            profileViewModel.PhoneNumber = user.PhoneNumber;
+            ViewData["ActivePage"] = "Profile";
+            return View("Manage", profileViewModel);
+        }
+
+        return RedirectToAction("Manage", new { page = "Profile" });
     }
 
     [HttpGet]

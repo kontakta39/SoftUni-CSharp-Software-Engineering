@@ -14,7 +14,7 @@
 </div>
 
 <div>
-    <form id="delete-user" method="post">
+    <form asp-action="DeletePersonalData" method="post">
         <div asp-validation-summary="ModelOnly" class="text-danger" role="alert"></div>
             <div class="form-floating mb-3">
                 <input asp-for="@Model.Email" class="form-control" autocomplete="current-password" aria-required="true" placeholder="Please enter your password." />
