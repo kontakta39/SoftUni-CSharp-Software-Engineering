@@ -1,4 +1,5 @@
-﻿using System.Text;
+﻿using System.Diagnostics;
+using System.Text;
 using BookWebStore.Data;
 using BookWebStore.Data.Models;
 using BookWebStore.ViewModels;
@@ -247,7 +248,13 @@ public class AccountController : Controller
     {
         if (string.IsNullOrWhiteSpace(token) || string.IsNullOrWhiteSpace(email))
         {
-            return BadRequest("Invalid password reset token.");
+            ErrorViewModel errorModel = new ErrorViewModel
+            {
+                RequestId = Activity.Current?.Id ?? HttpContext.TraceIdentifier,
+                ErrorMessage = "The password recovery link is invalid or missing required information."
+            };
+
+            return View("Error", errorModel);
         }
 
         ResetPasswordViewModel? model = new ResetPasswordViewModel

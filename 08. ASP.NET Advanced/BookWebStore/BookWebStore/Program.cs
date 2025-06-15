@@ -57,6 +57,9 @@ public class Program
             app.UseHsts();
         }
 
+        //StatusCodePages for handling 404 errors
+        app.UseStatusCodePagesWithReExecute("/Home/NotFound");
+
         app.UseHttpsRedirection();
         app.UseRouting();
 
