@@ -11,7 +11,7 @@
         <form asp-action="UpdateProfile" method="post">
             <div asp-validation-summary="ModelOnly" class="text-danger" role="alert"></div>
             <div class="form-floating mb-3">
-                <input asp-for="@Model.Username" class="form-control" placeholder="Please choose your username." disabled />
+                <input asp-for="@Model.Username" class="form-control" disabled />
                 <label asp-for="@Model.Username" class="form-label">Username</label>
                 <input type="hidden" name="Username" value="@Model.Username" />
             </div>

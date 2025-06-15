@@ -4,8 +4,8 @@ namespace BookWebStore.ViewModels;
 
 public class LoginViewModel
 {
-    [Required(ErrorMessage = "The Username field is required.")]
-    public string Username { get; set; } = null!;
+    [Required(ErrorMessage = "The Username/Email field is required.")]
+    public string UsernameOrEmail { get; set; } = null!;
 
     [Required(ErrorMessage = "The Password field is required.")]
     [DataType(DataType.Password)]

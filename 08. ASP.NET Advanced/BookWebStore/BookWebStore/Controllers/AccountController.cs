@@ -2,6 +2,7 @@
 using BookWebStore.Data;
 using BookWebStore.Data.Models;
 using BookWebStore.ViewModels;
+using Mailjet.Client.Resources;
 using Microsoft.AspNetCore.Identity;
 using Microsoft.AspNetCore.Mvc;
 using Microsoft.EntityFrameworkCore;
@@ -102,25 +103,26 @@ public class AccountController : Controller
 
         try
         {
-            ApplicationUser? userUsernameCheck = await _userManager.FindByNameAsync(login.Username);
+            ApplicationUser? user = await _userManager.FindByNameAsync(login.UsernameOrEmail)
+                                 ?? await _userManager.FindByEmailAsync(login.UsernameOrEmail);
 
-            if (userUsernameCheck == null)
+            if (user == null)
             {
-                ModelState.Remove("Username");
-                login.Username = "";
-                throw new ArgumentException("No user found with this username.");
+                ModelState.Remove(nameof(login.UsernameOrEmail));
+                login.UsernameOrEmail = string.Empty;
+                throw new ArgumentException("No user found with this username or email.");
             }
 
-            if (await _userManager.IsLockedOutAsync(userUsernameCheck))
+            if (await _userManager.IsLockedOutAsync(user))
             {
                 throw new ArgumentException("Your account is locked due to multiple failed login attempts Try again later.");
             }
 
-            var result = await _signInManager.PasswordSignInAsync(userUsernameCheck, login.Password, isPersistent: false, lockoutOnFailure: true);
+            var result = await _signInManager.PasswordSignInAsync(user, login.Password, isPersistent: false, lockoutOnFailure: true);
 
             if (result.Succeeded)
             {
-                await _userManager.ResetAccessFailedCountAsync(userUsernameCheck);
+                await _userManager.ResetAccessFailedCountAsync(user);
             }
             else if (result.IsLockedOut)
             {
@@ -221,7 +223,7 @@ public class AccountController : Controller
         catch (ArgumentException ex)
         {
             ModelState.AddModelError("", ex.Message);
-            ModelState.Remove("Email");
+            ModelState.Remove(nameof(forgotPassword.Email));
             forgotPassword.Email = "";
             return View(forgotPassword);
         }
@@ -345,7 +347,7 @@ public class AccountController : Controller
 
         if (profileViewModel == null)
         {
-            throw new ArgumentException("No user found with this username.");
+            return View("NotFound");
         }
 
         if (!ModelState.IsValid)
@@ -373,7 +375,7 @@ public class AccountController : Controller
         catch (ArgumentException ex)
         {
             ModelState.AddModelError("", ex.Message);
-            ModelState.Remove("PhoneNumber");
+            ModelState.Remove(nameof(profileViewModel.PhoneNumber));
             profileViewModel.PhoneNumber = user.PhoneNumber;
             ViewData["ActivePage"] = "Profile";
             return View("Manage", profileViewModel);
@@ -418,7 +420,7 @@ public class AccountController : Controller
         catch (ArgumentException ex)
         {
             ModelState.AddModelError("", ex.Message);
-            ModelState.Remove("NewEmail");
+            ModelState.Remove(nameof(emailViewModel.NewEmail));
             emailViewModel.NewEmail = "";
             ViewData["ActivePage"] = "Email";
             return View("Manage", emailViewModel);
@@ -443,22 +445,30 @@ public class AccountController : Controller
             return View("Manage", passwordViewModel);
         }
 
-        if (passwordViewModel.OldPassword == passwordViewModel.NewPassword)
-        {
-            ModelState.AddModelError("NewPassword", "The new password must be different from the old one.");
-            ViewData["ActivePage"] = "ChangePassword";
-            return View("Manage", passwordViewModel);
-        }
-
-        IdentityResult result;
-
         try
         {
+            //Check if the entered old password is correct
+            bool isOldPasswordValid = await _userManager.CheckPasswordAsync(user, passwordViewModel.OldPassword!);
+
+            if (!isOldPasswordValid)
+            {
+                throw new ArgumentException("The current password is incorrect.", nameof(passwordViewModel.OldPassword));
+            }
+
+            if (passwordViewModel.OldPassword == passwordViewModel.NewPassword)
+            {
+                throw new ArgumentException("The new password must be different from the old one.", nameof(passwordViewModel.NewPassword));
+            }
+
+            IdentityResult result;
+
             result = await _userManager.ChangePasswordAsync(user, passwordViewModel.OldPassword!, passwordViewModel.NewPassword!);
         }
-        catch (ArgumentException)
+        catch (ArgumentException ex)
         {
-            ModelState.AddModelError(string.Empty, "An error occurred while changing the password.");
+            string[] messageSplit = ex.Message.Split(" (Parameter").ToArray();
+            string key = string.IsNullOrEmpty(ex.ParamName) ? "" : ex.ParamName;
+            ModelState.AddModelError(key, messageSplit[0]);
             ViewData["ActivePage"] = "ChangePassword";
             return View("Manage", passwordViewModel);
         }
@@ -477,6 +487,13 @@ public class AccountController : Controller
     [HttpPost]
     public async Task<IActionResult> DeletePersonalData(DeletePersonalDataViewModel deleteAccount)
     {
+        ApplicationUser? currentUser = await _userManager.GetUserAsync(User); 
+
+        if (currentUser == null)
+        {
+            return View("NotFound");
+        }
+
         if (!ModelState.IsValid)
         {
             return View(deleteAccount);
@@ -484,17 +501,23 @@ public class AccountController : Controller
 
         try
         {
-            ApplicationUser? userEmailCheck = await _userManager.FindByEmailAsync(deleteAccount.Email);
-
-            if (userEmailCheck == null)
+            //Check if the entered user email address matches with the logged in user email address
+            if (!string.Equals(currentUser.Email, deleteAccount.Email, StringComparison.OrdinalIgnoreCase))
             {
-                ModelState.Remove("Email");
+                ModelState.Remove(nameof(currentUser.Email));
                 deleteAccount.Email = "";
-                throw new ArgumentException("No user found with this email.");
+                throw new ArgumentException("The entered email does not match your account.");
             }
 
-            var result = await _userManager.DeleteAsync(userEmailCheck);
-            //await _signInManager.SignOutAsync();
+            bool isPasswordCorrect = await _userManager.CheckPasswordAsync(currentUser, deleteAccount.Password);
+
+            if (!isPasswordCorrect)
+            {
+                throw new ArgumentException("You have entered invalid password.");
+            }
+
+            IdentityResult? result = await _userManager.DeleteAsync(currentUser);
+            await _signInManager.SignOutAsync();
 
         }
         catch (ArgumentException ex)
