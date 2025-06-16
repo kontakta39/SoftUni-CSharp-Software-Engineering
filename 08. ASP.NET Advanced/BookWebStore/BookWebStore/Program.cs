@@ -7,7 +7,7 @@ namespace BookWebStore;
 
 public class Program
 {
-    public static void Main(string[] args)
+    public static async Task Main(string[] args)
     {
         WebApplicationBuilder? builder = WebApplication.CreateBuilder(args);
 
@@ -73,6 +73,13 @@ public class Program
             .WithStaticAssets();
         app.MapRazorPages()
            .WithStaticAssets();
+
+        //Initialize roles and admin user
+        using (IServiceScope? scope = app.Services.CreateScope())
+        {
+            IServiceProvider? serviceProvider = scope.ServiceProvider;
+            await RoleInitializer.InitializeRolesAsync(serviceProvider);
+        }
 
         app.Run();
     }
