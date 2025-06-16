@@ -73,7 +73,7 @@ public class AccountController : Controller
 
             if (result.Succeeded)
             {
-                //await _userManager.AddToRoleAsync(user, "Guest");
+                await _userManager.AddToRoleAsync(user, "Guest");
                 await _signInManager.SignInAsync(user, isPersistent: false);
             }
         }
@@ -576,5 +576,28 @@ public class AccountController : Controller
         }
 
         return RedirectToAction("Index", "Home");
+    }
+
+    [HttpPost]
+    [Authorize]
+    public async Task<IActionResult> ChangeRole(string userId, string role)
+    {
+        if (!User.IsInRole("Administrator"))
+        {
+            return View("NotFound");
+        }
+
+        ApplicationUser? user = await _userManager.FindByIdAsync(userId);
+
+        if (user == null)
+        {
+            return View("NotFound");
+        }
+
+        IList<string>? currentRoles = await _userManager.GetRolesAsync(user);
+        await _userManager.RemoveFromRolesAsync(user, currentRoles);
+        await _userManager.AddToRoleAsync(user, role);
+
+        return RedirectToAction("Manage", new { page = "ManageUsers" });
     }
 }
