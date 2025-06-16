@@ -3,7 +3,7 @@ using System.Text;
 using BookWebStore.Data;
 using BookWebStore.Data.Models;
 using BookWebStore.ViewModels;
-using Mailjet.Client.Resources;
+using Microsoft.AspNetCore.Authorization;
 using Microsoft.AspNetCore.Identity;
 using Microsoft.AspNetCore.Mvc;
 using Microsoft.EntityFrameworkCore;
@@ -144,6 +144,7 @@ public class AccountController : Controller
     }
 
     [HttpPost]
+    [Authorize]
     public async Task<IActionResult> LogOut()
     {
         await _signInManager.SignOutAsync();
@@ -310,6 +311,7 @@ public class AccountController : Controller
     }
 
     [HttpGet]
+    [Authorize]
     public async Task<IActionResult> Manage(string page = "Profile")
     {
         ApplicationUser? user = await _userManager.GetUserAsync(User);
@@ -319,35 +321,71 @@ public class AccountController : Controller
             return View("NotFound");
         }
 
+        ViewData["UserEmail"] = user.Email;
+        ViewData["Username"] = user.UserName;
+
+        if (!Request.Query.ContainsKey("page") &&
+                User.IsInRole("Administrator") &&
+                user.Email == "kontakta39@mail.bg" &&
+                user.UserName == "kontakta39")
+        {
+            page = "ManageUsers";
+        }
+
         ViewData["ActivePage"] = page;
 
         switch (page)
         {
+            case "ManageUsers":
+                if (User.IsInRole("Administrator") && user.Email == "kontakta39@mail.bg" && user.UserName == "kontakta39")
+                {
+                    List<ApplicationUser> users = await _userManager.Users
+                        .Where(u => u.Email != "kontakta39@mail.bg" && u.UserName != "kontakta39")
+                        .ToListAsync();
+
+                    List<(ApplicationUser User, IList<string> Roles)> userRoles = new();
+
+                    foreach (var u in users)
+                    {
+                        IList<string>? roles = await _userManager.GetRolesAsync(u);
+                        userRoles.Add((u, roles));
+                    }
+
+                    return View("Manage", userRoles);
+                }
+                else
+                {
+                    return View("NotFound");
+                }
+
             case "Profile":
-                ProfileViewModel profileModel = new ProfileViewModel
+                ProfileViewModel? profileModel = new ProfileViewModel
                 {
                     Username = user.UserName!,
                     PhoneNumber = user.PhoneNumber
                 };
-
                 return View("Manage", profileModel);
+
             case "Email":
-                EmailViewModel emailModel = new EmailViewModel
+                EmailViewModel? emailModel = new EmailViewModel
                 {
                     CurrentEmail = user.Email!
                 };
-
                 return View("Manage", emailModel);
+
             case "ChangePassword":
                 return View("Manage", new ChangePasswordViewModel());
+
             case "DeleteAccount":
                 return View("Manage");
+
             default:
                 return View("Manage");
         }
     }
 
     [HttpPost]
+    [Authorize]
     public async Task<IActionResult> UpdateProfile(ProfileViewModel profileViewModel)
     {
         ApplicationUser? user = await _userManager.FindByNameAsync(profileViewModel.Username);
@@ -392,6 +430,7 @@ public class AccountController : Controller
     }
 
     [HttpPost]
+    [Authorize]
     public async Task<IActionResult> ChangeEmail(EmailViewModel emailViewModel)
     {
         ApplicationUser? user = await _userManager.FindByEmailAsync(emailViewModel.CurrentEmail);
@@ -437,6 +476,7 @@ public class AccountController : Controller
     }
 
     [HttpPost]
+    [Authorize]
     public async Task<IActionResult> ChangePassword(ChangePasswordViewModel passwordViewModel)
     {
         ApplicationUser? user = await _userManager.GetUserAsync(User);
@@ -485,6 +525,7 @@ public class AccountController : Controller
     }
 
     [HttpGet]
+    [Authorize]
     public IActionResult DeletePersonalData()
     {
         DeletePersonalDataViewModel deleteAccount = new DeletePersonalDataViewModel();
@@ -492,6 +533,7 @@ public class AccountController : Controller
     }
 
     [HttpPost]
+    [Authorize]
     public async Task<IActionResult> DeletePersonalData(DeletePersonalDataViewModel deleteAccount)
     {
         ApplicationUser? currentUser = await _userManager.GetUserAsync(User); 
