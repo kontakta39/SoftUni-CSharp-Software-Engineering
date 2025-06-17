@@ -584,7 +584,7 @@ public class AccountController : Controller
     {
         if (!User.IsInRole("Administrator"))
         {
-            return View("NotFound");
+            return View("AccessDenied");
         }
 
         ApplicationUser? user = await _userManager.FindByIdAsync(userId);

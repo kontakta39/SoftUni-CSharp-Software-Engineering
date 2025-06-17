@@ -1,0 +1,11 @@
+﻿@{
+    Layout = "_Layout";
+}
+
+@{
+    ViewData["Title"] = "Access denied";
+}
+
+<h1 class="text-danger">@ViewData["Title"]</h1>
+<p class="text-danger">You do not have access to this resource.</p>
+<a asp-controller="Home" asp-action="Index" class="btn btn-primary">Back to homepage</a>
