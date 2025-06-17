@@ -7,63 +7,66 @@
     string? email = ViewData["UserEmail"]?.ToString();
     string? username = ViewData["Username"]?.ToString();
     string? activePage = ViewData["ActivePage"]?.ToString();
+    bool isMasterAdmin = User.IsInRole("Administrator") && email == "kontakta39@mail.bg" && username == "kontakta39";
 }
 
 @if (SignInManager.IsSignedIn(User))
 {
-    <h1>Manage your account</h1>
+    <div class="d-flex justify-content-center align-items-center mb-3 mt-3">
+        <h1>Manage your account</h1>
+    </div>
+    <hr class="mb-5" />
 
-    <div class="row">
+    <div class="row g-5" style="margin-bottom: 200px;">
         <div class="col-md-3">
             <!-- Sidebar -->
             <ul class="nav nav-pills flex-column">
-                @if (User.IsInRole("Administrator") && email == "kontakta39@mail.bg" && username == "kontakta39")
+                @if (isMasterAdmin)
                 {
                     <li class="nav-item">
-                        <a class="nav-link @(activePage == "ManageUsers" ? "active" : "")"
-                           href="@Url.Action("Manage", "Account", new { page = "ManageUsers" })">Manage Users</a>
+                        <a class="nav-link fs-5 @(activePage == "ManageUsers" ? "active" : "")"
+                           href="@Url.Action("Manage", "Account", new { page = "ManageUsers" })">Manage users</a>
                     </li>
                 }
                 <li class="nav-item">
-                    <a class="nav-link @(activePage == "Profile" ? "active" : "")"
+                    <a class="nav-link fs-5 @(activePage == "Profile" ? "active" : "")"
                        href="@Url.Action("Manage", "Account", new { page = "Profile" })">Profile</a>
                 </li>
                 <li class="nav-item">
-                    <a class="nav-link @(activePage == "Email" ? "active" : "")"
+                    <a class="nav-link fs-5 @(activePage == "Email" ? "active" : "")"
                        href="@Url.Action("Manage", "Account", new { page = "Email" })">Email</a>
                 </li>
                 <li class="nav-item">
-                    <a class="nav-link @(activePage == "ChangePassword" ? "active" : "")"
+                    <a class="nav-link fs-5 @(activePage == "ChangePassword" ? "active" : "")"
                        href="@Url.Action("Manage", "Account", new { page = "ChangePassword" })">Change password</a>
                 </li>
                 <li class="nav-item">
-                    <a class="nav-link @(activePage == "DeleteAccount" ? "active" : "")"
+                    <a class="nav-link fs-5 @(activePage == "DeleteAccount" ? "active" : "")"
                        href="@Url.Action("Manage", "Account", new { page = "DeleteAccount" })">Delete account</a>
                 </li>
             </ul>
         </div>
 
         <div class="col-md-9">
-            <!-- Depending on the value of ActivePage, the corresponding partial view is displayed. -->
-            @if (activePage == "ManageUsers" && User.IsInRole("Administrator") && email == "kontakta39@mail.bg" && username == "kontakta39")
+            @if (activePage == "ManageUsers" && isMasterAdmin)
             {
-                @Html.Partial("_ManageUsersPartial")
+                @await Html.PartialAsync("_ManageUsersPartial")
             }
             else if (activePage == "Profile")
             {
-                @Html.Partial("_ProfilePartial")
+                @await Html.PartialAsync("_ProfilePartial")
             }
             else if (activePage == "Email")
             {
-                @Html.Partial("_EmailPartial")
+                @await Html.PartialAsync("_EmailPartial")
             }
             else if (activePage == "ChangePassword")
             {
-                @Html.Partial("_ChangePasswordPartial")
+                @await Html.PartialAsync("_ChangePasswordPartial")
             }
             else if (activePage == "DeleteAccount")
             {
-                @Html.Partial("_DeleteAccountPartial")
+                @await Html.PartialAsync("_DeleteAccountPartial")
             }
         </div>
     </div>

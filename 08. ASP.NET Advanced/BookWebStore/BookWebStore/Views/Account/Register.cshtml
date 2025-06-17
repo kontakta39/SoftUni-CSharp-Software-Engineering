@@ -1,4 +1,5 @@
 ﻿@using BookWebStore.ViewModels
+@using Microsoft.AspNetCore.Mvc.ModelBinding
 @model RegisterViewModel
 
 @{
@@ -8,52 +9,65 @@
 <div class="d-flex justify-content-center align-items-center mb-3 mt-3">
     <h1>@ViewData["Title"]</h1>
 </div>
-<hr style="margin-bottom: 50px;" />
+<hr class="mb-5" />
 
-<div class="d-flex flex-column justify-content-center align-items-center" style="margin-bottom: 50px;">
-    <div class="col-md-4">
-        <h2 class="text-center" style="margin-bottom: 20px;">Create a new account</h2>
-        <!-- Display general validation errors -->
-        @if (!ViewData.ModelState.IsValid)
+<div class="d-flex flex-column justify-content-center align-items-center mb-5">
+    <div class="col-md-5">
+        <h2 class="text-center mb-4">Create a new account</h2>
+        @*@{
+            List<ModelError> еrrors = ViewData.ModelState
+            .Where(e => string.IsNullOrEmpty(e.Key))
+            .SelectMany(e => e.Value.Errors)
+            .ToList();
+        }
+
+        @if (еrrors.Any())
         {
-            <div class="alert alert-danger" role="alert" style="text-align: center;">
-                @foreach (var error in ViewData.ModelState.Values.SelectMany(v => v.Errors))
+            <div class="alert alert-danger text-center">
+                @foreach (var error in еrrors)
                 {
-                    <p style="margin: 0;">@error.ErrorMessage</p>
+                    <p class="m-0">@error.ErrorMessage</p>
                 }
             </div>
-        }
+        }*@
+
         <form asp-action="Register" method="post">
             <div class="form-floating mb-3">
-                <input asp-for="@Model.FirstName" class="form-control" aria-required="true" placeholder="Please enter your first name." />
-                <label asp-for="@Model.FirstName">First Name</label>
-                <span asp-validation-for="@Model.FirstName" class="text-danger"></span>
+                <input asp-for="FirstName" class="form-control" aria-required="true" placeholder="Please enter your first name." />
+                <label asp-for="FirstName">First Name</label>
+                <span asp-validation-for="FirstName" class="text-danger"></span>
             </div>
+
             <div class="form-floating mb-3">
-                <input asp-for="@Model.LastName" class="form-control" aria-required="true" placeholder="Please enter your last name." />
-                <label asp-for="@Model.LastName">Last Name</label>
-                <span asp-validation-for="@Model.LastName" class="text-danger"></span>
+                <input asp-for="LastName" class="form-control" aria-required="true" placeholder="Please enter your last name." />
+                <label asp-for="LastName">Last Name</label>
+                <span asp-validation-for="LastName" class="text-danger"></span>
             </div>
+
             <div class="form-floating mb-3">
-                <input asp-for="@Model.Username" class="form-control" autocomplete="username" aria-required="true" placeholder="Please enter your username." />
-                <label asp-for="@Model.Username">Username</label>
-                <span asp-validation-for="@Model.Username" class="text-danger"></span>
+                <input asp-for="Username" class="form-control" autocomplete="username" aria-required="true" placeholder="Please enter your username." />
+                <label asp-for="Username">Username</label>
+                <span asp-validation-for="Username" class="text-danger"></span>
             </div>
+
             <div class="form-floating mb-3">
-                <input asp-for="@Model.Email" class="form-control" autocomplete="email" aria-required="true" placeholder="Please enter your email." />
-                <label asp-for="@Model.Email">Email</label>
-                <span asp-validation-for="@Model.Email" class="text-danger"></span>
+                <input asp-for="Email" class="form-control" autocomplete="email" aria-required="true" placeholder="Please enter your email." />
+                <label asp-for="Email">Email</label>
+                <span asp-validation-for="Email" class="text-danger"></span>
             </div>
+
             <div class="form-floating mb-3">
-                <input asp-for="@Model.Password" class="form-control" autocomplete="password" aria-required="true" placeholder="Please enter your password." />
-                <label asp-for="@Model.Password">Password</label>
-                <span asp-validation-for="@Model.Password" class="text-danger"></span>
+                <input asp-for="Password" class="form-control" autocomplete="new-password" aria-required="true" placeholder="Please enter your password." />
+                <label asp-for="Password">Password</label>
+                <span asp-validation-for="Password" class="text-danger"></span>
             </div>
+
             <div class="form-floating mb-3">
-                <input asp-for="@Model.ConfirmPassword" class="form-control" autocomplete="confirm-password" aria-required="true" placeholder="Please confirm your password." />
-                <label asp-for="@Model.ConfirmPassword">Confirm Password</label>
-                <span asp-validation-for="@Model.ConfirmPassword" class="text-danger"></span>
+                <input asp-for="ConfirmPassword" class="form-control" autocomplete="off" aria-required="true" placeholder="Please confirm your password." />
+                <label asp-for="ConfirmPassword">Confirm Password</label>
+                <span asp-validation-for="ConfirmPassword" class="text-danger"></span>
             </div>
+
             <button id="registerSubmit" type="submit" class="w-100 btn btn-lg btn-primary">Register</button>
         </form>
     </div>

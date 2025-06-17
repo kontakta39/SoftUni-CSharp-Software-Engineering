@@ -35,6 +35,11 @@ public class Program
             .AddEntityFrameworkStores<BookStoreDbContext>()
             .AddDefaultTokenProviders();
 
+        builder.Services.Configure<DataProtectionTokenProviderOptions>(options =>
+        {
+            options.TokenLifespan = TimeSpan.FromMinutes(30);
+        });
+
         // Configure cookie authentication for login and access denied paths
         builder.Services.ConfigureApplicationCookie(options =>
         {

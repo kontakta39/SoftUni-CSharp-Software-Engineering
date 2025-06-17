@@ -36,52 +36,52 @@ public class AccountController : Controller
     [HttpPost]
     public async Task<IActionResult> Register(RegisterViewModel register)
     {
+        ApplicationUser? userUsernameCheck = await _userManager.FindByNameAsync(register.Username);
+
+        if (userUsernameCheck != null)
+        {
+            ModelState.AddModelError(nameof(register.Username), "A user with this username has already been registered.");
+            ModelState.Remove(nameof(register.Username));
+            register.Username = "";
+        }
+
+        ApplicationUser? userEmailCheck = await _userManager.FindByEmailAsync(register.Email);
+
+        if (userEmailCheck != null)
+        {
+            ModelState.AddModelError(nameof(register.Email), "A user with this email has already been registered.");
+            ModelState.Remove(nameof(register.Email));
+            register.Email = "";
+        }
+
         if (!ModelState.IsValid)
         {
             return View(register);
         }
 
-        try
+        ApplicationUser user = new ApplicationUser
         {
-            ApplicationUser? userUsernameCheck = await _userManager.FindByNameAsync(register.Username);
-            ApplicationUser? userEmailCheck = await _userManager.FindByEmailAsync(register.Email);
+            UserName = register.Username,
+            Email = register.Email,
+            FirstName = register.FirstName,
+            LastName = register.LastName,
+            EmailConfirmed = false
+        };
 
-            if (userUsernameCheck != null)
-            {
-                ModelState.Remove("Username");
-                register.Username = "";
-                throw new ArgumentException("A user with this username has already been registered.");
-            }
+        IdentityResult result = await _userManager.CreateAsync(user, register.Password);
 
-            if (userEmailCheck != null)
-            {
-                ModelState.Remove("Email");
-                register.Email = "";
-                throw new ArgumentException("A user with this email has already been registered.");
-            }
-
-            ApplicationUser user = new ApplicationUser
-            {
-                UserName = register.Username,
-                Email = register.Email,
-                FirstName = register.FirstName,
-                LastName = register.LastName,
-                EmailConfirmed = false
-            };
-
-            IdentityResult result = await _userManager.CreateAsync(user, register.Password);
-
-            if (result.Succeeded)
-            {
-                await _userManager.AddToRoleAsync(user, "Guest");
-                await _signInManager.SignInAsync(user, isPersistent: false);
-            }
-        }
-        catch (ArgumentException ex)
+        if (!result.Succeeded)
         {
-            ModelState.AddModelError("", ex.Message);
+            foreach (IdentityError error in result.Errors)
+            {
+                ModelState.AddModelError("", error.Description);
+            }
+
             return View(register);
         }
+
+        await _userManager.AddToRoleAsync(user, "Guest");
+        await _signInManager.SignInAsync(user, isPersistent: false);
 
         return RedirectToAction("Index", "Home");
     }
@@ -102,45 +102,39 @@ public class AccountController : Controller
             return View(login);
         }
 
-        try
+        ApplicationUser? user = await _userManager.FindByNameAsync(login.UsernameOrEmail)
+                             ?? await _userManager.FindByEmailAsync(login.UsernameOrEmail);
+
+        if (user == null)
         {
-            ApplicationUser? user = await _userManager.FindByNameAsync(login.UsernameOrEmail)
-                                 ?? await _userManager.FindByEmailAsync(login.UsernameOrEmail);
-
-            if (user == null)
-            {
-                ModelState.Remove(nameof(login.UsernameOrEmail));
-                login.UsernameOrEmail = string.Empty;
-                throw new ArgumentException("No user found with this username or email.");
-            }
-
-            if (await _userManager.IsLockedOutAsync(user))
-            {
-                throw new ArgumentException("Your account is locked due to multiple failed login attempts Try again later.");
-            }
-
+            ModelState.AddModelError(nameof(login.UsernameOrEmail), "No user found with this username or email.");
+            ModelState.Remove(nameof(login.UsernameOrEmail));
+            login.UsernameOrEmail = string.Empty;
+        }
+        else if (await _userManager.IsLockedOutAsync(user))
+        {
+            ModelState.AddModelError("", "Your account is locked due to multiple failed login attempts. Try again later.");
+        }
+        else
+        {
             var result = await _signInManager.PasswordSignInAsync(user, login.Password, isPersistent: false, lockoutOnFailure: true);
 
             if (result.Succeeded)
             {
                 await _userManager.ResetAccessFailedCountAsync(user);
+                return RedirectToAction("Index", "Home");
             }
             else if (result.IsLockedOut)
             {
-                throw new ArgumentException("Your account is locked. Please try again in 30 minutes.");
+                ModelState.AddModelError("", "Your account is locked. Please try again in 30 minutes.");
             }
             else
             {
-                throw new ArgumentException("Invalid login attempt.");
+                ModelState.AddModelError("", "Invalid login attempt.");
             }
         }
-        catch (ArgumentException ex)
-        {
-            ModelState.AddModelError("", ex.Message);
-            return View(login);
-        }
 
-        return RedirectToAction("Index", "Home");
+        return View(login);
     }
 
     [HttpPost]
@@ -161,78 +155,65 @@ public class AccountController : Controller
     [HttpPost]
     public async Task<IActionResult> ForgotPassword(ForgotPasswordViewModel forgotPassword)
     {
+        ApplicationUser? user = await _userManager.FindByEmailAsync(forgotPassword.Email);
+
+        if (user == null)
+        {
+            ModelState.AddModelError("", "No user found with the specified email address.");
+            ModelState.Remove(nameof(forgotPassword.Email));
+            forgotPassword.Email = "";
+        }
+
         if (!ModelState.IsValid)
         {
             return View(forgotPassword);
         }
 
-        try
-        {
-            ApplicationUser? user = await _userManager.FindByEmailAsync(forgotPassword.Email);
+        string token = await _userManager.GeneratePasswordResetTokenAsync(user);
+        string resetLink = Url.Action("ResetPassword", "Account", new { token, email = user.Email }, Request.Scheme);
 
-            if (user == null)
+        string apiKey = _configuration["MailJet:ApiKey"];
+        string apiSecret = _configuration["MailJet:ApiSecret"];
+        string fromEmail = _configuration["MailJet:FromEmail"];
+        string fromName = _configuration["MailJet:FromName"];
+
+        using (HttpClient? client = new HttpClient())
+        {
+            StringContent? requestContent = new StringContent(
+                new JObject(
+                    new JProperty("Messages", new JArray(
+                        new JObject(
+                            new JProperty("From", new JObject(
+                                new JProperty("Email", fromEmail),
+                                new JProperty("Name", fromName)
+                            )),
+                            new JProperty("To", new JArray(
+                                new JObject(
+                                    new JProperty("Email", forgotPassword.Email),
+                                    new JProperty("Name", user.UserName)
+                                )
+                            )),
+                            new JProperty("Subject", "Password Reset"),
+                            new JProperty("HTMLPart", $"<p>Click <a href='{resetLink}'>here</a> to reset your password. The link is valid for 30 minutes.</p>"),
+                            new JProperty("TextPart", $"To reset your password, open the following link: {resetLink}")
+                        )
+                    ))
+                ).ToString(), Encoding.UTF8, "application/json"
+            );
+
+            client.DefaultRequestHeaders.Add("Authorization", "Basic " +
+                Convert.ToBase64String(Encoding.ASCII.GetBytes($"{apiKey}:{apiSecret}")));
+
+            HttpResponseMessage? response = await client.PostAsync("https://api.mailjet.com/v3.1/send", requestContent);
+
+            if (!response.IsSuccessStatusCode)
             {
-                throw new ArgumentException($"Password reset attempt for non-existing user with email: {forgotPassword.Email}");
+                string responseBody = await response.Content.ReadAsStringAsync();
+                ModelState.AddModelError("", "Failed to send password reset email. Please try again later.");
+                ModelState.Remove(nameof(forgotPassword.Email));
+                forgotPassword.Email = "";
+                return View(forgotPassword);
             }
-
-            //Generate password token for password reset
-            string? token = await _userManager.GeneratePasswordResetTokenAsync(user);
-            string? resetLink = Url.Action("ResetPassword", "Account", new { token, email = user.Email }, Request.Scheme);
-
-            //Receiving the SMTP settings from appsettings.json
-            string apiKey = _configuration["MailJet:ApiKey"];
-            string apiSecret = _configuration["MailJet:ApiSecret"];
-            string fromEmail = _configuration["MailJet:FromEmail"];
-            string fromName = _configuration["MailJet:FromName"];
-
-            //Creating the HTTP client for MailJet
-            using (var client = new HttpClient())
-            {
-                var requestContent = new StringContent(
-                    new JObject(
-                        new JProperty("Messages", new JArray(
-                            new JObject(
-                                new JProperty("From", new JObject(
-                                    new JProperty("Email", fromEmail),
-                                    new JProperty("Name", fromName)
-                                )),
-                                new JProperty("To", new JArray(
-                                    new JObject(
-                                        new JProperty("Email", forgotPassword.Email),
-                                        new JProperty("Name", user.UserName)
-                                    )
-                                )),
-                                new JProperty("Subject", "Reset your password"),
-                                new JProperty("HTMLPart", $"<p>Click <a href='{resetLink}'>here</a> to reset your password.</p>"),
-                                new JProperty("TextPart", "To reset your password, click the link in the email.")
-                            )
-                        ))
-                    ).ToString(), Encoding.UTF8, "application/json"
-                );
-
-                //Adding the API key for authorization
-                client.DefaultRequestHeaders.Add("Authorization", "Basic " + Convert.ToBase64String(Encoding.ASCII.GetBytes($"{apiKey}:{apiSecret}")));
-
-                //Sending the email
-                var response = await client.PostAsync("https://api.mailjet.com/v3.1/send", requestContent);
-
-                if (!response.IsSuccessStatusCode)
-                {
-                    throw new Exception($"Failed to send email. Status: {response.StatusCode}, Message: {await response.Content.ReadAsStringAsync()}");
-                }
-            }
-        }
-        catch (ArgumentException ex)
-        {
-            ModelState.AddModelError("", ex.Message);
-            ModelState.Remove(nameof(forgotPassword.Email));
-            forgotPassword.Email = "";
-            return View(forgotPassword);
-        }
-        catch (Exception ex)
-        {
-            ModelState.AddModelError("", $"Failed to send password reset email: {ex.Message}");
-            return View(forgotPassword);
         }
 
         return RedirectToAction("ForgotPasswordConfirmation", "Account");
@@ -276,31 +257,32 @@ public class AccountController : Controller
             return View(model);
         }
 
-        try
+        ApplicationUser? user = await _userManager.FindByEmailAsync(model.Email);
+
+        if (user == null)
         {
-            ApplicationUser? user = await _userManager.FindByEmailAsync(model.Email);
-
-            if (user == null)
-            {
-                throw new ArgumentException($"Reset password attempt for non-existing user with email: {model.Email}");
-            }
-
-            // Check if the new password is the same as the old one
-            if (await _userManager.CheckPasswordAsync(user, model.Password))
-            {
-                throw new ArgumentException("The new password cannot be the same as the old password.");
-            }
-
-            //Reset the password using the token
+            ModelState.AddModelError("", $"Reset password attempt for non-existing user with email: {model.Email}");
+        }
+        else if (await _userManager.CheckPasswordAsync(user, model.Password))
+        {
+            ModelState.AddModelError(nameof(model.Password), "The new password cannot be the same as the old password.");
+        }
+        else
+        {
             IdentityResult? result = await _userManager.ResetPasswordAsync(user, model.Token, model.Password);
-        }
-        catch (ArgumentException ex)
-        {
-            ModelState.AddModelError("", ex.Message);
-            return View(model);
+
+            if (result.Succeeded)
+            {
+                return RedirectToAction("ResetPasswordConfirmation", "Account");
+            }
+
+            foreach (IdentityError error in result.Errors)
+            {
+                ModelState.AddModelError("", error.Description);
+            }
         }
 
-        return RedirectToAction("Index", "Home");
+        return View(model);
     }
 
     [HttpGet]
@@ -321,42 +303,39 @@ public class AccountController : Controller
             return View("NotFound");
         }
 
-        ViewData["UserEmail"] = user.Email;
-        ViewData["Username"] = user.UserName;
+        bool isMasterAdmin = User.IsInRole("Administrator") &&
+                             user.Email == "kontakta39@mail.bg" &&
+                             user.UserName == "kontakta39";
 
-        if (!Request.Query.ContainsKey("page") &&
-                User.IsInRole("Administrator") &&
-                user.Email == "kontakta39@mail.bg" &&
-                user.UserName == "kontakta39")
+        if (!Request.Query.ContainsKey("page") && isMasterAdmin)
         {
             page = "ManageUsers";
         }
 
+        ViewData["UserEmail"] = user.Email;
+        ViewData["Username"] = user.UserName;
         ViewData["ActivePage"] = page;
 
         switch (page)
         {
             case "ManageUsers":
-                if (User.IsInRole("Administrator") && user.Email == "kontakta39@mail.bg" && user.UserName == "kontakta39")
+                if (!isMasterAdmin)
                 {
-                    List<ApplicationUser> users = await _userManager.Users
-                        .Where(u => u.Email != "kontakta39@mail.bg" && u.UserName != "kontakta39")
-                        .ToListAsync();
-
-                    List<(ApplicationUser User, IList<string> Roles)> userRoles = new();
-
-                    foreach (var u in users)
-                    {
-                        IList<string>? roles = await _userManager.GetRolesAsync(u);
-                        userRoles.Add((u, roles));
-                    }
-
-                    return View("Manage", userRoles);
+                    return RedirectToAction("AccessDenied", "Home");
                 }
-                else
+
+                List<ApplicationUser> users = await _userManager.Users
+                    .Where(u => u.Email != "kontakta39@mail.bg" && u.UserName != "kontakta39")
+                    .ToListAsync();
+
+                List<(ApplicationUser, IList<string>)>? userRoles = new List<(ApplicationUser, IList<string>)>();
+
+                foreach (ApplicationUser u in users)
                 {
-                    return View("NotFound");
+                    IList<string>? roles = await _userManager.GetRolesAsync(u);
+                    userRoles.Add((u, roles));
                 }
+                return View("Manage", userRoles);
 
             case "Profile":
                 ProfileViewModel? profileModel = new ProfileViewModel
@@ -390,41 +369,39 @@ public class AccountController : Controller
     {
         ApplicationUser? user = await _userManager.FindByNameAsync(profileViewModel.Username);
 
-        if (profileViewModel == null)
+        if (user == null)
         {
             return View("NotFound");
         }
 
         if (!ModelState.IsValid)
         {
-            ViewData["ActivePage"] = "Profile";
             return View("Manage", profileViewModel);
         }
 
-        try
+        ViewData["ActivePage"] = "Profile";
+
+        if (!string.IsNullOrWhiteSpace(profileViewModel.PhoneNumber))
         {
-            if (!string.IsNullOrWhiteSpace(profileViewModel.PhoneNumber))
+            bool phoneExists = await _context.Users
+                .AnyAsync(u => u.PhoneNumber == profileViewModel.PhoneNumber && u.Id != user.Id);
+
+            if (phoneExists)
             {
-                bool phoneExists = await _context.Users
-                    .AnyAsync(u => u.PhoneNumber == profileViewModel.PhoneNumber);
-
-                if (phoneExists)
-                {
-                    throw new ArgumentException("The phone number is already in use.");
-                }
+                string errorMessage = "The phone number is already in use.";
+                ModelState.Remove(nameof(profileViewModel.PhoneNumber));
+                profileViewModel.PhoneNumber = user.PhoneNumber;
+                ModelState.AddModelError(nameof(profileViewModel.PhoneNumber), errorMessage);
+                return View("Manage", profileViewModel);
             }
-
-            user.PhoneNumber = profileViewModel.PhoneNumber;
-            await _context.SaveChangesAsync();
         }
-        catch (ArgumentException ex)
+        else
         {
-            ModelState.AddModelError("", ex.Message);
             ModelState.Remove(nameof(profileViewModel.PhoneNumber));
-            profileViewModel.PhoneNumber = user.PhoneNumber;
-            ViewData["ActivePage"] = "Profile";
-            return View("Manage", profileViewModel);
         }
+
+        user.PhoneNumber = profileViewModel.PhoneNumber;
+        await _context.SaveChangesAsync();
 
         return RedirectToAction("Manage", new { page = "Profile" });
     }
@@ -582,16 +559,16 @@ public class AccountController : Controller
     [Authorize]
     public async Task<IActionResult> ChangeRole(string userId, string role)
     {
-        if (!User.IsInRole("Administrator"))
-        {
-            return View("AccessDenied");
-        }
-
         ApplicationUser? user = await _userManager.FindByIdAsync(userId);
 
         if (user == null)
         {
             return View("NotFound");
+        }
+
+        if (!User.IsInRole("Administrator") || user.Email != "kontakta39@mail.bg" || user.UserName != "kontakta39")
+        {
+            return View("AccessDenied");
         }
 
         IList<string>? currentRoles = await _userManager.GetRolesAsync(user);
