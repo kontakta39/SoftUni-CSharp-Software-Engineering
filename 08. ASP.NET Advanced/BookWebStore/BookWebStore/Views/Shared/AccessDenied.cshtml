@@ -1,11 +1,15 @@
 ﻿@{
-    Layout = "_Layout";
-}
-
-@{
     ViewData["Title"] = "Access denied";
 }
 
-<h1 class="text-danger">@ViewData["Title"]</h1>
-<p class="text-danger">You do not have access to this resource.</p>
-<a asp-controller="Home" asp-action="Index" class="btn btn-primary">Back to homepage</a>
+<div class="d-flex justify-content-center align-items-center mb-3 mt-3">
+    <h1>@ViewData["Title"]</h1>
+</div>
+<hr class="mb-5" />
+
+<div class="d-flex flex-column justify-content-center align-items-center mb-5">
+    <div class="col-md-5 text-center">
+        <h2 class="text-danger mb-4">You do not have access to this resource.</h2>
+        <a asp-controller="Home" asp-action="Index" class="btn btn-primary">Back to homepage</a>
+    </div>
+</div>

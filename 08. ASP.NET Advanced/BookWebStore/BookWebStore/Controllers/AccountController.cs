@@ -1,5 +1,6 @@
 ﻿using System.Diagnostics;
 using System.Text;
+using System.Web;
 using BookWebStore.Data;
 using BookWebStore.Data.Models;
 using BookWebStore.ViewModels;
@@ -37,21 +38,14 @@ public class AccountController : Controller
     public async Task<IActionResult> Register(RegisterViewModel register)
     {
         ApplicationUser? userUsernameCheck = await _userManager.FindByNameAsync(register.Username);
-
-        if (userUsernameCheck != null)
-        {
-            ModelState.AddModelError(nameof(register.Username), "A user with this username has already been registered.");
-            ModelState.Remove(nameof(register.Username));
-            register.Username = "";
-        }
-
         ApplicationUser? userEmailCheck = await _userManager.FindByEmailAsync(register.Email);
 
-        if (userEmailCheck != null)
+        if (userUsernameCheck != null || userEmailCheck != null)
         {
-            ModelState.AddModelError(nameof(register.Email), "A user with this email has already been registered.");
-            ModelState.Remove(nameof(register.Email));
-            register.Email = "";
+            string errorMessage = "A user with this username has already been registered.";
+            ModelState.Remove(nameof(register.Username));
+            register.Username = string.Empty;
+            ModelState.AddModelError(nameof(register.Username), errorMessage);
         }
 
         if (!ModelState.IsValid)
@@ -107,9 +101,10 @@ public class AccountController : Controller
 
         if (user == null)
         {
-            ModelState.AddModelError(nameof(login.UsernameOrEmail), "No user found with this username or email.");
+            string errorMessage = "No user found with this username or email.";
             ModelState.Remove(nameof(login.UsernameOrEmail));
             login.UsernameOrEmail = string.Empty;
+            ModelState.AddModelError(nameof(login.UsernameOrEmail), errorMessage);
         }
         else if (await _userManager.IsLockedOutAsync(user))
         {
@@ -161,7 +156,7 @@ public class AccountController : Controller
         {
             ModelState.AddModelError("", "No user found with the specified email address.");
             ModelState.Remove(nameof(forgotPassword.Email));
-            forgotPassword.Email = "";
+            forgotPassword.Email = string.Empty;
         }
 
         if (!ModelState.IsValid)
@@ -170,7 +165,9 @@ public class AccountController : Controller
         }
 
         string token = await _userManager.GeneratePasswordResetTokenAsync(user);
-        string resetLink = Url.Action("ResetPassword", "Account", new { token, email = user.Email }, Request.Scheme);
+        string encodedEmail = Convert.ToBase64String(Encoding.UTF8.GetBytes(user.Email));
+        string safeEncodedEmail = HttpUtility.UrlEncode(encodedEmail);
+        string resetLink = Url.Action("ResetPassword", "Account", new { token, email = safeEncodedEmail }, Request.Scheme);
 
         string apiKey = _configuration["MailJet:ApiKey"];
         string apiSecret = _configuration["MailJet:ApiSecret"];
@@ -211,7 +208,7 @@ public class AccountController : Controller
                 string responseBody = await response.Content.ReadAsStringAsync();
                 ModelState.AddModelError("", "Failed to send password reset email. Please try again later.");
                 ModelState.Remove(nameof(forgotPassword.Email));
-                forgotPassword.Email = "";
+                forgotPassword.Email = string.Empty;
                 return View(forgotPassword);
             }
         }
@@ -228,24 +225,37 @@ public class AccountController : Controller
     [HttpGet]
     public IActionResult ResetPassword(string token, string email)
     {
+        ErrorViewModel errorModel = new ErrorViewModel();
+
         if (string.IsNullOrWhiteSpace(token) || string.IsNullOrWhiteSpace(email))
         {
-            ErrorViewModel errorModel = new ErrorViewModel
-            {
-                RequestId = Activity.Current?.Id ?? HttpContext.TraceIdentifier,
-                ErrorMessage = "The password recovery link is invalid or missing required information."
-            };
+            errorModel.RequestId = Activity.Current?.Id ?? HttpContext.TraceIdentifier;
+            errorModel.ErrorMessage = "The password recovery link is invalid or missing required information.";
 
             return View("Error", errorModel);
         }
 
-        ResetPasswordViewModel? model = new ResetPasswordViewModel
+        try
         {
-            Token = token,
-            Email = email
-        };
+            //Decode Base64 email from URL
+            byte[] emailBytes = Convert.FromBase64String(email);
+            string decodedEmail = Encoding.UTF8.GetString(emailBytes);
 
-        return View(model);
+            ResetPasswordViewModel model = new ResetPasswordViewModel
+            {
+                Token = token,
+                Email = decodedEmail
+            };
+
+            return View(model);
+        }
+        catch (Exception ex) when (ex is FormatException || ex is ArgumentNullException)
+        {
+            errorModel.RequestId = Activity.Current?.Id ?? HttpContext.TraceIdentifier;
+            errorModel.ErrorMessage = "The email address in the reset link is invalid.";
+
+            return View("Error", errorModel);
+        }
     }
 
     [HttpPost]
@@ -269,7 +279,7 @@ public class AccountController : Controller
         }
         else
         {
-            IdentityResult? result = await _userManager.ResetPasswordAsync(user, model.Token, model.Password);
+            IdentityResult result = await _userManager.ResetPasswordAsync(user, model.Token, model.Password);
 
             if (result.Succeeded)
             {
@@ -374,23 +384,23 @@ public class AccountController : Controller
             return View("NotFound");
         }
 
+        ViewData["ActivePage"] = "Profile";
+
         if (!ModelState.IsValid)
         {
             return View("Manage", profileViewModel);
         }
 
-        ViewData["ActivePage"] = "Profile";
-
         if (!string.IsNullOrWhiteSpace(profileViewModel.PhoneNumber))
         {
             bool phoneExists = await _context.Users
-                .AnyAsync(u => u.PhoneNumber == profileViewModel.PhoneNumber && u.Id != user.Id);
+                .AnyAsync(u => u.PhoneNumber == profileViewModel.PhoneNumber);
 
             if (phoneExists)
             {
-                string errorMessage = "The phone number is already in use.";
+                string errorMessage = "Please enter a different phone number. This one is already associated with an account.";
                 ModelState.Remove(nameof(profileViewModel.PhoneNumber));
-                profileViewModel.PhoneNumber = user.PhoneNumber;
+                profileViewModel.PhoneNumber = null;
                 ModelState.AddModelError(nameof(profileViewModel.PhoneNumber), errorMessage);
                 return View("Manage", profileViewModel);
             }
@@ -417,37 +427,31 @@ public class AccountController : Controller
             return View("NotFound");
         }
 
+        ViewData["ActivePage"] = "Email";
+
         if (!ModelState.IsValid)
         {
-            ViewData["ActivePage"] = "Email";
             return View("Manage", emailViewModel);
         }
 
-        try
+        if (!string.IsNullOrWhiteSpace(emailViewModel.NewEmail))
         {
-            if (!string.IsNullOrWhiteSpace(emailViewModel.NewEmail))
+            bool emailExists = await _context.Users
+                .AnyAsync(u => u.Email == emailViewModel.NewEmail);
+
+            if (emailExists)
             {
-                bool emailExists = await _context.Users
-                    .AnyAsync(u => u.Email == emailViewModel.NewEmail);
-
-                if (emailExists)
-                {
-                    throw new ArgumentException("The email is already in use.");
-                }
+                string errorMessage = "Please enter a different email. This one is already associated with an account.";
+                ModelState.Remove(nameof(emailViewModel.NewEmail));
+                emailViewModel.NewEmail = null;
+                ModelState.AddModelError(nameof(emailViewModel.NewEmail), errorMessage);
+                return View("Manage", emailViewModel);
             }
+        }
 
-            user.Email = emailViewModel.NewEmail;
-            user.NormalizedEmail = emailViewModel.NewEmail.ToUpper();
-            await _context.SaveChangesAsync();
-        }
-        catch (ArgumentException ex)
-        {
-            ModelState.AddModelError("", ex.Message);
-            ModelState.Remove(nameof(emailViewModel.NewEmail));
-            emailViewModel.NewEmail = "";
-            ViewData["ActivePage"] = "Email";
-            return View("Manage", emailViewModel);
-        }
+        user.Email = emailViewModel.NewEmail;
+        user.NormalizedEmail = emailViewModel.NewEmail.ToUpper();
+        await _context.SaveChangesAsync();
 
         return RedirectToAction("Manage", new { page = "Email" });
     }
@@ -463,42 +467,41 @@ public class AccountController : Controller
             return View("NotFound");
         }
 
+        ViewData["ActivePage"] = "ChangePassword";
+
         if (!ModelState.IsValid)
         {
-            ViewData["ActivePage"] = "ChangePassword";
             return View("Manage", passwordViewModel);
         }
 
-        try
-        {
-            //Check if the entered old password is correct
-            bool isOldPasswordValid = await _userManager.CheckPasswordAsync(user, passwordViewModel.OldPassword!);
+        //Check if the entered old password is correct
+        bool isOldPasswordValid = await _userManager.CheckPasswordAsync(user, passwordViewModel.OldPassword!);
 
-            if (!isOldPasswordValid)
+        if (!isOldPasswordValid)
+        {
+            ModelState.AddModelError(nameof(passwordViewModel.OldPassword), "The current password is incorrect.");
+        }
+        else if (passwordViewModel.OldPassword == passwordViewModel.NewPassword)
+        {
+            ModelState.AddModelError("", "The new password must be different from the old one.");
+        }
+        else
+        {
+            IdentityResult result = await _userManager.ChangePasswordAsync(user, passwordViewModel.OldPassword!, passwordViewModel.NewPassword!);
+
+            if (result.Succeeded)
             {
-                throw new ArgumentException("The current password is incorrect.", nameof(passwordViewModel.OldPassword));
+                await _signInManager.RefreshSignInAsync(user);
+                return RedirectToAction("Manage", new { page = "ChangePassword" });
             }
 
-            if (passwordViewModel.OldPassword == passwordViewModel.NewPassword)
+            foreach (IdentityError error in result.Errors)
             {
-                throw new ArgumentException("The new password must be different from the old one.", nameof(passwordViewModel.NewPassword));
+                ModelState.AddModelError("", error.Description);
             }
-
-            IdentityResult result;
-
-            result = await _userManager.ChangePasswordAsync(user, passwordViewModel.OldPassword!, passwordViewModel.NewPassword!);
-        }
-        catch (ArgumentException ex)
-        {
-            string[] messageSplit = ex.Message.Split(" (Parameter").ToArray();
-            string key = string.IsNullOrEmpty(ex.ParamName) ? "" : ex.ParamName;
-            ModelState.AddModelError(key, messageSplit[0]);
-            ViewData["ActivePage"] = "ChangePassword";
-            return View("Manage", passwordViewModel);
         }
 
-        await _signInManager.RefreshSignInAsync(user);
-        return RedirectToAction("Manage", new { page = "ChangePassword" });
+        return View("Manage", passwordViewModel);
     }
 
     [HttpGet]
@@ -525,48 +528,53 @@ public class AccountController : Controller
             return View(deleteAccount);
         }
 
-        try
+        bool isEmailCorrect = string.Equals(currentUser.Email, deleteAccount.Email, StringComparison.OrdinalIgnoreCase);
+        bool isPasswordCorrect = await _userManager.CheckPasswordAsync(currentUser, deleteAccount.Password);
+
+        //Check if the entered user email address matches with the logged in user email address
+        if (!isEmailCorrect)
         {
-            //Check if the entered user email address matches with the logged in user email address
-            if (!string.Equals(currentUser.Email, deleteAccount.Email, StringComparison.OrdinalIgnoreCase))
+            string errorMessage = "The entered email does not match your account.";
+            ModelState.Remove(nameof(deleteAccount.Email));
+            deleteAccount.Email = string.Empty;
+            ModelState.AddModelError(nameof(deleteAccount.Email), errorMessage);
+        }
+        else if (!isPasswordCorrect)
+        {
+            ModelState.AddModelError(nameof(deleteAccount.Password), "You have entered invalid password.");
+        }
+        else
+        {
+            IdentityResult result = await _userManager.DeleteAsync(currentUser);
+
+            if (result.Succeeded)
             {
-                ModelState.Remove(nameof(currentUser.Email));
-                deleteAccount.Email = "";
-                throw new ArgumentException("The entered email does not match your account.");
+                await _signInManager.SignOutAsync();
+                return RedirectToAction("Index", "Home");
             }
 
-            bool isPasswordCorrect = await _userManager.CheckPasswordAsync(currentUser, deleteAccount.Password);
-
-            if (!isPasswordCorrect)
+            foreach (IdentityError error in result.Errors)
             {
-                throw new ArgumentException("You have entered invalid password.");
+                ModelState.AddModelError("", error.Description);
             }
-
-            IdentityResult? result = await _userManager.DeleteAsync(currentUser);
-            await _signInManager.SignOutAsync();
-
-        }
-        catch (ArgumentException ex)
-        {
-            ModelState.AddModelError("", ex.Message);
-            return View(deleteAccount);
         }
 
-        return RedirectToAction("Index", "Home");
+        return View(deleteAccount);
     }
 
     [HttpPost]
     [Authorize]
     public async Task<IActionResult> ChangeRole(string userId, string role)
     {
+        ApplicationUser? admin = await _userManager.GetUserAsync(User);
         ApplicationUser? user = await _userManager.FindByIdAsync(userId);
 
-        if (user == null)
+        if (admin == null || user == null)
         {
             return View("NotFound");
         }
 
-        if (!User.IsInRole("Administrator") || user.Email != "kontakta39@mail.bg" || user.UserName != "kontakta39")
+        if (!User.IsInRole("Administrator") || admin.Email != "kontakta39@mail.bg" || admin.UserName != "kontakta39")
         {
             return View("AccessDenied");
         }

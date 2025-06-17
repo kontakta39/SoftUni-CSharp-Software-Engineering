@@ -48,6 +48,7 @@ public static class RoleInitializer
             };
 
             IdentityResult? result = await userManager.CreateAsync(admin, adminPassword);
+
             if (result.Succeeded)
             {
                 await userManager.AddToRoleAsync(admin, "Administrator");

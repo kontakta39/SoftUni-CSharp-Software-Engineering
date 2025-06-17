@@ -1,21 +1,44 @@
 ﻿@using BookWebStore.ViewModels
+@using Microsoft.AspNetCore.Mvc.ModelBinding
 @model DeletePersonalDataViewModel
 
 @{
-    ViewData["Title"] = "Delete Personal Data";
+    ViewData["Title"] = "Delete personal data";
 }
 
-<h3>@ViewData["Title"]</h3>
+<div class="d-flex justify-content-center align-items-center mb-3 mt-3">
+    <h1>@ViewData["Title"]</h1>
+</div>
+<hr class="mb-5" />
 
-<div class="alert alert-danger" role="alert">
+@* <div class="alert alert-danger" role="alert">
     <p>
         <strong>Deleting this data will permanently remove your account and this cannot be recovered.</strong>
     </p>
-</div>
+</div> *@
 
-<div>
-    <form asp-action="DeletePersonalData" method="post">
-        <div asp-validation-summary="ModelOnly" class="text-danger" role="alert"></div>
+<div class="d-flex flex-column justify-content-center align-items-center mb-5">
+    <div class="col-md-6">
+        <h3 class="text-center mb-4 text-danger">
+            Your account will be permanently deleted and this action cannot be undone.
+        </h3>
+        @{
+            List<ModelError> еrrors = ViewData.ModelState
+            .Where(e => string.IsNullOrEmpty(e.Key))
+            .SelectMany(e => e.Value.Errors)
+            .ToList();
+        }
+        @if (еrrors.Any())
+        {
+            <div class="alert alert-danger text-center">
+                @foreach (var error in еrrors)
+                {
+                    <p class="m-0">@error.ErrorMessage</p>
+                }
+            </div>
+        }
+
+        <form asp-action="DeletePersonalData" method="post">
             <div class="form-floating mb-3">
                 <input asp-for="@Model.Email" class="form-control" autocomplete="current-password" aria-required="true" placeholder="Please enter your password." />
                 <label asp-for="@Model.Email" class="form-label">Email</label>
@@ -26,8 +49,9 @@
                 <label asp-for="@Model.Password" class="form-label">Password</label>
                 <span asp-validation-for="@Model.Password" class="text-danger"></span>
             </div>
-        <button class="w-100 btn btn-lg btn-danger" type="submit">Delete data and close my account</button>
-    </form>
+            <button class="w-100 btn btn-lg btn-danger" type="submit">Delete account</button>
+        </form>
+    </div>
 </div>
 
 @section Scripts {

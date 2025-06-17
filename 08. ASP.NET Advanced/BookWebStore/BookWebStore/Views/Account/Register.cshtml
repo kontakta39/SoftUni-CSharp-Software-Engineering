@@ -14,13 +14,12 @@
 <div class="d-flex flex-column justify-content-center align-items-center mb-5">
     <div class="col-md-5">
         <h2 class="text-center mb-4">Create a new account</h2>
-        @*@{
+        @{
             List<ModelError> еrrors = ViewData.ModelState
             .Where(e => string.IsNullOrEmpty(e.Key))
             .SelectMany(e => e.Value.Errors)
             .ToList();
         }
-
         @if (еrrors.Any())
         {
             <div class="alert alert-danger text-center">
@@ -29,7 +28,7 @@
                     <p class="m-0">@error.ErrorMessage</p>
                 }
             </div>
-        }*@
+        }
 
         <form asp-action="Register" method="post">
             <div class="form-floating mb-3">

@@ -8,4 +8,7 @@ public static class ModelConstants
     public const int PasswordMaxLength = 20;
 
     public const string PhoneNumberRegex = @"^\+359\d{9}$";
+
+    public const int GenreNameMinLength = 2;
+    public const int GenreNameMaxLength = 30;
 }

@@ -50,23 +50,23 @@
         <div class="col-md-9">
             @if (activePage == "ManageUsers" && isMasterAdmin)
             {
-                @await Html.PartialAsync("_ManageUsersPartial")
+                @await Html.PartialAsync("ManagePartials/_ManageUsersPartial")
             }
             else if (activePage == "Profile")
             {
-                @await Html.PartialAsync("_ProfilePartial")
+                @await Html.PartialAsync("ManagePartials/_ProfilePartial")
             }
             else if (activePage == "Email")
             {
-                @await Html.PartialAsync("_EmailPartial")
+                @await Html.PartialAsync("ManagePartials/_EmailPartial")
             }
             else if (activePage == "ChangePassword")
             {
-                @await Html.PartialAsync("_ChangePasswordPartial")
+                @await Html.PartialAsync("ManagePartials/_ChangePasswordPartial")
             }
             else if (activePage == "DeleteAccount")
             {
-                @await Html.PartialAsync("_DeleteAccountPartial")
+                @await Html.PartialAsync("ManagePartials/_DeleteAccountPartial")
             }
         </div>
     </div>
