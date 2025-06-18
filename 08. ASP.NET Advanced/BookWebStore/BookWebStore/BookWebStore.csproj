@@ -27,4 +27,8 @@
     <ProjectReference Include="..\BookWebStore.ViewModels\BookWebStore.ViewModels.csproj" />
   </ItemGroup>
 
+  <ItemGroup>
+    <Folder Include="Views\Genre\" />
+  </ItemGroup>
+
 </Project>
