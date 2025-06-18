@@ -1,0 +1,25 @@
+﻿@using BookWebStore.ViewModels
+@model GenreDeleteViewModel
+
+@{
+    ViewData["Title"] = "Delete genre";
+}
+
+<div class="d-flex justify-content-center align-items-center">
+    <h1>@ViewData["Title"]</h1>
+</div>
+<hr class="mb-5" />
+
+<div class="d-flex flex-column justify-content-center align-items-center mb-5">
+    <div class="card col-md-6 p-4 mx-auto">
+        <h3 class="text-center mb-4 text-danger">
+            Are you sure you want to delete @Model.Name genre?
+        </h3>
+
+        <form asp-action="Delete" method="post">
+            <div class="text-center">
+                <button id="delete-genre" type="submit" class="w-50 btn btn-lg btn-danger">Delete</button>
+            </div>
+        </form>
+    </div>
+</div>

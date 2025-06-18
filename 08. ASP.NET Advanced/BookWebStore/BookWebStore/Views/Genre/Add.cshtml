@@ -1,0 +1,25 @@
+﻿@using BookWebStore.ViewModels
+@model GenreAddViewModel
+
+@{
+    ViewData["Title"] = "Add genre";
+}
+
+<div class="d-flex justify-content-center align-items-center">
+    <h1>@ViewData["Title"]</h1>
+</div>
+<hr class="mb-5" />
+
+<div class="d-flex flex-column justify-content-center align-items-center">
+    <div class="col-md-5">
+        <form asp-action="Add" method="post">
+            <div class="form-floating mb-3">
+                <input asp-for="Name" class="form-control" aria-required="true" placeholder="Please enter genre name." />
+                <label asp-for="Name">Genre Name</label>
+                <span asp-validation-for="Name" class="text-danger"></span>
+            </div>
+
+            <button id="add-genre" type="submit" class="w-100 btn btn-lg btn-primary">Add</button>
+        </form>
+    </div>
+</div>
