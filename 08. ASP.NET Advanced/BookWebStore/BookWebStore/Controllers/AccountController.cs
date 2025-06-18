@@ -310,7 +310,7 @@ public class AccountController : Controller
 
         if (user == null)
         {
-            return View("NotFound");
+            return NotFound();  
         }
 
         bool isMasterAdmin = User.IsInRole("Administrator") &&
@@ -381,7 +381,7 @@ public class AccountController : Controller
 
         if (user == null)
         {
-            return View("NotFound");
+            return NotFound();
         }
 
         ViewData["ActivePage"] = "Profile";
@@ -424,7 +424,7 @@ public class AccountController : Controller
 
         if (user == null)
         {
-            return View("NotFound");
+            return NotFound();
         }
 
         ViewData["ActivePage"] = "Email";
@@ -464,7 +464,7 @@ public class AccountController : Controller
 
         if (user == null)
         {
-            return View("NotFound");
+            return NotFound();
         }
 
         ViewData["ActivePage"] = "ChangePassword";
@@ -520,7 +520,7 @@ public class AccountController : Controller
 
         if (currentUser == null)
         {
-            return View("NotFound");
+            return NotFound();
         }
 
         if (!ModelState.IsValid)
@@ -571,7 +571,7 @@ public class AccountController : Controller
 
         if (admin == null || user == null)
         {
-            return View("NotFound");
+            return NotFound();
         }
 
         if (!User.IsInRole("Administrator") || admin.Email != "kontakta39@mail.bg" || admin.UserName != "kontakta39")

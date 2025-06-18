@@ -20,4 +20,10 @@
     <ProjectReference Include="..\BookWebStore.Data.Models\BookWebStore.Data.Models.csproj" />
   </ItemGroup>
 
+  <ItemGroup>
+    <None Update="Seed\SeedData\genres.json">
+      <CopyToOutputDirectory>Never</CopyToOutputDirectory>
+    </None>
+  </ItemGroup>
+
 </Project>

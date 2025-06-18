@@ -1,6 +1,7 @@
 ﻿using BookWebStore.Data;
 using BookWebStore.Data.Models;
 using BookWebStore.ViewModels;
+using Microsoft.AspNetCore.Authorization;
 using Microsoft.AspNetCore.Mvc;
 using Microsoft.EntityFrameworkCore;
 
@@ -16,6 +17,7 @@ public class GenreController : Controller
     }
 
     [HttpGet]
+    [Authorize(Roles = "Administrator")]
     public async Task<IActionResult> Index()
     {
         List<GenreIndexViewModel> genres = await _context.Genres
@@ -33,31 +35,22 @@ public class GenreController : Controller
     }
 
     [HttpGet]
+    [Authorize(Roles = "Administrator")]
     public IActionResult Add()
     {
-        if (!User.IsInRole("Administrator"))
-        {
-            return RedirectToAction("AccessDenied", "Home");
-        }
-
         GenreAddViewModel addGenre = new GenreAddViewModel();
         return View(addGenre);
     }
 
     [HttpPost]
+    [Authorize(Roles = "Administrator")]
     public async Task<IActionResult> Add(GenreAddViewModel addGenre)
     {
-        if (!User.IsInRole("Administrator"))
-        {
-            return RedirectToAction("AccessDenied", "Home");
-        }
-
         if (!ModelState.IsValid)
         {
             return View(addGenre);
         }
 
-        // Check if genre already exists (case-insensitive)
         bool genreExists = await _context.Genres
             .AnyAsync(g => g.Name.ToLower() == addGenre.Name.ToLower() && !g.IsDeleted);
 
@@ -79,19 +72,15 @@ public class GenreController : Controller
     }
 
     [HttpGet]
+    [Authorize(Roles = "Administrator")]
     public async Task<IActionResult> Edit(Guid id)
     {
-        if (!User.IsInRole("Administrator"))
-        {
-            return RedirectToAction("AccessDenied", "Home");
-        }
-
         Genre? genre = await _context.Genres
                     .FirstOrDefaultAsync(g => g.Id == id && !g.IsDeleted);
 
         if (genre == null)
         {
-            return View("NotFound");
+            return NotFound();
         }
 
         GenreEditViewModel editModel = new GenreEditViewModel()
@@ -104,13 +93,9 @@ public class GenreController : Controller
     }
 
     [HttpPost]
+    [Authorize(Roles = "Administrator")]
     public async Task<IActionResult> Edit(GenreEditViewModel editGenre)
     {
-        if (!User.IsInRole("Administrator"))
-        {
-            return RedirectToAction("AccessDenied", "Home");
-        }
-
         if (!ModelState.IsValid)
         {
             return View(editGenre);
@@ -121,7 +106,7 @@ public class GenreController : Controller
 
         if (genre == null)
         {
-            return View("NotFound");
+            return NotFound();
         }
 
         bool genreExists = await _context.Genres
@@ -140,19 +125,15 @@ public class GenreController : Controller
     }
 
     [HttpGet]
+    [Authorize(Roles = "Administrator")]
     public async Task<IActionResult> Delete(Guid id)
     {
-        if (!User.IsInRole("Administrator"))
-        {
-            return RedirectToAction("AccessDenied", "Home");
-        }
-
         Genre? genre = await _context.Genres
             .FirstOrDefaultAsync(g => g.Id == id && !g.IsDeleted);
 
         if (genre == null)
         {
-            return View("NotFound");
+            return NotFound();
         }
 
         GenreDeleteViewModel deleteGenre = new GenreDeleteViewModel()
@@ -165,19 +146,15 @@ public class GenreController : Controller
     }
 
     [HttpPost]
+    [Authorize(Roles = "Administrator")]
     public async Task<IActionResult> Delete(GenreDeleteViewModel deleteGenre)
     {
-        if (!User.IsInRole("Administrator"))
-        {
-            return RedirectToAction("AccessDenied", "Home");
-        }
-
         Genre? genre = await _context.Genres
             .FirstOrDefaultAsync(g => g.Id == deleteGenre.Id && g.Name == deleteGenre.Name && !g.IsDeleted);
 
         if (genre == null)
         {
-            return View("NotFound");
+            return NotFound();
         }
 
         genre.IsDeleted = true;

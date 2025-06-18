@@ -85,6 +85,12 @@ public class Program
         {
             IServiceProvider? serviceProvider = scope.ServiceProvider;
             await RoleInitializer.InitializeRolesAsync(serviceProvider);
+
+            string genreJsonPath = Path.GetFullPath(
+            Path.Combine(AppContext.BaseDirectory,
+                "..", "..", "..", "..",
+                "BookWebStore.Data", "Seed", "SeedData", "genres.json"));
+            await GenreImporter.ImportGenresFromJsonAsync(genreJsonPath, serviceProvider);
         }
 
         app.Run();
