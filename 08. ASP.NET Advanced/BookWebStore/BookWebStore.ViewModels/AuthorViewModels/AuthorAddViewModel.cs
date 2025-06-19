@@ -1,13 +1,10 @@
 ﻿using System.ComponentModel.DataAnnotations;
 using static BookWebStore.Constants.ModelConstants;
 
-namespace BookWebStore.Data.Models;
+namespace BookWebStore.ViewModels;
 
-public class Author
+public class AuthorAddViewModel
 {
-    [Key]
-    public Guid Id { get; set; } = Guid.NewGuid();
-
     [Required]
     [StringLength(AuthorNameMaxLength, MinimumLength = AuthorNameMinLength)]
     public string Name { get; set; } = null!;
@@ -20,13 +17,14 @@ public class Author
     [StringLength(AuthorNationalityMaxLength, MinimumLength = AuthorNationalityMinLength)]
     public string Nationality { get; set; } = null!;
 
+    [DataType(DataType.Date)]
     [DisplayFormat(DataFormatString = "{0:dd-MM-yyyy}", ApplyFormatInEditMode = true)]
-    public DateOnly? BirthDate { get; set; }
+    public DateOnly? BirthDate { get; set; } = null!;
 
     [StringLength(AuthorWebsiteMaxLength, MinimumLength = AuthorWebsiteMinLength)]
     public string? Website { get; set; } = null!;
 
     public string? ImageUrl { get; set; } = null!;
 
-    public bool IsDeleted { get; set; } = false;
+    public ICollection<string> NationalityOptions { get; set; } = new List<string>();
 }

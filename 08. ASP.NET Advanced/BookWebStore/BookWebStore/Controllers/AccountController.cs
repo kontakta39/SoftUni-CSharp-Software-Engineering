@@ -322,8 +322,6 @@ public class AccountController : Controller
             page = "ManageUsers";
         }
 
-        ViewData["UserEmail"] = user.Email;
-        ViewData["Username"] = user.UserName;
         ViewData["ActivePage"] = page;
 
         switch (page)
@@ -563,7 +561,7 @@ public class AccountController : Controller
     }
 
     [HttpPost]
-    [Authorize]
+    [Authorize(Roles = "Administrator")]
     public async Task<IActionResult> ChangeRole(string userId, string role)
     {
         ApplicationUser? admin = await _userManager.GetUserAsync(User);

@@ -4,16 +4,18 @@
 
 @{
     ViewData["Title"] = "Manage Account";
-    string? email = ViewData["UserEmail"]?.ToString();
-    string? username = ViewData["Username"]?.ToString();
+    ApplicationUser user = await UserManager.GetUserAsync(User);
+    IList<string> roles = await UserManager.GetRolesAsync(user);
+    string role = roles.FirstOrDefault();
+    bool isMasterAdmin = User.IsInRole("Administrator") && user.Email == "kontakta39@mail.bg" && user.UserName == "kontakta39";
     string? activePage = ViewData["ActivePage"]?.ToString();
-    bool isMasterAdmin = User.IsInRole("Administrator") && email == "kontakta39@mail.bg" && username == "kontakta39";
+    
 }
 
 @if (SignInManager.IsSignedIn(User))
 {
     <div class="d-flex justify-content-center align-items-center mb-3 mt-3">
-        <h1>Manage your account</h1>
+        <h1>Hello, @role.ToLower() @user.FirstName @user.LastName</h1>
     </div>
     <hr class="mb-5" />
 

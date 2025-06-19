@@ -12,8 +12,8 @@ using Microsoft.EntityFrameworkCore.Storage.ValueConversion;
 namespace BookWebStore.Data.Migrations
 {
     [DbContext(typeof(BookStoreDbContext))]
-    [Migration("20250529054710_CreateAuthorClass")]
-    partial class CreateAuthorClass
+    [Migration("20250602162452_UpdateAuthorTable")]
+    partial class UpdateAuthorTable
     {
         /// <inheritdoc />
         protected override void BuildTargetModel(ModelBuilder modelBuilder)
@@ -153,6 +153,7 @@ namespace BookWebStore.Data.Migrations
                         .HasColumnType("nvarchar(60)");
 
                     b.Property<string>("Nationality")
+                        .IsRequired()
                         .HasMaxLength(30)
                         .HasColumnType("nvarchar(30)");
 

@@ -1,5 +1,4 @@
-﻿using System.Text.Json;
-using BookWebStore.Data.Models;
+﻿using BookWebStore.Data.Models;
 using Microsoft.EntityFrameworkCore;
 using Microsoft.Extensions.DependencyInjection;
 
@@ -9,17 +8,9 @@ public static class GenreImporter
 {
     public static async Task ImportGenresFromJsonAsync(string filePath, IServiceProvider serviceProvider)
     {
-        if (!File.Exists(filePath))
-        {
-            Console.WriteLine("JSON file not found: " + filePath);
-            return;
-        }
+        List<Genre>? genres = await JsonFileLoader<Genre>.LoadFromFileAsync(filePath);
 
-        string jsonContent = await File.ReadAllTextAsync(filePath);
-
-        List<Genre>? genres = JsonSerializer.Deserialize<List<Genre>>(jsonContent);
-
-        if (genres == null || genres.Count == 0)
+        if (genres.Count == 0)
         {
             Console.WriteLine("There are no genres for importing.");
             return;
@@ -28,7 +19,7 @@ public static class GenreImporter
         using IServiceScope? scope = serviceProvider.CreateScope();
         BookStoreDbContext? context = scope.ServiceProvider.GetRequiredService<BookStoreDbContext>();
 
-        foreach (Genre genre in genres)
+        foreach (var genre in genres)
         {
             bool genreExists = await context.Genres
                 .AnyAsync(g => g.Name.ToLower() == genre.Name.ToLower() && !g.IsDeleted);
@@ -36,9 +27,7 @@ public static class GenreImporter
             if (!genreExists)
             {
                 if (genre.Id == Guid.Empty)
-                {
                     genre.Id = Guid.NewGuid();
-                }
 
                 context.Genres.Add(genre);
             }

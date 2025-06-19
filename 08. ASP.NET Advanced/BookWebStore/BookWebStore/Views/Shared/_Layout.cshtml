@@ -29,8 +29,18 @@
                         </li>
                         @if (User.IsInRole("Administrator"))
                         {
-                            <li class="nav-item">
-                                <a class="nav-link text-dark" asp-area="" asp-controller="Genre" asp-action="Index">Genres</a>
+                            <li class="nav-item dropdown d-flex align-items-center">
+                                <a class="nav-link px-0 text-dark dropdown-toggle" href="#" data-bs-toggle="dropdown"></a>
+                                <a class="nav-link px-1 text-dark" href="#" data-bs-toggle="dropdown">Admin</a>
+
+                                <ul class="dropdown-menu">
+                                    <li>
+                                        <a class="dropdown-item" asp-area="Admin" asp-controller="Genre" asp-action="Index">Genres</a>
+                                    </li>
+                                    <li>
+                                        <a class="dropdown-item" asp-area="Admin" asp-controller="Author" asp-action="Index">Authors</a>
+                                    </li>
+                                </ul>
                             </li>
                         }
                     </ul>

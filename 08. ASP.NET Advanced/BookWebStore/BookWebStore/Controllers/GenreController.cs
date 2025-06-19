@@ -27,8 +27,6 @@ public class GenreController : Controller
                Id = g.Id,
                Name = g.Name
            })
-           .OrderBy(g => g.Name)
-           .AsNoTracking()
            .ToListAsync();
 
         return View(genres);
