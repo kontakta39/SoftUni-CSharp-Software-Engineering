@@ -81,13 +81,13 @@ public class GenreController : Controller
             return NotFound();
         }
 
-        GenreEditViewModel editModel = new GenreEditViewModel()
+        GenreEditViewModel editGenre = new GenreEditViewModel()
         {
             Id = genre.Id,
             Name = genre.Name
         };
 
-        return View(editModel);
+        return View(editGenre);
     }
 
     [HttpPost]
@@ -99,21 +99,21 @@ public class GenreController : Controller
             return View(editGenre);
         }
 
-        Genre? genre = _context.Genres
-            .FirstOrDefault(g => g.Id == editGenre.Id && !g.IsDeleted);
-
-        if (genre == null)
-        {
-            return NotFound();
-        }
-
         bool genreExists = await _context.Genres
-            .AnyAsync(g => g.Name.ToLower() == editGenre.Name.ToLower() && !g.IsDeleted);
+         .AnyAsync(g => g.Id != editGenre.Id && g.Name.ToLower() == editGenre.Name.ToLower() && !g.IsDeleted);
 
         if (genreExists)
         {
             ModelState.AddModelError("Name", "A genre with this name already exists.");
             return View(editGenre);
+        }
+
+        Genre? genre = _context.Genres
+            .FirstOrDefault(g => g.Id == editGenre.Id && g.Name.ToLower() == editGenre.Name.ToLower() && !g.IsDeleted);
+
+        if (genre == null)
+        {
+            return NotFound();
         }
 
         genre.Name = editGenre.Name;
@@ -148,7 +148,7 @@ public class GenreController : Controller
     public async Task<IActionResult> Delete(GenreDeleteViewModel deleteGenre)
     {
         Genre? genre = await _context.Genres
-            .FirstOrDefaultAsync(g => g.Id == deleteGenre.Id && g.Name == deleteGenre.Name && !g.IsDeleted);
+            .FirstOrDefaultAsync(g => g.Id == deleteGenre.Id && g.Name.ToLower() == deleteGenre.Name.ToLower() && !g.IsDeleted);
 
         if (genre == null)
         {

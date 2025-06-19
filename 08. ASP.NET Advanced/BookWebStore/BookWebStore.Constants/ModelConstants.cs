@@ -18,9 +18,7 @@ public static class ModelConstants
     public const int AuthorBiographyMinLength = 10;
     public const int AuthorBiographyMaxLength = 1000;
 
-    public const int AuthorNationalityMinLength = 5;
-    public const int AuthorNationalityMaxLength = 30;
+    public const string AuthorBirthDateRegex = @"^(1[0-9]{3}|20(0[0-9]|1[0-9]|2[0-5]))-(0[1-9]|1[0-2])-(0[1-9]|[12][0-9]|3[01])$";
 
-    public const int AuthorWebsiteMinLength = 5;
-    public const int AuthorWebsiteMaxLength = 300;
+    public const string AuthorWebsiteRegex = @"^(https?:\/\/)?([\w\-]+\.)+[\w\-]{2,}\/?$";
 }

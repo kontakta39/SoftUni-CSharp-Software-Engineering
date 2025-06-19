@@ -14,14 +14,12 @@ public class AuthorAddViewModel
     public string Biography { get; set; } = null!;
 
     [Required]
-    [StringLength(AuthorNationalityMaxLength, MinimumLength = AuthorNationalityMinLength)]
     public string Nationality { get; set; } = null!;
 
-    [DataType(DataType.Date)]
-    [DisplayFormat(DataFormatString = "{0:dd-MM-yyyy}", ApplyFormatInEditMode = true)]
-    public DateOnly? BirthDate { get; set; } = null!;
+    [RegularExpression(AuthorBirthDateRegex, ErrorMessage = "Please enter a valid date between 1000 and 2025.")]
+    public string? BirthDate { get; set; }
 
-    [StringLength(AuthorWebsiteMaxLength, MinimumLength = AuthorWebsiteMinLength)]
+    [RegularExpression(AuthorWebsiteRegex, ErrorMessage = "Please enter a valid URL address.")]
     public string? Website { get; set; } = null!;
 
     public string? ImageUrl { get; set; } = null!;
