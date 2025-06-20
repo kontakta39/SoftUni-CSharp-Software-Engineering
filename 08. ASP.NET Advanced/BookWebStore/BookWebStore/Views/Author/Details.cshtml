@@ -14,7 +14,7 @@
     <div class="col-md-4 text-center">
         @if (!string.IsNullOrEmpty(Model.ImageUrl))
         {
-            <img src="@Model.ImageUrl" class="img-fluid" alt="@Model.Name" />
+            <img src="@Model.ImageUrl" class="img-fluid" alt="No Image Available" />
         }
         else
         {
@@ -25,13 +25,13 @@
     <div class="col-md-6">
         <div class="card-body">
             <h5 class="card-title">@Model.Name</h5>
-            <hr class="mb-2">
-            <h6 class="card-subtitle mb-2 text-muted">Nationality: @Model.Nationality</h6>
-            <hr class="mb-2" />
+            <hr />
+            <h6 class="card-subtitle mt-2 mb-2 text-muted">Nationality: @Model.Nationality</h6>
+            <hr />
             @if (Model.BirthDate != null)
             { 
-                <h6 class="card-subtitle mb-2 text-muted">Birth Date: @Model.BirthDate</h6>
-                <hr class="mb-2" />
+                <h6 class="card-subtitle mt-2 mb-2 text-muted">Birth Date: @Model.BirthDate</h6>
+                <hr />
             }
             @if (!string.IsNullOrEmpty(Model.Website))
             {
@@ -41,12 +41,12 @@
                     website = "https://" + website;
                 }
 
-                <h6 class="card-subtitle mb-2 text-muted">Website: <a href="@website" target="_blank">Click</a></h6>
-                <hr class="mb-2" />
+                <h6 class="card-subtitle mt-2 mb-2 text-muted">Website: <a href="@website" target="_blank">Click</a></h6>
+                <hr />
             }
 
-            <p class="card-text">@Model.Biography</p>
-            <hr class="mb-2" />
+            <p class="card-text mt-2 mb-2">@Model.Biography</p>
+            <hr />
         </div>
         @if (User.IsInRole("Administrator"))
         {

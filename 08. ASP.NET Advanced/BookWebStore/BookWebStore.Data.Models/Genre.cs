@@ -13,4 +13,6 @@ public class Genre
     public string Name { get; set; } = null!;
 
     public bool IsDeleted { get; set; } = false;
+
+    public virtual ICollection<Book> Books { get; set; } = new List<Book>();
 }

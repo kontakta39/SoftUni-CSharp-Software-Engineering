@@ -155,6 +155,16 @@ public class GenreController : Controller
             return NotFound();
         }
 
+        //Check if the genre is still associated with a books in stock
+        bool hasBooksInStock = await _context.Books
+            .AnyAsync(b => b.GenreId == genre.Id && !b.IsDeleted && b.Stock > 0);
+
+        if (hasBooksInStock)
+        {
+            TempData["ErrorMessage"] = "Cannot delete genre because there are still books in stock associated with it.";
+            return RedirectToAction("Index", "Genre");
+        }
+
         genre.IsDeleted = true;
         await _context.SaveChangesAsync();
         return RedirectToAction("Index", "Genre");

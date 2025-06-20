@@ -22,9 +22,11 @@ public class Author
     [DisplayFormat(DataFormatString = "{0:dd-MM-yyyy}")]
     public DateOnly? BirthDate { get; set; }
 
-    public string? Website { get; set; } = null!;
+    public string? Website { get; set; }
 
-    public string? ImageUrl { get; set; } = null!;
+    public string? ImageUrl { get; set; } 
 
     public bool IsDeleted { get; set; } = false;
+
+    public virtual ICollection<Book> Books { get; set; } = new List<Book>();
 }

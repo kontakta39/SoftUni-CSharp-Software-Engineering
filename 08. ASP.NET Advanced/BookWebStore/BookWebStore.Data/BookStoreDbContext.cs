@@ -13,6 +13,7 @@ public class BookStoreDbContext : IdentityDbContext<ApplicationUser, Application
 
     public virtual DbSet<Genre> Genres { get; set; }
     public virtual DbSet<Author> Authors { get; set; }
+    public virtual DbSet<Book> Books { get; set; }
 
     protected override void OnModelCreating(ModelBuilder modelBuilder)
     {

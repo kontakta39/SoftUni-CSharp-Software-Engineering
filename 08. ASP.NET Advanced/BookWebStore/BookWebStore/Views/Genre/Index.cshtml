@@ -5,6 +5,14 @@
     ViewData["Title"] = "Genres";
 }
 
+@if (TempData["ErrorMessage"] != null)
+{
+    <div id="errorAlert" class="alert alert-danger fade show text-center" role="alert" data-bs-delay="3000" data-bs-autohide="true">
+        <p class="m-0">@TempData["ErrorMessage"]</p>
+    </div>
+    <script>setTimeout(() => { const e=document.getElementById('errorAlert'); if(e){ e.style.transition='opacity 0.5s'; e.style.opacity='0'; setTimeout(() => e.remove(), 500); } }, 3000);</script>
+}
+
 <div class="d-flex justify-content-between align-items-center">
     <h1>@ViewData["Title"]</h1>
     @if (User.IsInRole("Administrator"))

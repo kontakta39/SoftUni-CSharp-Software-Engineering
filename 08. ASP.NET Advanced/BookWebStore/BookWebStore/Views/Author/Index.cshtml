@@ -7,7 +7,7 @@
 
 @if (TempData["ErrorMessage"] != null)
 {
-    <div id="errorAlert" class="alert alert-danger fade show" role="alert" data-bs-delay="3000" data-bs-autohide="true">
+    <div id="errorAlert" class="alert alert-danger fade show text-center" role="alert" data-bs-delay="3000" data-bs-autohide="true">
         <p class="m-0">@TempData["ErrorMessage"]</p>
     </div>
     <script>setTimeout(() => { const e=document.getElementById('errorAlert'); if(e){ e.style.transition='opacity 0.5s'; e.style.opacity='0'; setTimeout(() => e.remove(), 500); } }, 3000);</script>
@@ -31,7 +31,7 @@ else
     List<IGrouping<string, AuthorIndexViewModel>> groupedAuthors = Model
         .OrderBy(a => a.Name)
         .GroupBy(a => a.Name.Substring(0, 1).ToUpper()) //group by first letter
-        .OrderBy(g => g.Key) //sorting groups by letter
+        .OrderBy(a => a.Key) //sorting groups by letter
         .ToList();
 
     foreach (var group in groupedAuthors)

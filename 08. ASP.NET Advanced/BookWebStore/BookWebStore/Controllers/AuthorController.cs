@@ -122,7 +122,7 @@ public class AuthorController : Controller
     }
 
     [HttpGet]
-    [Authorize(Roles = "Administrator")]
+    [Authorize]
     public async Task<IActionResult> Details(Guid id)
     {
         Author? authorCheck = await _context.Authors
@@ -284,6 +284,16 @@ public class AuthorController : Controller
         if (author == null)
         {
             return NotFound();
+        }
+
+        //Check if the author still has books in stock
+        bool hasBooksInStock = await _context.Books
+            .AnyAsync(b => b.AuthorId == author.Id && !b.IsDeleted && b.Stock > 0);
+
+        if (hasBooksInStock)
+        {
+            TempData["ErrorMessage"] = "This author cannot be deleted because there are still books in stock.";
+            return RedirectToAction("Index", "Author");
         }
 
         author.IsDeleted = true;

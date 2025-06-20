@@ -8,6 +8,7 @@
 
   <ItemGroup>
     <ProjectReference Include="..\BookWebStore.Constants\BookWebStore.Constants.csproj" />
+    <ProjectReference Include="..\BookWebStore.Data.Models\BookWebStore.Data.Models.csproj" />
   </ItemGroup>
 
 </Project>

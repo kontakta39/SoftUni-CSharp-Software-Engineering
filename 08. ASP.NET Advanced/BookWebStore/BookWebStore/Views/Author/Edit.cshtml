@@ -16,7 +16,7 @@
             <input type="hidden" asp-for="Id" />
             <div class="form-floating mb-3">
                 <input asp-for="Name" class="form-control" aria-required="true" placeholder="Please enter author name." />
-                <label asp-for="Name">Author Name</label>
+                <label asp-for="Name">Author Name*</label>
                 <span asp-validation-for="Name" class="text-danger"></span>
             </div>
 
@@ -54,7 +54,7 @@
 
             <div class="form-floating mb-3">
                 <textarea asp-for="Biography" class="form-control h-auto" aria-required="true" rows="6" placeholder="Please enter some text..."></textarea>
-                <label asp-for="Biography">Biography</label>
+                <label asp-for="Biography">Biography*</label>
                 <span asp-validation-for="Biography" class="text-danger"></span>
             </div>
 

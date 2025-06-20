@@ -23,9 +23,9 @@ public class AuthorEditViewModel
     public string? BirthDate { get; set; }
 
     [RegularExpression(AuthorWebsiteRegex, ErrorMessage = "Please enter a valid URL address.")]
-    public string? Website { get; set; } = null!;
+    public string? Website { get; set; }
 
-    public string? ImageUrl { get; set; } = null!;
+    public string? ImageUrl { get; set; }
 
     public ICollection<string> NationalityOptions { get; set; } = new List<string>();
 }

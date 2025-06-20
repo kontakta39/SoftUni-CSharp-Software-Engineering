@@ -15,7 +15,7 @@ public class AuthorDetailsViewModel
     [DisplayFormat(DataFormatString = "{0:dd-MM-yyyy}")]
     public DateOnly? BirthDate { get; set; }
 
-    public string? Website { get; set; } = null!;
+    public string? Website { get; set; } 
 
-    public string? ImageUrl { get; set; } = null!;
+    public string? ImageUrl { get; set; } 
 }
