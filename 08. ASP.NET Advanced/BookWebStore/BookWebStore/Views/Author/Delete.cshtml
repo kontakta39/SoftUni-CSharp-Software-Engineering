@@ -1,0 +1,27 @@
+﻿@using BookWebStore.ViewModels
+@model AuthorDeleteViewModel
+
+@{
+    ViewData["Title"] = "Delete author";
+}
+
+<div class="d-flex justify-content-center align-items-center">
+    <h1>@ViewData["Title"]</h1>
+</div>
+<hr class="mb-5" />
+
+<div class="d-flex flex-column justify-content-center align-items-center mb-5">
+    <div class="card col-md-6 p-4 mx-auto">
+        <h3 class="text-center mb-4 text-danger">
+            Are you sure you want to delete author @Model.Name?
+        </h3>
+
+        <form asp-action="Delete" method="post">
+            <div class="text-center">
+                <input type="hidden" asp-for="Id" />
+                <input type="hidden" asp-for="Name" />
+                <button id="delete-author" type="submit" class="w-50 btn btn-lg btn-danger">Delete</button>
+            </div>
+        </form>
+    </div>
+</div>

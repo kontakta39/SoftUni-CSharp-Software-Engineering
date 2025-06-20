@@ -1,0 +1,61 @@
+﻿@using BookWebStore.ViewModels
+@model AuthorDetailsViewModel
+
+@{
+    ViewData["Title"] = "Author information";
+}
+
+<div class="d-flex justify-content-center align-items-center mb-3 mt-3">
+    <h1>@ViewData["Title"]</h1>
+</div>
+<hr class="mb-5" />
+
+<div class="row justify-content-center gx-5 mb-5">
+    <div class="col-md-4 text-center">
+        @if (!string.IsNullOrEmpty(Model.ImageUrl))
+        {
+            <img src="@Model.ImageUrl" class="img-fluid" alt="@Model.Name" />
+        }
+        else
+        {
+            <img src="~/img/author-no-image-available.jpg" class="img-fluid" alt="No Image Available" />
+        }
+    </div>
+
+    <div class="col-md-6">
+        <div class="card-body">
+            <h5 class="card-title">@Model.Name</h5>
+            <hr class="mb-2">
+            <h6 class="card-subtitle mb-2 text-muted">Nationality: @Model.Nationality</h6>
+            <hr class="mb-2" />
+            @if (Model.BirthDate != null)
+            { 
+                <h6 class="card-subtitle mb-2 text-muted">Birth Date: @Model.BirthDate</h6>
+                <hr class="mb-2" />
+            }
+            @if (!string.IsNullOrEmpty(Model.Website))
+            {
+                string website = Model.Website;
+                if (!website.StartsWith("http://") && !website.StartsWith("https://"))
+                {
+                    website = "https://" + website;
+                }
+
+                <h6 class="card-subtitle mb-2 text-muted">Website: <a href="@website" target="_blank">Click</a></h6>
+                <hr class="mb-2" />
+            }
+
+            <p class="card-text">@Model.Biography</p>
+            <hr class="mb-2" />
+        </div>
+        @if (User.IsInRole("Administrator"))
+        {
+            <div class="card-footer text-center">
+                <div class="d-flex justify-content-between align-items-center">
+                    <a asp-controller="Author" asp-action="Edit" asp-route-id="@Model.Id" class="btn btn-primary d-flex justify-content-center align-items-center flex-fill mx-1">Edit</a>
+                    <a asp-controller="Author" asp-action="Delete" asp-route-id="@Model.Id" class="btn btn-danger d-flex justify-content-center align-items-center flex-fill mx-1">Delete</a>
+                </div>
+            </div>
+        }
+    </div>
+</div>

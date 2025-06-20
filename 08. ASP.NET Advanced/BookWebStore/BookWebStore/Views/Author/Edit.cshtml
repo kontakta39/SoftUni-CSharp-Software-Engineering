@@ -1,0 +1,64 @@
+﻿@using BookWebStore.ViewModels
+@model AuthorEditViewModel
+
+@{
+    ViewData["Title"] = "Edit author";
+}
+
+<div class="d-flex justify-content-center align-items-center">
+    <h1>@ViewData["Title"]</h1>
+</div>
+<hr class="mb-5" />
+
+<div class="d-flex flex-column justify-content-center align-items-center">
+    <div class="col-md-5">
+        <form asp-action="Edit" method="post">
+            <input type="hidden" asp-for="Id" />
+            <div class="form-floating mb-3">
+                <input asp-for="Name" class="form-control" aria-required="true" placeholder="Please enter author name." />
+                <label asp-for="Name">Author Name</label>
+                <span asp-validation-for="Name" class="text-danger"></span>
+            </div>
+
+            <div class="form-floating mb-3">
+                <select asp-for="Nationality" class="form-select" aria-required="true" asp-items="@(new SelectList(Model.NationalityOptions, Model.Nationality))">
+                    @if (string.IsNullOrEmpty(Model.Nationality))
+                    {
+                        <option value="" disabled selected>Select Nationality</option>
+                    }
+                    else
+                    {
+                        <option value="" disabled>Select Nationality</option>
+                    }
+                </select>
+                <label asp-for="Nationality">Nationality</label>
+                <span asp-validation-for="Nationality" class="text-danger"></span>
+            </div>
+
+            <div class="form-floating mb-3">
+                <input asp-for="BirthDate" type="date" class="form-control" aria-required="false" />
+                <label asp-for="BirthDate">Birth Date (Optional)</label>
+                <span asp-validation-for="BirthDate" class="text-danger"></span>
+            </div>
+
+            <div class="form-floating mb-3">
+                <input asp-for="ImageUrl" class="form-control" aria-required="false" placeholder="Please enter valid image URL." />
+                <label asp-for="ImageUrl">Image Link (Optional)</label>
+            </div>
+
+            <div class="form-floating mb-3">
+                <input asp-for="Website" class="form-control" aria-required="false" placeholder="Please enter website link." />
+                <label asp-for="Website">Website (Optional)</label>
+                <span asp-validation-for="Website" class="text-danger"></span>
+            </div>
+
+            <div class="form-floating mb-3">
+                <textarea asp-for="Biography" class="form-control h-auto" aria-required="true" rows="6" placeholder="Please enter some text..."></textarea>
+                <label asp-for="Biography">Biography</label>
+                <span asp-validation-for="Biography" class="text-danger"></span>
+            </div>
+
+            <button id="edit-author" type="submit" class="w-100 btn btn-lg btn-primary">Edit</button>
+        </form>
+    </div>
+</div>
