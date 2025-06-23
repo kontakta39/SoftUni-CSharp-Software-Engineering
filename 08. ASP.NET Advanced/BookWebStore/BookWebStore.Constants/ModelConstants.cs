@@ -40,4 +40,10 @@ public static class ModelConstants
 
     public const int BookStockMinLength = 1;
     public const int BookStockMaxLength = 100;
+
+    public const int OrderMinQuantity = 1;
+    public const int OrderMaxQuantity = 100;
+
+    public const double OrderMinPrice = 1.00;
+    public const double OrderMaxPrice = 200.00;
 }

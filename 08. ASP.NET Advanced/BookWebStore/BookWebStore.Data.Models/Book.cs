@@ -48,4 +48,6 @@ public class Book
     public Author Author { get; set; } = null!;
 
     public bool IsDeleted { get; set; } = false;
+
+    public ICollection<OrderBook> OrdersBooks { get; set; } = new List<OrderBook>();
 }

@@ -13,4 +13,6 @@ public class ApplicationUser : IdentityUser
     [Required]
     [StringLength(ApplicationUserNameMaxLength, MinimumLength = ApplicationUserNameMinLength)]
     public string LastName { get; set; } = null!;
+
+    public ICollection<Order> Orders { get; set; } = new List<Order>();
 }
