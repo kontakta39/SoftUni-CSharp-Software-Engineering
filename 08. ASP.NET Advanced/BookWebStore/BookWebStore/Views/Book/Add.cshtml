@@ -1,0 +1,96 @@
+﻿@using BookWebStore.ViewModels
+@model BookAddViewModel
+
+@{
+    ViewData["Title"] = "Add book";
+}
+
+<div class="d-flex justify-content-center align-items-center">
+    <h1>@ViewData["Title"]</h1>
+</div>
+<hr class="mb-5" />
+
+<div class="d-flex flex-column justify-content-center align-items-center mb-5">
+    <div class="col-md-5">
+        <form asp-action="Add" method="post">
+            <div class="form-floating mb-3">
+                <input asp-for="Title" class="form-control" aria-required="true" placeholder="Please enter book name." />
+                <label asp-for="Title">Book Title*</label>
+                <span asp-validation-for="Title" class="text-danger"></span>
+            </div>
+
+            <div class="form-floating mb-3">
+                <select asp-for="AuthorId" class="form-select" aria-required="true"
+                        asp-items="@(new SelectList(Model.Authors, "Id", "Name", Model.AuthorId))">
+                    @if (!Model.AuthorId.HasValue)
+                    {
+                        <option value="" disabled selected>Select Author</option>
+                    }
+                    else
+                    {
+                        <option value="" disabled>Select Author</option>
+                    }
+                </select>
+                <label asp-for="AuthorId">Author</label>
+                <span asp-validation-for="AuthorId" class="text-danger"></span>
+            </div>
+
+            <div class="form-floating mb-3">
+                <select asp-for="GenreId" class="form-select" aria-required="true" 
+                        asp-items="@(new SelectList(Model.Genres, "Id", "Name", Model.GenreId))">
+                    @if (!Model.GenreId.HasValue)
+                    {
+                        <option value="" disabled selected>Select Genre</option>
+                    }
+                    else
+                    {
+                        <option value="" disabled>Select Genre</option>
+                    }
+                </select>
+                <label asp-for="GenreId">Genre</label>
+                <span asp-validation-for="GenreId" class="text-danger"></span>
+            </div>
+
+            <div class="form-floating mb-3">
+                <input asp-for="Publisher" class="form-control" aria-required="true" placeholder="Please enter publisher name." />
+                <label asp-for="Publisher">Publisher*</label>
+                <span asp-validation-for="Publisher" class="text-danger"></span>
+            </div>
+
+            <div class="form-floating mb-3">
+                <input asp-for="ImageUrl" class="form-control" aria-required="false" placeholder="Please enter valid image URL." />
+                <label asp-for="ImageUrl">Image Link (Optional)</label>
+            </div>
+
+            <div class="form-floating mb-3">
+                <input asp-for="ReleaseYear"
+                       class="form-control" type="number" step="1" min="1000" max="2025" />
+                <label asp-for="ReleaseYear">Release Year*</label>
+                <span asp-validation-for="ReleaseYear" class="text-danger"></span>
+            </div>
+
+            <div class="form-floating mb-3">
+                <input asp-for="PagesNumber"
+                       class="form-control" type="number" step="1" min="50" max="1000" />
+                <label asp-for="PagesNumber">Pages Number*</label>
+                <span asp-validation-for="PagesNumber" class="text-danger"></span>
+            </div>
+
+            <div class="form-floating mb-3">
+                <input asp-for="Price"
+                       class="form-control" type="number" step="0.01" min="1" max="200" />
+                <label asp-for="Price">Price*</label>
+                <span asp-validation-for="Price" class="text-danger"></span>
+            </div>
+
+            <div class="form-floating mb-3">
+                <input asp-for="Stock"
+                       class="form-control" type="number" step="1" min="1" max="100" />
+                <label asp-for="Stock">Stock*</label>
+                <span asp-validation-for="Stock" class="text-danger"></span>
+            </div>
+
+            <button id="add-book" type="submit" class="w-100 btn btn-lg btn-primary">Add</button>
+        </form>
+    </div>
+</div>

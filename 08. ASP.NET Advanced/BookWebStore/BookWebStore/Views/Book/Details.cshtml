@@ -1,0 +1,68 @@
+﻿@using BookWebStore.ViewModels
+@model BookDetailsViewModel
+
+@{
+    ViewData["Title"] = "Book information";
+}
+
+<div class="d-flex justify-content-center align-items-center mb-3 mt-3">
+    <h1>@ViewData["Title"]</h1>
+</div>
+<hr class="mb-5" />
+
+<div class="row justify-content-center gx-5 mb-5">
+    <div class="col-md-4 text-center me-5">
+        @if (!string.IsNullOrEmpty(Model.ImageUrl))
+        {
+            <img src="@Model.ImageUrl" class="img-fluid" alt="No Image Available" />
+        }
+        else
+        {
+            <img src="~/img/book-no-image-available.jpg" class="img-fluid" alt="No Image Available" />
+        }
+    </div>
+
+    <div class="col-md-6">
+        <div class="card-body">
+            <h5 class="card-title">@Model.Title</h5>
+            <hr />
+            <h6 class="card-subtitle mt-2 mb-2">
+                Author: <a asp-controller="Author" asp-action="Details" asp-route-id="@Model.AuthorId">@Model.Author</a>
+            </h6>
+            <hr />
+            <h6 class="card-subtitle mt-2 mb-2 text-muted">Publisher: @Model.Publisher</h6>
+            <hr />
+            <h6 class="card-subtitle mt-2 mb-2 text-muted">Genre: @Model.Genre</h6>
+            <hr />
+            <h6 class="card-subtitle mt-2 mb-2 text-muted">Release Year: @Model.ReleaseYear</h6>
+            <hr />
+            <h6 class="card-subtitle mt-2 mb-2 text-muted">Pages Number: @Model.PagesNumber</h6>
+            <hr />
+            <div class="d-flex gap-3 mt-2 mb-2">
+            <div class="card p-2 border border-2 border-dark">
+                    @if (Model.Stock > 1)
+                    {
+                        <h6 class="card-subtitle mb-0 fw-bold">In stock: @Model.Stock copies</h6>
+                    }
+                    else if (Model.Stock == 1)
+                    {
+                        <h6 class="card-subtitle mb-0 fw-bold">Only @Model.Stock album left</h6>
+                    }
+                </div>
+
+                <div class="card p-2 border border-2 border-dark">
+                    <h6 class="card-subtitle text-dark mb-0 fw-bold">Price: @Model.Price lv.</h6>
+                </div>
+            </div>
+            <hr />
+        </div>
+        @if (User.IsInRole("Administrator") || User.IsInRole("Moderator"))
+        {
+            <div class="card-footer text-center">
+                <div class="d-flex justify-content-between align-items-center">
+                    <a asp-controller="Book" asp-action="Edit" asp-route-id="@Model.Id" class="btn btn-primary d-flex justify-content-center align-items-center flex-fill mx-1">Edit</a>
+                </div>
+            </div>
+        }
+    </div>
+</div>

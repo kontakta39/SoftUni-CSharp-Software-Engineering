@@ -1,0 +1,72 @@
+﻿@using BookWebStore.ViewModels
+@model IEnumerable<BookIndexViewModel>
+
+@{
+    ViewData["Title"] = "Books";
+}
+
+@if (TempData["ErrorMessage"] != null)
+{
+    <div id="errorAlert" class="alert alert-danger fade show text-center" role="alert" data-bs-delay="3000" data-bs-autohide="true">
+        <p class="m-0">@TempData["ErrorMessage"]</p>
+    </div>
+    <script>setTimeout(() => { const e=document.getElementById('errorAlert'); if(e){ e.style.transition='opacity 0.5s'; e.style.opacity='0'; setTimeout(() => e.remove(), 500); } }, 3000);</script>
+}
+
+<div class="d-flex justify-content-between align-items-center">
+    <h1>@ViewData["Title"]</h1>
+    @if (User.IsInRole("Administrator"))
+    {
+        <a asp-controller="Book" asp-action="Add" class="btn btn-primary"><i class="fas fa-plus"></i>Add book</a>
+    }
+</div>
+<hr class="mb-4" />
+
+@if (!Model.Any())
+{
+    <h3 class="text-start">We currently have no books available for sale.</h3>
+}
+else
+{
+    List<IGrouping<string, BookIndexViewModel>> groupedBooks = Model
+        .OrderBy(b => b.Title)
+        .GroupBy(b => b.Title.Substring(0, 1).ToUpper()) //group by first letter
+        .OrderBy(b => b.Key) //sorting groups by letter
+        .ToList();
+
+    foreach (var group in groupedBooks)
+    {
+        <h3 class="text-start mt-5">Books with @group.Key letter</h3>
+        <hr class="mb-4" />
+
+        <div class="row text-center">
+            @foreach (var book in group.OrderBy(a => a.Title))
+            {
+                <div class="col-md-3 mb-4">
+                    <div class="card h-100">
+                        @if (!string.IsNullOrEmpty(book.ImageUrl))
+                        {
+                            <img src="@book.ImageUrl" class="card-img-top img-fluid w-75 mx-auto d-block pt-3" object-fit: contain;" alt="No Image Available">
+                        }
+                        else
+                        {
+                            <img src="~/img/book-no-image-available.jpg" class="card-img-top img-fluid w-75 mx-auto d-block pt-3" object-fit: contain;" alt="No Image Available">
+                        }
+
+                        <div class="card-body d-flex flex-column">
+                            <h4 class="card-title">@book.Title</h4>
+                            <h5 class="card-subtitle pb-3">@book.Author</h5>
+                            <div class="d-flex justify-content-center gap-1">
+                                @if (User.IsInRole("Administrator") || User.IsInRole("Moderator"))
+                                {
+                                    <a asp-controller="Book" asp-action="Edit" asp-route-id="@book.Id" class="btn btn-primary me-2 w-50">Edit</a>                              
+                                }
+                                <a asp-controller="Book" asp-action="Details" asp-route-id="@book.Id" class="btn btn-secondary me-2 w-50">Details</a>
+                            </div>
+                        </div>
+                    </div>
+                </div>
+            }
+        </div>
+    }
+}
