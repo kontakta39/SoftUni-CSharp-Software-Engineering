@@ -1,0 +1,83 @@
+﻿@using BookWebStore.ViewModels
+@model ICollection<OrderCartViewModel>
+
+@{
+    ViewData["Title"] = "Cart";
+    Guid orderId = Model.FirstOrDefault()?.OrderId ?? Guid.Empty;
+}
+
+@if (TempData["ErrorMessage"] != null)
+{
+    <div id="errorAlert" class="alert alert-danger fade show text-center" role="alert" data-bs-delay="3000" data-bs-autohide="true">
+        <p class="m-0">@TempData["ErrorMessage"]</p>
+    </div>
+    <script>setTimeout(() => { const e=document.getElementById('errorAlert'); if(e){ e.style.transition='opacity 0.5s'; e.style.opacity='0'; setTimeout(() => e.remove(), 500); } }, 3000);</script>
+}
+else
+{
+    <div id="errorAlert" class="alert alert-danger fade show text-center d-none" role="alert">
+        <p class="m-0"></p>
+    </div>
+}
+
+<div class="d-flex justify-content-center align-items-center mb-3 mt-3">
+    <h1>@ViewData["Title"]</h1>
+</div>
+<hr class="mb-5" />
+
+@if (!Model.Any())
+{
+    <h2 class="text-center">Your shopping cart is empty.</h2>
+}
+else
+{
+    @foreach (var order in Model)
+    {
+        <div class="row align-items-center mb-4 py-3">
+            <input type="hidden" class="order-id" value="@order.OrderId" />
+            <input type="hidden" class="book-id" value="@order.BookId" />
+            <div class="col-md-2 text-center">
+                <a asp-controller="Book" asp-action="Details" asp-route-id="@order.BookId" target="_blank">
+                    @if (!string.IsNullOrEmpty(order.ImageUrl))
+                    {
+                        <img src="@order.ImageUrl" class="img-fluid" width="100" height="100" alt="No Image Available" />
+                    }
+                    else
+                    {
+                        <img src="~/img/book-no-cover-available.jpg" class="img-fluid" width="100" height="100" alt="No Image Available" />
+
+                    }
+                </a>
+            </div>
+            <div class="col-md-3 text-start">
+                <a asp-controller="Book" asp-action="Details" asp-route-id="@order.BookId" target="_blank" class="text-decoration-none text-dark">
+                    <h5 class="mb-0">@order.BookTitle</h5>
+                </a>
+            </div>
+            <div class="col-md-1 me-5 text-start">
+                <input class="form-control quantity-input" type="number" value="@order.Quantity" step="1" min="1" />
+            </div>
+            <div class="col-md-2 ms-5 text-start">
+                <h5 class="mb-0 item-total">@($"{order.ItemTotal:f2} lv.")</h5>
+            </div>
+            <div class="col-md-2 ms-1 text-end">
+                <form asp-controller="Order" asp-action="RemoveFromCart" asp-route-orderId="@order.OrderId" asp-route-bookId="@order.BookId" method="post">
+                    <button type="submit" class="btn btn-danger">Remove from cart</button>
+                </form>
+            </div>
+        </div>
+        <hr />
+    }
+
+    <div class="row mb-4 py-3">
+        <div class="col-md-10 d-flex justify-content-end align-items-center gap-5">
+            <h4 class="mb-0 total-price">@($"Total Price: {Model.Sum(p => p.ItemTotal)} lv.")</h4>
+            <form asp-controller="Order" asp-action="CompleteOrder" asp-route-orderId="@orderId" method="post" class="mb-0">
+                <button type="submit" class="btn btn-success">Complete the order</button>
+            </form>
+        </div>
+    </div>
+}
+
+<!-- Link to external JavaScript file -->
+<script src="~/js/cart-quantity.js"></script>
