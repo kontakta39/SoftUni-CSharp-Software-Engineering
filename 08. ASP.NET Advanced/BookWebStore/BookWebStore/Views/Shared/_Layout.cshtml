@@ -12,6 +12,7 @@
     <link rel="stylesheet" href="~/lib/bootstrap/dist/css/bootstrap.min.css" />
     <link rel="stylesheet" href="~/css/site.css" asp-append-version="true" />
     <link rel="stylesheet" href="~/BookWebStore.styles.css" asp-append-version="true" />
+    <link href="https://cdn.jsdelivr.net/npm/bootstrap-icons/font/bootstrap-icons.css" rel="stylesheet">
 </head>
 <body>
     <header>
@@ -47,6 +48,9 @@
                             <a class="nav-link text-dark" asp-area="" asp-controller="Book" asp-action="Index">Books</a>
                         </li>
                     </ul>
+                    <a class="btn btn-outline-primary me-2" asp-area="" asp-controller="Order" asp-action="Cart">
+                        <i class="bi bi-cart me-1"></i>Cart
+                    </a>
                     <partial name="_LoginPartial" />
                 </div>
             </div>

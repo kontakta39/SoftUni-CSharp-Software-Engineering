@@ -19,7 +19,7 @@ public class Order
     [Required]
     [Column(TypeName = "decimal(18,2)")]
     [Range(OrderMinPrice, double.MaxValue)]
-    public decimal TotalPrice { get; set; }
+    public decimal? TotalPrice { get; set; }
 
     [Required]
     public string BuyerId { get; set; } = null!;

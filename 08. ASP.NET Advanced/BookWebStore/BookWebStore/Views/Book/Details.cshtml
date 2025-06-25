@@ -56,13 +56,18 @@
             </div>
             <hr />
         </div>
-        @if (User.IsInRole("Administrator") || User.IsInRole("Moderator"))
-        {
-            <div class="card-footer text-center">
-                <div class="d-flex justify-content-between align-items-center">
-                    <a asp-controller="Book" asp-action="Edit" asp-route-id="@Model.Id" class="btn btn-primary d-flex justify-content-center align-items-center flex-fill mx-1">Edit</a>
-                </div>
+
+        <div class="card-footer text-center">
+            <div class="d-flex gap-2">
+                <form asp-controller="Order" asp-action="AddToCart" asp-route-bookId="@Model.Id" method="post" class="flex-fill d-flex">
+                    <button type="submit" class="btn btn-success flex-fill">Buy</button>
+                </form>
+
+                @if (User.IsInRole("Administrator") || User.IsInRole("Moderator"))
+                {
+                    <a asp-controller="Book" asp-action="Edit" asp-route-id="@Model.Id" class="btn btn-primary flex-fill text-center">Edit</a>
+                }
             </div>
-        }
+        </div>
     </div>
 </div>
