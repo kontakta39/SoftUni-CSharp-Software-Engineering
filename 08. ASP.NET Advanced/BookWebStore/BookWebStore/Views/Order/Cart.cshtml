@@ -8,7 +8,7 @@
 
 @if (TempData["ErrorMessage"] != null)
 {
-    <div id="errorAlert" class="alert alert-danger fade show text-center" role="alert" data-bs-delay="3000" data-bs-autohide="true">
+    <div id="errorAlert" class="alert alert-danger text-center">
         <p class="m-0">@TempData["ErrorMessage"]</p>
     </div>
     <script>setTimeout(() => { const e=document.getElementById('errorAlert'); if(e){ e.style.transition='opacity 0.5s'; e.style.opacity='0'; setTimeout(() => e.remove(), 500); } }, 3000);</script>
@@ -58,7 +58,7 @@ else
                 <input class="form-control quantity-input" type="number" value="@order.Quantity" step="1" min="1" />
             </div>
             <div class="col-md-2 ms-5 text-start">
-                <h5 class="mb-0 item-total">@($"{order.ItemTotal:f2} lv.")</h5>
+                <h5 class="mb-0 item-total">@($"{order.ItemTotal:F2} lv.")</h5>
             </div>
             <div class="col-md-2 ms-1 text-end">
                 <form asp-controller="Order" asp-action="RemoveFromCart" asp-route-orderId="@order.OrderId" asp-route-bookId="@order.BookId" method="post">

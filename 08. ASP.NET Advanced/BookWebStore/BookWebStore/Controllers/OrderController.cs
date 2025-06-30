@@ -1,5 +1,4 @@
-﻿using System.Security.Claims;
-using BookWebStore.Data;
+﻿using BookWebStore.Data;
 using BookWebStore.Data.Models;
 using BookWebStore.ViewModels;
 using Microsoft.AspNetCore.Authorization;
@@ -86,7 +85,7 @@ public class OrderController : Controller
 
             _context.Orders.Add(order);
         }
-        
+
         Book? book = await _context.Books
             .FirstOrDefaultAsync(b => b.Id == bookId && !b.IsDeleted);
 
@@ -141,7 +140,7 @@ public class OrderController : Controller
         List<OrderBook>? orderBooks = await _context.OrdersBooks
             .Include(ob => ob.Book)
             .Include(ob => ob.Order)
-            .Where(ob => ob.OrderId == orderId)
+            .Where(ob => ob.OrderId == orderId && !ob.Order.IsCompleted)
             .ToListAsync();
 
         OrderBook? orderBook = orderBooks.FirstOrDefault(ob => ob.BookId == bookId);
@@ -151,10 +150,24 @@ public class OrderController : Controller
             return Json(new { success = false, error = "Item not found." });
         }
 
-        if (quantity > orderBook.Book.Stock)
+        int currentQuantityInCart = orderBook.Quantity;
+        //Restoring the full available stock
+        int? stockBeforeUpdate = orderBook.Book.Stock + currentQuantityInCart;
+        int? newStock = stockBeforeUpdate - quantity;
+
+        if (newStock < 0)
         {
-            return Json(new { success = false, error = $"Only {orderBook.Book.Stock} books in stock." });
+            return Json(new
+            {
+                success = false,
+                error = $"Only {stockBeforeUpdate} book(s) in stock.",
+                resetTo = stockBeforeUpdate
+            });
         }
+
+        //Update availability
+        orderBook.Book.Stock = newStock;
+        orderBook.Book.IsDeleted = orderBook.Book.Stock == 0;
 
         orderBook.Quantity = quantity;
         decimal? itemTotal = orderBook.Quantity * orderBook.UnitPrice;
@@ -203,7 +216,7 @@ public class OrderController : Controller
         currentOrder.TotalPrice -= orderBookToBeDeleted.Quantity * orderBookToBeDeleted.UnitPrice;
         orderBookToBeDeleted.Book.Stock += orderBookToBeDeleted.Quantity;
 
-        if (orderBookToBeDeleted.Book.Stock == 1)
+        if (orderBookToBeDeleted.Book.Stock >= 1)
         {
             orderBookToBeDeleted.Book.IsDeleted = false;
         }

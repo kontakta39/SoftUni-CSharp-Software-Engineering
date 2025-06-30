@@ -7,7 +7,7 @@
 
 @if (TempData["ErrorMessage"] != null)
 {
-    <div id="errorAlert" class="alert alert-danger fade show text-center" role="alert" data-bs-delay="3000" data-bs-autohide="true">
+    <div id="errorAlert" class="alert alert-danger text-center">
         <p class="m-0">@TempData["ErrorMessage"]</p>
     </div>
     <script>setTimeout(() => { const e=document.getElementById('errorAlert'); if(e){ e.style.transition='opacity 0.5s'; e.style.opacity='0'; setTimeout(() => e.remove(), 500); } }, 3000);</script>
