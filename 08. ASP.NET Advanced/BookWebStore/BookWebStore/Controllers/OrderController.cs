@@ -205,7 +205,7 @@ public class OrderController : Controller
 
         OrderBook? orderBookToBeDeleted = await _context.OrdersBooks
             .Include(ob => ob.Book)
-            .FirstOrDefaultAsync(oa => oa.OrderId == currentOrder.Id && oa.BookId == bookId);
+            .FirstOrDefaultAsync(ob => ob.OrderId == currentOrder.Id && ob.BookId == bookId);
 
         if (orderBookToBeDeleted == null)
         {
@@ -230,5 +230,204 @@ public class OrderController : Controller
 
         await _context.SaveChangesAsync();
         return RedirectToAction("Cart", "Order");
+    }
+
+    [HttpGet]
+    [Authorize]
+    public async Task<IActionResult> OrdersList()
+    {
+        ApplicationUser? user = await _userManager.GetUserAsync(User);
+
+        if (user == null)
+        {
+            return NotFound();
+        }
+
+        List<CompletedOrderViewModel> orderedBooksList = await _context.OrdersBooks
+        .Where(ob => ob.Order.BuyerId == user.Id && ob.Order.IsCompleted)
+        .OrderBy(ob => ob.Order.OrderDate)
+        .Select(ob => new CompletedOrderViewModel
+        {
+            OrderId = ob.Order.Id,
+            BookId = ob.BookId,
+            OrderNumber = ob.Order.OrderNumber,
+            OrderDate = ob.Order.OrderDate,
+            Title = ob.Book.Title,
+            ImageUrl = ob.Book.ImageUrl!,
+            Quantity = ob.Quantity,
+            Price = ob.Quantity * ob.UnitPrice,
+            IsReturned = ob.IsReturned
+        })
+        .ToListAsync();
+
+        return View(orderedBooksList);
+    }
+
+    [HttpPost]
+    [Authorize]
+    public async Task<IActionResult> CompleteOrder(Guid orderId)
+    {
+        ApplicationUser? user = await _userManager.GetUserAsync(User);
+
+        if (user == null)
+        {
+            return NotFound();
+        }
+
+        Order? order = await _context.Orders
+            .FirstOrDefaultAsync(o => o.BuyerId == user.Id && o.Id == orderId && !o.IsCompleted);
+
+        if (order == null)
+        {
+            TempData["ErrorMessage"] = "The order does not exist.";
+            return RedirectToAction("Cart", "Order");
+        }
+
+        order.IsCompleted = true;
+        TempData["OrderNumber"] = order.OrderNumber;
+        TempData["RedirectFromCompleteOrder"] = true;
+
+        await _context.SaveChangesAsync();
+        return RedirectToAction("OrderSuccess", "Order");
+    }
+
+    [HttpGet]
+    [Authorize]
+    public IActionResult OrderSuccess()
+    {
+        bool isRedirected = (TempData["RedirectFromCompleteOrder"] as bool?) ?? false;
+
+        if (!isRedirected)
+        {
+            return RedirectToAction("AccessDenied", "Home");
+        }
+
+        return View();
+    }
+
+    [HttpGet]
+    [Authorize]
+    public async Task<IActionResult> ReturnBook(Guid orderId, Guid bookId)
+    {
+        ApplicationUser? user = await _userManager.GetUserAsync(User);
+
+        if (user == null)
+        {
+            return NotFound();
+        }
+
+        Order? finishedOrder = await _context.Orders
+            .FirstOrDefaultAsync(o => o.BuyerId == user.Id && o.Id == orderId && o.IsCompleted);
+
+        if (finishedOrder == null)
+        {
+            TempData["ErrorMessage"] = "The order does not exist.";
+            return RedirectToAction("OrdersList", "Order");
+        }
+
+        OrderBook? orderBookToBeReturned = await _context.OrdersBooks
+            .Include(ob => ob.Order)
+            .Include(ob => ob.Book)
+            .FirstOrDefaultAsync(ob => ob.OrderId == finishedOrder.Id && ob.BookId == bookId && !ob.IsReturned);
+
+        if (orderBookToBeReturned == null)
+        {
+            TempData["ErrorMessage"] = "The book does not exist in the order.";
+            return RedirectToAction("OrdersList", "Order");
+        }
+
+        OrderReturnBookViewModel returnBook = new OrderReturnBookViewModel()
+        {
+            OrderId = orderBookToBeReturned.OrderId,
+            BookId = orderBookToBeReturned.BookId,
+            OrderNumber = orderBookToBeReturned.Order.OrderNumber,
+            OrderDate = orderBookToBeReturned.Order.OrderDate,
+            Title = orderBookToBeReturned.Book.Title
+        };
+
+        return View(returnBook);
+    }
+
+    [HttpPost]
+    [Authorize]
+    public async Task<IActionResult> ReturnBook(OrderReturnBookViewModel returnBook)
+    {
+        ApplicationUser? user = await _userManager.GetUserAsync(User);
+
+        if (user == null)
+        {
+            return NotFound();
+        }
+
+        Order? finishedOrder = await _context.Orders
+            .FirstOrDefaultAsync(o => o.BuyerId == user.Id && o.Id == returnBook.OrderId && o.IsCompleted);
+
+        if (finishedOrder == null)
+        {
+            TempData["ErrorMessage"] = "The order does not exist.";
+            return RedirectToAction("OrdersList", "Order");
+        }
+
+        DateOnly currentDate = DateOnly.FromDateTime(DateTime.Now);
+        bool hasDateExpired = currentDate > finishedOrder.OrderDate.AddDays(30);
+
+        if (hasDateExpired)
+        {
+            TempData["RedirectFromReturnBook"] = true;
+            return RedirectToAction("ReturnExpired", "Order");
+        }
+
+        OrderBook? orderBookToBeReturned = await _context.OrdersBooks
+            .Include(ob => ob.Book)
+            .FirstOrDefaultAsync(ob => ob.OrderId == returnBook.OrderId && ob.BookId == returnBook.BookId && !ob.IsReturned);
+
+        if (orderBookToBeReturned == null)
+        {
+            TempData["ErrorMessage"] = "The book does not exist in the order.";
+            return RedirectToAction("OrdersList", "Order");
+        }
+
+        orderBookToBeReturned.Book.Stock += orderBookToBeReturned.Quantity;
+
+        if (orderBookToBeReturned.Book.Stock >= 1)
+        {
+            orderBookToBeReturned.Book.IsDeleted = false;
+        }
+
+        orderBookToBeReturned.IsReturned = true;
+        TempData["BookTitle"] = orderBookToBeReturned.Book.Title;
+        TempData["OrderNumber"] = orderBookToBeReturned.Order.OrderNumber;
+        TempData["RedirectFromReturnBook"] = true;
+
+        await _context.SaveChangesAsync();
+        return RedirectToAction("ReturnSuccess", "Order");
+    }
+
+    [HttpGet]
+    [Authorize]
+    public IActionResult ReturnSuccess()
+    {
+        bool isRedirected = (TempData["RedirectFromReturnBook"] as bool?) ?? false;
+
+        if (!isRedirected)
+        {
+            return RedirectToAction("AccessDenied", "Home");
+        }
+
+        return View();
+    }
+
+    [HttpGet]
+    [Authorize]
+    public IActionResult ReturnExpired()
+    {
+        bool isRedirected = (TempData["RedirectFromReturnBook"] as bool?) ?? false;
+
+        if (!isRedirected)
+        {
+            return RedirectToAction("AccessDenied", "Home");
+        }
+
+        return View();
     }
 }

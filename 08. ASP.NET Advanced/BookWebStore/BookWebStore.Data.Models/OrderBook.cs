@@ -26,4 +26,6 @@ public class OrderBook
     [Column(TypeName = "decimal(18,2)")]
     [Range(OrderMinPrice, OrderMaxPrice)]
     public decimal? UnitPrice { get; set; }
+
+    public bool IsReturned { get; set; } = false;
 }

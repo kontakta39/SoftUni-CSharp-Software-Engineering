@@ -213,12 +213,20 @@ public class AccountController : Controller
             }
         }
 
+        TempData["RedirectFromForgotPassword"] = true;
         return RedirectToAction("ForgotPasswordConfirmation", "Account");
     }
 
     [HttpGet]
     public IActionResult ForgotPasswordConfirmation()
     {
+        bool isRedirected = (TempData["RedirectFromForgotPassword"] as bool?) ?? false;
+
+        if (!isRedirected)
+        {
+            return RedirectToAction("AccessDenied", "Home");
+        }
+
         return View();
     }
 
@@ -283,6 +291,7 @@ public class AccountController : Controller
 
             if (result.Succeeded)
             {
+                TempData["RedirectFromResetPassword"] = true;
                 return RedirectToAction("ResetPasswordConfirmation", "Account");
             }
 
@@ -298,6 +307,13 @@ public class AccountController : Controller
     [HttpGet]
     public async Task<IActionResult> ResetPasswordConfirmation()
     {
+        bool isRedirected = (TempData["RedirectFromResetPassword"] as bool?) ?? false;
+
+        if (!isRedirected)
+        {
+            return RedirectToAction("AccessDenied", "Home");
+        }
+
         await _signInManager.SignOutAsync();
         return View();
     }
