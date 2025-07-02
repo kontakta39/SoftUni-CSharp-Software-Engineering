@@ -50,4 +50,6 @@ public class Book
     public bool IsDeleted { get; set; } = false;
 
     public ICollection<OrderBook> OrdersBooks { get; set; } = new List<OrderBook>();
+
+    public ICollection<Review> Reviews { get; set; } = new List<Review>();
 }

@@ -15,4 +15,6 @@ public class ApplicationUser : IdentityUser
     public string LastName { get; set; } = null!;
 
     public ICollection<Order> Orders { get; set; } = new List<Order>();
+
+    public ICollection<Review> Reviews { get; set; } = new List<Review>();
 }

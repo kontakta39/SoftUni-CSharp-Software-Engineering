@@ -46,4 +46,10 @@ public static class ModelConstants
 
     public const double OrderMinPrice = 1.00;
     public const double OrderMaxPrice = 200.00;
+
+    public const int ReviewRatingMinLength = 1;
+    public const int ReviewRatingMaxLength = 5;
+
+    public const int ReviewTextMinLength = 10;
+    public const int ReviewTextMaxLength = 500;
 }
