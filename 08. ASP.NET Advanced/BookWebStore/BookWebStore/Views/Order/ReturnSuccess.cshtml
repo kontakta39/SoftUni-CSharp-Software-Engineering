@@ -1,0 +1,16 @@
+﻿@{
+    ViewData["Title"] = "Return Success";
+}
+
+<div class="d-flex justify-content-center align-items-center mb-3 mt-3">
+    <h1>The book has been returned.</h1>
+</div>
+<hr class="mb-5" />
+
+<div class="d-flex flex-column justify-content-center align-items-center mb-5">
+    <div class="col-md-11 text-center">
+        <h2>You have returned the book @TempData["BookTitle"] from order @TempData["OrderNumber"].</h2>
+        <h2>Feel free to browse the book store and place a new order.</h2>
+        <a asp-controller="Book" asp-action="Index" class="btn btn-primary btn-lg">Books Store</a>
+    </div>
+</div>

@@ -1,0 +1,16 @@
+﻿@{
+    ViewData["Title"] = "Order Success";
+}
+
+<div class="d-flex justify-content-center align-items-center mb-3 mt-3">
+    <h1>Thank you for your purchase!</h1>
+</div>
+<hr class="mb-5" />
+
+<div class="d-flex flex-column justify-content-center align-items-center mb-5">
+    <div class="col-md-11 text-center">
+        <h2>We have received your order!</h2>
+        <h2 class="mb-4">Your order number is @TempData["OrderNumber"] and you can see it added in your order list.</h2>
+        <a asp-controller="Order" asp-action="OrdersList" class="btn btn-primary btn-lg">View your orders</a>
+    </div>
+</div>

@@ -1,0 +1,99 @@
+﻿@using BookWebStore.ViewModels
+@model ICollection<CompletedOrderViewModel>
+
+@{
+    ViewData["Title"] = "Your orders";
+    List<IGrouping<Guid, CompletedOrderViewModel>> ordersGrouped = Model.GroupBy(ob => ob.OrderId).ToList();
+    int orderCounter = 0;
+}
+
+@if (TempData["ErrorMessage"] != null)
+{
+    <div id="errorAlert" class="alert alert-danger text-center">
+        <p class="m-0">@TempData["ErrorMessage"]</p>
+    </div>
+    <script>setTimeout(() => { const e=document.getElementById('errorAlert'); if(e){ e.style.transition='opacity 0.5s'; e.style.opacity='0'; setTimeout(() => e.remove(), 500); } }, 3000);</script>
+}
+
+<div class="d-flex justify-content-center align-items-center mb-3 mt-3">
+    <h1>@ViewData["Title"]</h1>
+</div>
+<hr class="mb-5" />
+
+@if (!ordersGrouped.Any())
+{
+    <h4 class="text-center">You have not created any orders yet.</h4>
+}
+else
+{
+    <h3 class="text-center font-weight-bold text-primary mb-5">
+        You have the right to return any purchased book within 30 days.
+    </h3>
+
+    @foreach (var orderGroup in ordersGrouped)
+    {
+        CompletedOrderViewModel orderBookInfo = orderGroup.FirstOrDefault();
+        DateOnly currentDate = DateOnly.FromDateTime(DateTime.Now);
+        bool hasDateExpired = currentDate > orderBookInfo.OrderDate.AddDays(30);
+        decimal? totalPrice = orderGroup.Sum(ob => ob.Price);
+
+        <h4 class="text-start text-decoration-underline">
+            Order Number: @orderBookInfo.OrderNumber, Date of purchase: @orderBookInfo.OrderDate
+        </h4>
+
+        @foreach (var orderBook in orderGroup)
+        {
+            <input type="hidden" class="order-id" value="@orderBook.OrderId" />
+            <input type="hidden" class="book-id" value="@orderBook.BookId" />
+
+            <div class="row align-items-center mb-3 py-3">
+                <div class="col-md-2 text-start">
+                    <a asp-controller="Book" asp-action="Details" asp-route-id="@orderBook.BookId">
+                        @if (!string.IsNullOrEmpty(orderBook.ImageUrl))
+                        {
+                            <img src="@orderBook.ImageUrl" class="img-fluid" width="100" height="100" alt="No Image Available" />
+                        }
+                        else
+                        {
+                            <img src="~/img/book-no-cover-available.jpg" class="img-fluid" width="100" height="100" alt="No Image Available" />
+                        }
+                    </a>
+                </div>
+                <div class="col-md-3 text-start">
+                    <h5 class="mb-0">@orderBook.Title</h5>
+                </div>
+                <div class="col-md-2 text-start">
+                    <h5 class="mb-0">Quantity: @orderBook.Quantity</h5>
+                </div>
+                <div class="col-md-2 text-center">
+                    <h5 class="mb-0">@($"{orderBook.Price:F2} lv.")</h5>
+                </div>
+                @if (!hasDateExpired && !orderBook.IsReturned)
+                {
+                    <div class="col-md-2 d-flex justify-content-center align-items-center mt-0">
+                        <a asp-controller="Book" asp-action="Details" asp-route-Id="@orderBook.BookId" class="btn btn-info me-3 w-100 text-nowrap py-2" style="color: white;">Book Info</a>
+                        <a asp-controller="Order" asp-action="ReturnBook" asp-route-orderId="@orderBook.OrderId" asp-route-bookId="@orderBook.BookId" class="btn btn-danger w-100 text-nowrap py-2">Return book</a>
+                    </div>
+                }
+                else
+                {
+                    <div class="col-md-2 text-center">
+                        <a asp-controller="Book" asp-action="Details" asp-route-id="@orderBook.BookId" class="btn btn-info w-60 py-2" style="color: white;">Book Info</a>
+                    </div>
+                }
+            </div>
+        }
+
+        <div class="row mb-1 py-0">
+            <div class="col-md-11 d-flex flex-column align-items-end">
+                <h4 class="mb-1 mt-0 border-top pt-3 pb-3">Total Price: @($"{totalPrice:F2} lv.")</h4>
+            </div>
+        </div>
+
+        orderCounter++;
+        if (orderCounter < ordersGrouped.Count)
+        {
+            <hr class="mb-5" />
+        }
+    }
+}

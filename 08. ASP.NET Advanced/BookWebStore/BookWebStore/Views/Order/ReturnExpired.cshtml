@@ -1,0 +1,15 @@
+﻿@{
+    ViewData["Title"] = "Return Expired";
+}
+
+<div class="d-flex justify-content-center align-items-center mb-3 mt-3">
+    <h1>@ViewData["Title"]</h1>
+</div>
+<hr class="mb-5" />
+
+<div class="d-flex flex-column justify-content-center align-items-center mb-5">
+    <div class="col-md-11 text-center">
+        <h2 class="mb-4">This book cannot be returned because the return period has ended.</h2>
+        <a asp-controller="Order" asp-action="OrdersList" class="btn btn-primary btn-lg">Orders List</a>
+    </div>
+</div>
