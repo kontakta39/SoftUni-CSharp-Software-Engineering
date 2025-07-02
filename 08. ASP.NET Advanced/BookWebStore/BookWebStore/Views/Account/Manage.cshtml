@@ -27,12 +27,16 @@
                 {
                     <li class="nav-item">
                         <a class="nav-link fs-5 @(activePage == "ManageUsers" ? "active" : "")"
-                           href="@Url.Action("Manage", "Account", new { page = "ManageUsers" })">Manage users</a>
+                           href="@Url.Action("Manage", "Account", new { page = "ManageUsers" })">Users list</a>
                     </li>
                 }
                 <li class="nav-item">
                     <a class="nav-link fs-5 @(activePage == "Profile" ? "active" : "")"
                        href="@Url.Action("Manage", "Account", new { page = "Profile" })">Profile</a>
+                </li>
+                <li class="nav-item">
+                    <a class="nav-link fs-5 @(activePage == "Orders" ? "active" : "")"
+                       href="@Url.Action("Manage", "Account", new { page = "Orders" })">Orders</a>
                 </li>
                 <li class="nav-item">
                     <a class="nav-link fs-5 @(activePage == "Email" ? "active" : "")"
@@ -42,10 +46,13 @@
                     <a class="nav-link fs-5 @(activePage == "ChangePassword" ? "active" : "")"
                        href="@Url.Action("Manage", "Account", new { page = "ChangePassword" })">Change password</a>
                 </li>
+                @if (!isMasterAdmin)
+                {
                 <li class="nav-item">
                     <a class="nav-link fs-5 @(activePage == "DeleteAccount" ? "active" : "")"
                        href="@Url.Action("Manage", "Account", new { page = "DeleteAccount" })">Delete account</a>
                 </li>
+                }
             </ul>
         </div>
 
@@ -57,6 +64,10 @@
             else if (activePage == "Profile")
             {
                 @await Html.PartialAsync("ManagePartials/_ProfilePartial")
+            }
+            else if (activePage == "Orders")
+            {
+                @await Html.PartialAsync("ManagePartials/_OrdersListPartial")
             }
             else if (activePage == "Email")
             {

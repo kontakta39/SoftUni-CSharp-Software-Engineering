@@ -369,6 +369,25 @@ public class AccountController : Controller
                 };
                 return View("Manage", profileModel);
 
+            case "Orders":
+                List<CompletedOrderViewModel> orderedBooksList = await _context.OrdersBooks
+                .Where(ob => ob.Order.BuyerId == user.Id && ob.Order.IsCompleted)
+                .OrderBy(ob => ob.Order.OrderDate)
+                .Select(ob => new CompletedOrderViewModel
+                {
+                    OrderId = ob.Order.Id,
+                    BookId = ob.BookId,
+                    OrderNumber = ob.Order.OrderNumber,
+                    OrderDate = ob.Order.OrderDate,
+                    Title = ob.Book.Title,
+                    ImageUrl = ob.Book.ImageUrl!,
+                    Quantity = ob.Quantity,
+                    Price = ob.Quantity * ob.UnitPrice,
+                    IsReturned = ob.IsReturned
+                })
+                .ToListAsync();
+                return View("Manage", orderedBooksList);
+
             case "Email":
                 EmailViewModel? emailModel = new EmailViewModel
                 {
@@ -590,7 +609,7 @@ public class AccountController : Controller
 
         if (!User.IsInRole("Administrator") || admin.Email != "kontakta39@mail.bg" || admin.UserName != "kontakta39")
         {
-            return View("AccessDenied");
+            return RedirectToAction("AccessDenied", "Home");
         }
 
         IList<string>? currentRoles = await _userManager.GetRolesAsync(user);

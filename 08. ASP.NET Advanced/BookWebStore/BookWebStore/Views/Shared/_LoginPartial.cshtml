@@ -6,14 +6,35 @@
     @if (SignInManager.IsSignedIn(User))
     {
         ApplicationUser? user = await UserManager.GetUserAsync(User);
+        bool isMasterAdmin = User.IsInRole("Administrator") && user.Email == "kontakta39@mail.bg" && user.UserName == "kontakta39";
 
-        <li class="nav-item">
-            <a class="nav-link text-dark" asp-controller="Account" asp-action="Manage">Logged in as @user?.FirstName @user?.LastName</a>
-        </li>
-        <li class="nav-item">
-            <form class="form-inline" asp-controller="Account" asp-action="LogOut" method="post">
-                <button type="submit" class="nav-link btn btn-link text-dark">Log Out</button>
-            </form>
+        <li class="nav-item dropdown">
+            <a class="nav-link dropdown-toggle text-dark" href="#" id="manageDropdown" role="button"
+               data-bs-toggle="dropdown" aria-expanded="false">
+                Logged in as @user?.FirstName @user?.LastName
+            </a>
+            <ul class="dropdown-menu dropdown-menu-end" aria-labelledby="manageDropdown">
+                @if (isMasterAdmin)
+                {
+                    <li>
+                        <a class="dropdown-item" href="@Url.Action("Manage", "Account", new { page = "ManageUsers" })">Manage users</a>
+                    </li>
+                }
+                <li><a class="dropdown-item" href="@Url.Action("Manage", "Account", new { page = "Profile" })">Profile</a></li>
+                <li><a class="dropdown-item" href="@Url.Action("Manage", "Account", new { page = "Orders" })">Orders</a></li>
+                <li><a class="dropdown-item" href="@Url.Action("Manage", "Account", new { page = "Email" })">Email</a></li>
+                <li><a class="dropdown-item" href="@Url.Action("Manage", "Account", new { page = "ChangePassword" })">Change password</a></li>
+                @if (!isMasterAdmin)
+                {
+                   <li><a class="dropdown-item" href="@Url.Action("Manage", "Account", new { page = "DeleteAccount" })">Delete account</a></li>
+                }
+                <li><hr class="dropdown-divider" /></li>
+                <li>
+                    <form asp-controller="Account" asp-action="LogOut" method="post" style="display:inline;">
+                        <button type="submit" class="dropdown-item">Log Out</button>
+                    </form>
+                </li>
+            </ul>
         </li>
     }
     else

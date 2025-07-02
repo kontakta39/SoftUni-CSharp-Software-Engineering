@@ -232,37 +232,6 @@ public class OrderController : Controller
         return RedirectToAction("Cart", "Order");
     }
 
-    [HttpGet]
-    [Authorize]
-    public async Task<IActionResult> OrdersList()
-    {
-        ApplicationUser? user = await _userManager.GetUserAsync(User);
-
-        if (user == null)
-        {
-            return NotFound();
-        }
-
-        List<CompletedOrderViewModel> orderedBooksList = await _context.OrdersBooks
-        .Where(ob => ob.Order.BuyerId == user.Id && ob.Order.IsCompleted)
-        .OrderBy(ob => ob.Order.OrderDate)
-        .Select(ob => new CompletedOrderViewModel
-        {
-            OrderId = ob.Order.Id,
-            BookId = ob.BookId,
-            OrderNumber = ob.Order.OrderNumber,
-            OrderDate = ob.Order.OrderDate,
-            Title = ob.Book.Title,
-            ImageUrl = ob.Book.ImageUrl!,
-            Quantity = ob.Quantity,
-            Price = ob.Quantity * ob.UnitPrice,
-            IsReturned = ob.IsReturned
-        })
-        .ToListAsync();
-
-        return View(orderedBooksList);
-    }
-
     [HttpPost]
     [Authorize]
     public async Task<IActionResult> CompleteOrder(Guid orderId)
@@ -322,7 +291,7 @@ public class OrderController : Controller
         if (finishedOrder == null)
         {
             TempData["ErrorMessage"] = "The order does not exist.";
-            return RedirectToAction("OrdersList", "Order");
+            return RedirectToAction("Manage", "Account", new { page = "Orders" });
         }
 
         OrderBook? orderBookToBeReturned = await _context.OrdersBooks
@@ -333,7 +302,7 @@ public class OrderController : Controller
         if (orderBookToBeReturned == null)
         {
             TempData["ErrorMessage"] = "The book does not exist in the order.";
-            return RedirectToAction("OrdersList", "Order");
+            return RedirectToAction("Manage", "Account", new { page = "Orders" });
         }
 
         OrderReturnBookViewModel returnBook = new OrderReturnBookViewModel()
@@ -365,7 +334,7 @@ public class OrderController : Controller
         if (finishedOrder == null)
         {
             TempData["ErrorMessage"] = "The order does not exist.";
-            return RedirectToAction("OrdersList", "Order");
+            return RedirectToAction("Manage", "Account", new { page = "Orders" });
         }
 
         DateOnly currentDate = DateOnly.FromDateTime(DateTime.Now);
@@ -374,7 +343,7 @@ public class OrderController : Controller
         if (hasDateExpired)
         {
             TempData["RedirectFromReturnBook"] = true;
-            return RedirectToAction("ReturnExpired", "Order");
+            return RedirectToAction("Manage", "Account", new { page = "Orders" });
         }
 
         OrderBook? orderBookToBeReturned = await _context.OrdersBooks

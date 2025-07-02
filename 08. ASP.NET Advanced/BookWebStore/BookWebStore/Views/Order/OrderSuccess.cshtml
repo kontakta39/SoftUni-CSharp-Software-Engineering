@@ -11,6 +11,6 @@
     <div class="col-md-11 text-center">
         <h2>We have received your order!</h2>
         <h2 class="mb-4">Your order number is @TempData["OrderNumber"] and you can see it added in your order list.</h2>
-        <a asp-controller="Order" asp-action="OrdersList" class="btn btn-primary btn-lg">View your orders</a>
+        <a asp-controller="Account" asp-action="Manage" asp-route-page="Orders" class="btn btn-primary btn-lg">View your orders</a>
     </div>
 </div>
