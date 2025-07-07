@@ -1,8 +1,4 @@
-﻿using System.ComponentModel.DataAnnotations;
-using System.ComponentModel.DataAnnotations.Schema;
-using BookWebStore.Data.Models;
-
-namespace BookWebStore.ViewModels;
+﻿namespace BookWebStore.ViewModels;
 
 public class BookDetailsViewModel
 {
@@ -27,4 +23,8 @@ public class BookDetailsViewModel
     public string Author { get; set; } = null!;
 
     public Guid AuthorId { get; set; }
+
+    public bool IsDeleted { get; set; }
+
+    public ICollection<ReviewIndexViewModel> Reviews { get; set; } = new List<ReviewIndexViewModel>();
 }

@@ -16,7 +16,7 @@ public class ReviewEditViewModel
 
     [Required(ErrorMessage = "Please select a rating.")]
     [Range(ReviewRatingMinLength, ReviewRatingMaxLength)]
-    public int? Rating { get; set; }
+    public int Rating { get; set; }
 
     [Required(ErrorMessage = "Review text is required.")]
     [StringLength(ReviewTextMaxLength, MinimumLength = ReviewTextMinLength)]

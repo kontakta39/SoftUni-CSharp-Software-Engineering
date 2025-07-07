@@ -37,14 +37,14 @@ else
             bool hasDateExpired = currentDate > orderBookInfo.OrderDate.AddDays(30);
             decimal? totalPrice = orderGroup.Sum(ob => ob.Price);
 
-            <h4 class="text-start text-decoration-underline">
+            <h4 class="text-start text-decoration-underline mb-4">
                 Order Number: @orderBookInfo.OrderNumber, Date of purchase: @orderBookInfo.OrderDate
             </h4>
 
             @foreach (var orderBook in orderGroup)
             {
-                <input type="hidden" class="order-id" value="@orderBook.OrderId" />
-                <input type="hidden" class="book-id" value="@orderBook.BookId" />
+                <input type="hidden" asp-for="@orderBook.OrderId" />
+                <input type="hidden" asp-for="@orderBook.BookId" />
 
                 <div class="row align-items-center mb-3 py-3">
                     <div class="col-md-2 text-start">
@@ -60,7 +60,7 @@ else
                         </a>
                     </div>
                     <div class="col-md-3 text-start">
-                        <h5 class="mb-0">@orderBook.Title</h5>
+                        <h5 class="mb-0"><a asp-controller="Book" asp-action="Details" asp-route-id="@orderBook.BookId" class="text-dark text-decoration-none">@orderBook.Title</a></h5>
                     </div>
                     <div class="col-md-2 text-start">
                         <h5 class="mb-0">Quantity: @orderBook.Quantity</h5>
@@ -70,15 +70,14 @@ else
                     </div>
                     @if (!hasDateExpired && !orderBook.IsReturned)
                     {
-                        <div class="col-md-2 d-flex justify-content-center align-items-center mt-0">
-                            <a asp-controller="Book" asp-action="Details" asp-route-Id="@orderBook.BookId" class="btn btn-info me-3 w-100 text-nowrap py-2" style="color: white;">Book Info</a>
-                            <a asp-controller="Order" asp-action="ReturnBook" asp-route-orderId="@orderBook.OrderId" asp-route-bookId="@orderBook.BookId" class="btn btn-danger w-100 text-nowrap py-2">Return book</a>
+                        <div class="col-md-2 text-center">
+                            <a asp-controller="Order" asp-action="ReturnBook" asp-route-orderId="@orderBook.OrderId" asp-route-bookId="@orderBook.BookId" class="btn btn-danger">Return book</a>
                         </div>
                     }
                     else
                     {
                         <div class="col-md-2 text-center">
-                            <a asp-controller="Book" asp-action="Details" asp-route-id="@orderBook.BookId" class="btn btn-info w-60 py-2" style="color: white;">Book Info</a>
+                            <a asp-controller="Order" asp-action="AddToCart" asp-route-bookId="@orderBook.BookId" class="btn btn-success">Buy again</a>
                         </div>
                     }
                 </div>

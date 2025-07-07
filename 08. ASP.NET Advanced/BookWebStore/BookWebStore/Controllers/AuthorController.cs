@@ -4,7 +4,6 @@ using BookWebStore.ViewModels;
 using Microsoft.AspNetCore.Authorization;
 using Microsoft.AspNetCore.Mvc;
 using Microsoft.EntityFrameworkCore;
-using System.Globalization;
 using System.Text.Json;
 
 namespace BookWebStore;
@@ -85,34 +84,13 @@ public class AuthorController : Controller
             return View(addAuthor);
         }
 
-        DateOnly? parsedBirthDate = null;
-
-        if (!string.IsNullOrEmpty(addAuthor.BirthDate))
-        {
-            bool success = DateOnly.TryParseExact(
-                addAuthor.BirthDate,
-                "yyyy-MM-dd",
-                CultureInfo.InvariantCulture,
-                DateTimeStyles.None,
-                out DateOnly tempDate);
-
-            if (success)
-            {
-                parsedBirthDate = tempDate;
-            }
-            else
-            {
-                parsedBirthDate = null;
-            }
-        }
-
         Author author = new Author
         {
             Name = addAuthor.Name,
             Biography = addAuthor.Biography,
             Nationality = addAuthor.Nationality,
             ImageUrl = addAuthor.ImageUrl,
-            BirthDate = parsedBirthDate,
+            BirthDate = addAuthor.BirthDate,
             Website = addAuthor.Website
         };
 
@@ -177,7 +155,7 @@ public class AuthorController : Controller
             Nationality = author.Nationality,
             ImageUrl = author.ImageUrl,
             Website = author.Website,
-            BirthDate = author.BirthDate?.ToString("yyyy-MM-dd") ?? string.Empty,
+            BirthDate = author.BirthDate,
             NationalityOptions = countries
         };
 
@@ -221,32 +199,11 @@ public class AuthorController : Controller
             return NotFound();
         }
 
-        DateOnly? parsedBirthDate = null;
-
-        if (!string.IsNullOrEmpty(editAuthor.BirthDate))
-        {
-            bool success = DateOnly.TryParseExact(
-                editAuthor.BirthDate,
-                "yyyy-MM-dd",
-                CultureInfo.InvariantCulture,
-                DateTimeStyles.None,
-                out DateOnly tempDate);
-
-            if (success)
-            {
-                parsedBirthDate = tempDate;
-            }
-            else
-            {
-                parsedBirthDate = null;
-            }
-        }
-
         author.Name = editAuthor.Name;
         author.Biography = editAuthor.Biography;
         author.Nationality = editAuthor.Nationality;
         author.ImageUrl = editAuthor.ImageUrl;
-        author.BirthDate = parsedBirthDate;
+        author.BirthDate = editAuthor.BirthDate;
         author.Website = editAuthor.Website;
 
         await _context.SaveChangesAsync();

@@ -1,8 +1,20 @@
 ﻿@using BookWebStore.ViewModels
+@using Microsoft.AspNetCore.Identity
+@inject UserManager<ApplicationUser> UserManager
 @model BookDetailsViewModel
 
 @{
     ViewData["Title"] = "Book information";
+    string? userId = UserManager.GetUserId(User);
+    bool hasUserReviewed = Model.Reviews.Any(r => r.UserId == userId);
+}
+
+@if (TempData["ErrorMessage"] != null)
+{
+    <div id="errorAlert" class="alert alert-danger text-center">
+        <p class="m-0">@TempData["ErrorMessage"]</p>
+    </div>
+    <script>setTimeout(() => { const e=document.getElementById('errorAlert'); if(e){ e.style.transition='opacity 0.5s'; e.style.opacity='0'; setTimeout(() => e.remove(), 500); } }, 3000);</script>
 }
 
 <div class="d-flex justify-content-center align-items-center mb-3 mt-3">
@@ -10,15 +22,15 @@
 </div>
 <hr class="mb-5" />
 
-<div class="row justify-content-center gx-5 mb-5">
-    <div class="col-md-4 text-center me-5">
+<div class="row justify-content-center gx-5">
+    <div class="col-md-4 text-center">
         @if (!string.IsNullOrEmpty(Model.ImageUrl))
         {
-            <img src="@Model.ImageUrl" class="img-fluid" alt="No Image Available" />
+            <img src="@Model.ImageUrl" class="img-fluid" style="max-height: 80%; width: auto;" alt="No Image Available" />
         }
         else
         {
-            <img src="~/img/book-no-image-available.jpg" class="img-fluid" alt="No Image Available" />
+            <img src="~/img/book-no-image-available.jpg" class="img-fluid" style="max-height: 80%; width: auto;" alt="No Image Available" />
         }
     </div>
 
@@ -27,7 +39,7 @@
             <h5 class="card-title">@Model.Title</h5>
             <hr />
             <h6 class="card-subtitle mt-2 mb-2">
-                Author: <a asp-controller="Author" asp-action="Details" asp-route-id="@Model.AuthorId">@Model.Author</a>
+                Author: <a asp-controller="Author" asp-action="Details" asp-route-id="@Model.AuthorId" class="text-dark">@Model.Author</a>
             </h6>
             <hr />
             <h6 class="card-subtitle mt-2 mb-2 text-muted">Publisher: @Model.Publisher</h6>

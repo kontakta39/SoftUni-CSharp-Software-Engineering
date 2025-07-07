@@ -40,32 +40,48 @@ else
         <hr class="mb-4" />
 
         <div class="row text-center">
-            @foreach (var book in group.OrderBy(a => a.Title))
-            {
-                <div class="col-md-3 mb-4">
-                    <div class="card h-100">
-                        @if (!string.IsNullOrEmpty(book.ImageUrl))
-                        {
-                            <img src="@book.ImageUrl" class="card-img-top img-fluid w-75 mx-auto d-block pt-3" object-fit: contain;" alt="No Image Available">
-                        }
-                        else
-                        {
-                            <img src="~/img/book-no-image-available.jpg" class="card-img-top img-fluid w-75 mx-auto d-block pt-3" object-fit: contain;" alt="No Image Available">
-                        }
+    @foreach (var book in group.OrderBy(a => a.Title))
+    {
+        <div class="col-md-3 mb-4 position-relative">
+            <div class="card h-100 position-relative">
 
-                        <div class="card-body d-flex flex-column">
-                            <h4 class="card-title">@book.Title</h4>
-                            <h5 class="card-subtitle pb-3">@book.Author</h5>
-                            <div class="d-flex justify-content-center gap-2">
-                                <form asp-controller="Order" asp-action="AddToCart" asp-route-bookId="@book.Id" method="post" class="flex-fill">
-                                    <button type="submit" class="btn btn-success w-100">Buy</button>
-                                </form>
-                                <a asp-controller="Book" asp-action="Details" asp-route-id="@book.Id" class="btn btn-secondary flex-fill text-center">Details</a>
-                            </div>
-                        </div>
+                <!-- Целият линк към Details -->
+                <a asp-controller="Book" asp-action="Details" asp-route-id="@book.Id"
+                   class="stretched-link"></a>
+
+                @if (!string.IsNullOrEmpty(book.ImageUrl))
+                {
+                    <img src="@book.ImageUrl"
+                         class="card-img-top img-fluid w-75 mx-auto d-block pt-3"
+                         style="object-fit: contain;"
+                         alt="No Image Available">
+                }
+                else
+                {
+                    <img src="~/img/book-no-image-available.jpg"
+                         class="card-img-top img-fluid w-75 mx-auto d-block pt-3"
+                         style="object-fit: contain;"
+                         alt="No Image Available">
+                }
+
+                <div class="card-body d-flex flex-column">
+                    <h4 class="card-title text-dark">@book.Title</h4>
+                    <h5 class="card-subtitle text-dark pb-3">@book.Author</h5>
+
+                    <div class="d-flex justify-content-center mt-auto">
+                        <form asp-controller="Order"
+                              asp-action="AddToCart"
+                              asp-route-bookId="@book.Id"
+                              method="post"
+                              class="flex-fill position-relative"
+                              style="z-index: 1;">
+                            <button type="submit" class="btn btn-success w-75">Buy</button>
+                        </form>
                     </div>
                 </div>
-            }
+            </div>
         </div>
+    }
+</div>
     }
 }

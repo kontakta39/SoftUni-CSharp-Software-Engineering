@@ -21,15 +21,9 @@
             </div>
 
             <div class="form-floating mb-3">
-                <select asp-for="Nationality" class="form-select" aria-required="true" asp-items="@(new SelectList(Model.NationalityOptions, Model.Nationality))">
-                    @if (string.IsNullOrEmpty(Model.Nationality))
-                    {
-                        <option value="" disabled selected>Select Nationality</option>
-                    }
-                    else
-                    {
-                        <option value="" disabled>Select Nationality</option>
-                    }
+                <select asp-for="Nationality" class="form-select" aria-required="true"
+                        asp-items="@(new SelectList(Model.NationalityOptions, Model.Nationality))">
+                    <option value="" disabled selected hidden>Select Nationality</option>
                 </select>
                 <label asp-for="Nationality">Nationality</label>
                 <span asp-validation-for="Nationality" class="text-danger"></span>

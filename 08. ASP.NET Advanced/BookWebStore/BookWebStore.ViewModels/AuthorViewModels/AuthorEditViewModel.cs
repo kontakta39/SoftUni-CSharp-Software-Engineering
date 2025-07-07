@@ -19,8 +19,8 @@ public class AuthorEditViewModel
     [Required]
     public string Nationality { get; set; } = null!;
 
-    [RegularExpression(AuthorBirthDateRegex, ErrorMessage = "Please enter a valid date and year between 1000 and 2025.")]
-    public string? BirthDate { get; set; }
+    [RegularExpression(AuthorBirthDateRegex, ErrorMessage = "Please enter a valid date and year between 1000 and 2024.")]
+    public DateOnly? BirthDate { get; set; }
 
     [RegularExpression(AuthorWebsiteRegex, ErrorMessage = "Please enter a valid URL address.")]
     public string? Website { get; set; }

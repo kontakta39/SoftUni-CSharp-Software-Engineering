@@ -144,8 +144,27 @@ public class BookController : Controller
             Stock = bookCheck.Stock,
             Author = bookCheck.Author.Name,
             Genre = bookCheck.Genre.Name,
-            AuthorId = bookCheck.Author.Id
+            AuthorId = bookCheck.Author.Id,
+            IsDeleted = bookCheck.IsDeleted
         };
+
+        detailsBook.Reviews = await _context.Reviews
+            .Where(r => r.BookId == id)
+            .Include(r => r.User)
+            .OrderByDescending(r => r.ReviewDate)
+            .Select(r => new ReviewIndexViewModel
+            {
+                Id = r.Id,
+                BookId = r.BookId,
+                UserId = r.UserId,
+                FirstName = r.User.FirstName,
+                LastName = r.User.LastName,
+                ReviewDate = r.ReviewDate,
+                ReviewText = r.ReviewText,
+                Rating = r.Rating,
+                IsEdited = r.IsEdited
+            })
+            .ToListAsync();
 
         return View(detailsBook);
     }

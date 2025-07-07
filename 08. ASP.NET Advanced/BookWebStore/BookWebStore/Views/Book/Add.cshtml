@@ -22,14 +22,7 @@
             <div class="form-floating mb-3">
                 <select asp-for="AuthorId" class="form-select" aria-required="true"
                         asp-items="@(new SelectList(Model.Authors, "Id", "Name", Model.AuthorId))">
-                    @if (!Model.AuthorId.HasValue)
-                    {
-                        <option value="" disabled selected>Select Author</option>
-                    }
-                    else
-                    {
-                        <option value="" disabled>Select Author</option>
-                    }
+                    <option value="" disabled selected hidden>Select Author</option>
                 </select>
                 <label asp-for="AuthorId">Author</label>
                 <span asp-validation-for="AuthorId" class="text-danger"></span>

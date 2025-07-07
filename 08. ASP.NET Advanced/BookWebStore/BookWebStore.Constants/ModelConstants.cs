@@ -19,7 +19,7 @@ public static class ModelConstants
     public const int AuthorBiographyMinLength = 10;
     public const int AuthorBiographyMaxLength = 1000;
 
-    public const string AuthorBirthDateRegex = @"^(1[0-9]{3}|20(0[0-9]|1[0-9]|2[0-5]))-(0[1-9]|1[0-2])-(0[1-9]|[12][0-9]|3[01])$";
+    public const string AuthorBirthDateRegex = @"^(1[0-9]{3}|20(0[0-9]|1[0-9]|2[0-4]))-(0[1-9]|1[0-2])-(0[1-9]|[12][0-9]|3[01])$";
 
     public const string AuthorWebsiteRegex = @"^(https?:\/\/)?([\w\-]+\.)+[\w\-]{2,}\/?$";
 
@@ -30,7 +30,7 @@ public static class ModelConstants
     public const int BookPublisherMaxLength = 50;
 
     public const int BookMinReleaseYear = 1000;
-    public const int BookMaxReleaseYear = 2025;
+    public const int BookMaxReleaseYear = 2024;
 
     public const int BookPagesNumberMinLength = 50;
     public const int BookPagesNumberMaxLength = 1000;
