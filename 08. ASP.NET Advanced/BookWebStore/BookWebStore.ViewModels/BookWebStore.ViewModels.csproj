@@ -11,4 +11,8 @@
     <ProjectReference Include="..\BookWebStore.Data.Models\BookWebStore.Data.Models.csproj" />
   </ItemGroup>
 
+  <ItemGroup>
+    <Folder Include="ReviewViewModels\" />
+  </ItemGroup>
+
 </Project>
