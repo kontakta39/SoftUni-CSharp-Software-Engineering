@@ -106,63 +106,66 @@
     }
     else
     {
-        <div class="d-flex align-items-center gap-4 mb-4">
-            <h4 class="mb-3">
-                Total reviews: @Model.Reviews.Count(), Ratings average score: @Model.Reviews.Average(r => r.Rating).Value.ToString("F1")
-            </h4>
-            @if (hasUserReviewed)
-            {
-                <div class="alert alert-warning mb-3 d-flex align-items-center justify-content-center" role="alert">
-                    <h5 class="mb-0">You have already added a review for this book.</h5>
-                </div>
-            }
-            else
-            {
-                <a asp-controller="Review" asp-action="Add" asp-route-bookId="@Model.Id" class="btn btn-warning btn-lg">Add review</a>
-            }
-        </div>
-
-        @foreach (var review in Model.Reviews)
+        @if (!User.Identity.IsAuthenticated)
         {
-            <div class="card mb-5">
-                <div class="card-body">
-                    <h5 class="card-subtitle text-muted mb-3">Review by: @review.FirstName @review.LastName</h5>
-                    <h6 class="card-text mb-3">Review text: @review.ReviewText</h6>
-                    <div class="d-flex align-items-center">
-                        <div>
-                            @if (review.Rating == 1)
-                            {
-                                <h5 class="card-subtitle text-muted mb-3">Rating: @review.Rating star</h5>
-                            }
-                            else if (review.Rating > 1)
-                            {
-                                <h5 class="card-subtitle text-muted mb-3">Rating: @review.Rating stars</h5>
-                            }
+            <div class="alert alert-info d-flex align-items-center justify-content-between mb-4">
+                <h4 class="mb-0">
+                    @Model.Reviews.Count() people have written a review of this book .
+                    <br />
+                    <span class="text-muted">Log in to your account to read their reviews.</span>
+                </h4>
+            </div>
+        }
+        else
+        {
+            <div class="d-flex align-items-center gap-4 mb-4">
+                <h4 class="mb-3">
+                    Total reviews: @Model.Reviews.Count(), Ratings average score: @Model.Reviews.Average(r => r.Rating).Value.ToString("F1")
+                </h4>
+                @if (hasUserReviewed)
+                {
+                    <div class="alert alert-warning mb-3 d-flex align-items-center justify-content-center" role="alert">
+                        <h5 class="mb-0">You have already added a review for this book.</h5>
+                    </div>
+                }
+                else
+                {
+                    <a asp-controller="Review" asp-action="Add" asp-route-bookId="@Model.Id" class="btn btn-warning btn-lg">Add review</a>
+                }
+            </div>
 
-                            @if (review.IsEdited)
-                            {
-                                <h5 class="card-subtitle text-muted mb-3">Edited on: @review.ReviewDate</h5>
-                            }
-                            else
-                            {
-                                <h5 class="card-subtitle text-muted mb-3">Published on: @review.ReviewDate</h5>
-                            }
-                        </div>
-                        <div class="ms-5 mt-1 align-self-start">
-                            @if (review.UserId == userId && !review.IsEdited)
-                            {
-                                <a asp-controller="Review" asp-action="Edit" asp-route-reviewId="@review.Id" asp-route-bookId="@review.BookId" class="btn btn-warning btn-lg">Edit review</a>
-                            }
-                            else
-                            {
-                                <div class="alert alert-primary d-flex align-items-center justify-content-center" role="alert">
-                                    <h5 class="mb-0">You have already edited your review.</h5>
-                                </div>
-                            }
+            @foreach (var review in Model.Reviews)
+            {
+                <div class="card mb-5">
+                    <div class="card-body">
+                        <h5 class="card-subtitle text-muted mb-3">Review by: @review.FirstName @review.LastName</h5>
+                        <h6 class="card-text mb-3">Review text: @review.ReviewText</h6>
+                        <div class="d-flex align-items-center">
+                            <div>
+                                <h5 class="card-subtitle text-muted mb-3">
+                                    Rating: @review.Rating @(review.Rating == 1 ? "star" : "stars")
+                                </h5>
+
+                                <h5 class="card-subtitle text-muted mb-3">
+                                    @(review.IsEdited ? "Edited on: " : "Published on: ")@review.ReviewDate
+                                </h5>
+                            </div>
+                            <div class="ms-5 mt-1 align-self-start">
+                                @if (review.UserId == userId && !review.IsEdited)
+                                {
+                                    <a asp-controller="Review" asp-action="Edit" asp-route-reviewId="@review.Id" asp-route-bookId="@review.BookId" class="btn btn-warning btn-lg">Edit review</a>
+                                }
+                                else
+                                {
+                                    <div class="alert alert-primary d-flex align-items-center justify-content-center" role="alert">
+                                        <h5 class="mb-0">You have already edited your review.</h5>
+                                    </div>
+                                }
+                            </div>
                         </div>
                     </div>
                 </div>
-            </div>
+            }
         }
     }
 }

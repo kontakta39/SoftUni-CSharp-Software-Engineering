@@ -17,6 +17,7 @@ public class BookStoreDbContext : IdentityDbContext<ApplicationUser, Application
     public virtual DbSet<Order> Orders { get; set; }
     public virtual DbSet<OrderBook> OrdersBooks { get; set; }
     public virtual DbSet<Review> Reviews { get; set; }
+    public virtual DbSet<Blog> Blogs { get; set; }
 
     protected override void OnModelCreating(ModelBuilder modelBuilder)
     {
