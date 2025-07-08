@@ -1,0 +1,45 @@
+﻿@using BookWebStore.ViewModels
+@model ReviewEditViewModel
+
+@{
+    ViewData["Title"] = "Edit review";
+}
+
+<div class="d-flex justify-content-center align-items-center">
+    <h1>@ViewData["Title"]</h1>
+</div>
+<hr class="mb-5" />
+
+<div class="d-flex flex-column justify-content-center align-items-center">
+    <div class="col-md-5">
+        <form asp-action="Edit" method="post">
+            <input type="hidden" asp-for="Id" />
+            <input type="hidden" asp-for="BookId" />
+            <div class="form-floating mb-3">
+                <input type="hidden" asp-for="BookTitle" />
+                <input asp-for="BookTitle" class="form-control" disabled />
+                <label asp-for="BookTitle">You are writing a review for the book:</label>
+            </div>
+
+            <div class="form-floating mb-3">
+                <select asp-for="Rating" class="form-select" aria-required="true">
+                    <option value="" disabled selected>Select rating</option>
+                    @for (int i = 1; i <= 5; i++)
+                    {
+                        <option value="@i">@i star@(i > 1 ? "s" : "")</option>
+                    }
+                </select>
+                <label asp-for="Rating">Rating*</label>
+                <span asp-validation-for="Rating" class="text-danger"></span>
+            </div>
+
+            <div class="form-floating mb-3">
+                <textarea asp-for="ReviewText" class="form-control h-auto" aria-required="true" rows="6" placeholder="Tell us what you think about the book..."></textarea>
+                <label asp-for="ReviewText">Review*</label>
+                <span asp-validation-for="ReviewText" class="text-danger"></span>
+            </div>
+
+            <button id="edit-review" type="submit" class="w-100 btn btn-lg btn-primary">Edit</button>
+        </form>
+    </div>
+</div>
