@@ -129,7 +129,8 @@ public class BookController : Controller
 
         if (bookCheck == null)
         {
-            return NotFound();
+            TempData["ErrorMessage"] = "Book was not found.";
+            return RedirectToAction("Index", "Book");
         }
 
         BookDetailsViewModel detailsBook = new BookDetailsViewModel()

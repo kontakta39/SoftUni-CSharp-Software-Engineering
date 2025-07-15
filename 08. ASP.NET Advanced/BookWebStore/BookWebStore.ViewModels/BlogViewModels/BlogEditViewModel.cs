@@ -6,6 +6,9 @@ namespace BookWebStore.ViewModels;
 public class BlogEditViewModel
 {
     [Required]
+    public Guid Id { get; set; }
+
+    [Required]
     [StringLength(BlogTitleMaxLength, MinimumLength = BlogTitleMinLength)]
     public string Title { get; set; } = null!;
 
