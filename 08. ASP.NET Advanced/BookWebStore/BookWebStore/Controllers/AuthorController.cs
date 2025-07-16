@@ -236,7 +236,7 @@ public class AuthorController : Controller
     public async Task<IActionResult> Delete(AuthorDeleteViewModel deleteAuthor)
     {
         Author? author = await _context.Authors
-            .FirstOrDefaultAsync(a => a.Id == deleteAuthor.Id && a.Name.ToLower() == deleteAuthor.Name.ToLower() && !a.IsDeleted);
+            .FirstOrDefaultAsync(a => a.Id == deleteAuthor.Id && !a.IsDeleted);
 
         if (author == null)
         {

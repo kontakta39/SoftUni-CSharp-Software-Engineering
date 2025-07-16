@@ -1,0 +1,61 @@
+﻿@using BookWebStore.ViewModels
+@model IEnumerable<BlogIndexViewModel>
+
+@{
+    ViewData["Title"] = "Blogs";
+}
+
+@if (TempData["ErrorMessage"] != null)
+{
+    <div id="errorAlert" class="alert alert-danger text-center">
+        <p class="m-0">@TempData["ErrorMessage"]</p>
+    </div>
+    <script>setTimeout(() => { const e=document.getElementById('errorAlert'); if(e){ e.style.transition='opacity 0.5s'; e.style.opacity='0'; setTimeout(() => e.remove(), 500); } }, 3000);</script>
+}
+
+<div class="d-flex justify-content-between align-items-center mb-3">
+    <h1>@ViewData["Title"]</h1>
+    @if (User.IsInRole("Administrator"))
+    {
+        <a asp-controller="Blog" asp-action="Add" class="btn btn-primary">Add blog</a>
+    }
+</div>
+<hr class="mb-4" />
+
+@if (!Model.Any())
+{
+    <h3 class="text-start">There are no blogs created yet.</h3>
+}
+else
+{
+    var groupedBlogs = Model
+        .OrderBy(b => b.Title)
+        .GroupBy(b => b.Title.Substring(0, 1).ToUpper())
+        .OrderBy(g => g.Key)
+        .ToList();
+
+    foreach (var group in groupedBlogs)
+    {
+        <h3 class="text-start mt-5">Blogs with "@group.Key" letter</h3>
+        <hr class="mb-4" />
+
+        <div class="row row-cols-1 row-cols-sm-2 row-cols-md-3 row-cols-lg-4 g-4">
+            @foreach (var blog in group)
+            {
+                <div class="col">
+                    <a asp-controller="Blog" asp-action="Details" asp-route-id="@blog.Id" class="text-decoration-none text-dark">
+                        <div class="card h-100 border-0 shadow-sm">
+                            <img src="@(!string.IsNullOrEmpty(blog.ImageUrl) ? blog.ImageUrl : Url.Content("~/img/blog-no-image-available.jpg"))"
+                                 class="card-img-top img-fluid"
+                                 alt="@blog.Title">
+                            <div class="card-body">
+                                <h5 class="card-title">@blog.Title</h5>
+                                <p class="card-text text-muted mb-0">Publisher: @blog.Publisher</p>
+                            </div>
+                        </div>
+                    </a>
+                </div>
+            }
+        </div>
+    }
+}

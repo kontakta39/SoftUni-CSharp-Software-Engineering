@@ -53,8 +53,8 @@ public static class ModelConstants
     public const int ReviewTextMinLength = 10;
     public const int ReviewTextMaxLength = 500;
 
-    public const int BlogTitleMinLength = 1;
-    public const int BlogTitleMaxLength = 50;
+    public const int BlogTitleMinLength = 10;
+    public const int BlogTitleMaxLength = 100;
 
     public const int BlogContentMinLength = 200;
 }

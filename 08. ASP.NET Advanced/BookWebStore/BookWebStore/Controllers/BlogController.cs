@@ -65,6 +65,7 @@ public class BlogController : Controller
         Blog blog = new Blog()
         {
             Title = addBlog.Title,
+            ImageUrl = addBlog.ImageUrl,
             PublisherId = publisher.Id,
             Content = addBlog.Content
         };
@@ -79,6 +80,7 @@ public class BlogController : Controller
     public async Task<IActionResult> Details(Guid id)
     {
         Blog? blogCheck = await _context.Blogs
+           .Include(b => b.Publisher)
            .FirstOrDefaultAsync(b => b.Id == id && !b.IsDeleted);
 
         if (blogCheck == null)

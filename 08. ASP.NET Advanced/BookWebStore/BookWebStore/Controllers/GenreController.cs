@@ -148,7 +148,7 @@ public class GenreController : Controller
     public async Task<IActionResult> Delete(GenreDeleteViewModel deleteGenre)
     {
         Genre? genre = await _context.Genres
-            .FirstOrDefaultAsync(g => g.Id == deleteGenre.Id && g.Name.ToLower() == deleteGenre.Name.ToLower() && !g.IsDeleted);
+            .FirstOrDefaultAsync(g => g.Id == deleteGenre.Id && !g.IsDeleted);
 
         if (genre == null)
         {
