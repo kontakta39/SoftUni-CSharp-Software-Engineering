@@ -1,5 +1,7 @@
 using BookWebStore.Data;
 using BookWebStore.Data.Models;
+using BookWebStore.Services;
+using BookWebStore.Services.Interfaces;
 using Microsoft.AspNetCore.Identity;
 using Microsoft.EntityFrameworkCore;
 
@@ -49,6 +51,9 @@ public class Program
 
         builder.Services.AddControllersWithViews();
         builder.Services.AddRazorPages();
+
+        builder.Services.AddScoped<IGenreService, GenreService>();
+        builder.Services.AddScoped<IBookService, BookService>();
 
         WebApplication? app = builder.Build();
 

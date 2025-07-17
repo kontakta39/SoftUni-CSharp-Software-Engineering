@@ -76,7 +76,7 @@ public class AuthorController : Controller
         }
 
         bool authorExists = await _context.Authors
-            .AnyAsync(a => a.Name.ToLower() == addAuthor.Name && !a.IsDeleted);
+            .AnyAsync(a => a.Name.ToLower() == addAuthor.Name.ToLower() && !a.IsDeleted);
 
         if (authorExists)
         {

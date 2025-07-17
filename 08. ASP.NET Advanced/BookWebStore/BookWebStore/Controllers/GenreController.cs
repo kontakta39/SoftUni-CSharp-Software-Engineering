@@ -1,33 +1,35 @@
-﻿using BookWebStore.Data;
-using BookWebStore.Data.Models;
+﻿using BookWebStore.Data.Models;
+using BookWebStore.Services.Interfaces;
 using BookWebStore.ViewModels;
 using Microsoft.AspNetCore.Authorization;
 using Microsoft.AspNetCore.Mvc;
-using Microsoft.EntityFrameworkCore;
 
 namespace BookWebStore;
 
 public class GenreController : Controller
 {
-    private readonly BookStoreDbContext _context;
+    private readonly IGenreService _genreService;
+    private readonly IBookService _bookService;
 
-    public GenreController(BookStoreDbContext context)
+    public GenreController(IGenreService genreService, IBookService bookService)
     {
-        _context = context;
+        _genreService = genreService;
+        _bookService = bookService;
     }
 
     [HttpGet]
     [Authorize(Roles = "Administrator")]
     public async Task<IActionResult> Index()
     {
-        List<GenreIndexViewModel> genres = await _context.Genres
-           .Where(g => g.IsDeleted == false)
-           .Select(g => new GenreIndexViewModel()
-           {
-               Id = g.Id,
-               Name = g.Name
-           })
-           .ToListAsync();
+        List<Genre> getAllGenres = await _genreService.GetAllGenresAsync();
+
+        List<GenreIndexViewModel> genres = getAllGenres
+            .Select(g => new GenreIndexViewModel
+            {
+                Id = g.Id,
+                Name = g.Name
+            })
+            .ToList();
 
         return View(genres);
     }
@@ -49,42 +51,34 @@ public class GenreController : Controller
             return View(addGenre);
         }
 
-        bool genreExists = await _context.Genres
-            .AnyAsync(g => g.Name.ToLower() == addGenre.Name.ToLower() && !g.IsDeleted);
+        bool genreExists = await _genreService.GenreNameExistsAsync(addGenre.Name);
 
         if (genreExists)
         {
-            ModelState.AddModelError("Name", "A genre with this name already exists.");
+            ModelState.AddModelError(nameof(addGenre.Name), "A genre with this name already exists.");
             return View(addGenre);
         }
 
-        Genre genre = new Genre()
-        {
-            Name = addGenre.Name
-        };
-
-        await _context.Genres.AddAsync(genre);
-        await _context.SaveChangesAsync();
-
-        return RedirectToAction("Index", "Home");
+        await _genreService.AddGenreAsync(addGenre);
+        return RedirectToAction("Index", "Genre");
     }
 
     [HttpGet]
     [Authorize(Roles = "Administrator")]
     public async Task<IActionResult> Edit(Guid id)
     {
-        Genre? genre = await _context.Genres
-                    .FirstOrDefaultAsync(g => g.Id == id && !g.IsDeleted);
+        Genre? getGenre = await _genreService.GetGenreByIdAsync(id);
 
-        if (genre == null)
+        if (getGenre == null)
         {
-            return NotFound();
+            TempData["ErrorMessage"] = "The genre you want to edit could not be found.";
+            return RedirectToAction("Index", "Genre");
         }
 
         GenreEditViewModel editGenre = new GenreEditViewModel()
         {
-            Id = genre.Id,
-            Name = genre.Name
+            Id = getGenre.Id,
+            Name = getGenre.Name
         };
 
         return View(editGenre);
@@ -93,32 +87,29 @@ public class GenreController : Controller
     [HttpPost]
     [Authorize(Roles = "Administrator")]
     public async Task<IActionResult> Edit(GenreEditViewModel editGenre)
-    {
+     {
+        Genre? getGenre = await _genreService.GetGenreByIdAsync(editGenre.Id);
+
+        if (getGenre == null)
+        {
+            TempData["ErrorMessage"] = "The genre you want to edit could not be found.";
+            return RedirectToAction("Index", "Genre");
+        }
+
         if (!ModelState.IsValid)
         {
             return View(editGenre);
         }
 
-        bool genreExists = await _context.Genres
-         .AnyAsync(g => g.Id != editGenre.Id && g.Name.ToLower() == editGenre.Name.ToLower() && !g.IsDeleted);
+        bool genreExists = await _genreService.GenreNameExistsAsync(editGenre.Name, editGenre.Id);
 
         if (genreExists)
         {
-            ModelState.AddModelError("Name", "A genre with this name already exists.");
+            ModelState.AddModelError(nameof(editGenre.Name), "A genre with this name already exists.");
             return View(editGenre);
         }
 
-        Genre? genre = _context.Genres
-            .FirstOrDefault(g => g.Id == editGenre.Id && g.Name.ToLower() == editGenre.Name.ToLower() && !g.IsDeleted);
-
-        if (genre == null)
-        {
-            return NotFound();
-        }
-
-        genre.Name = editGenre.Name;
-        await _context.SaveChangesAsync();
-
+        await _genreService.EditGenreAsync(editGenre, getGenre);
         return RedirectToAction("Index", "Genre");
     }
 
@@ -126,18 +117,18 @@ public class GenreController : Controller
     [Authorize(Roles = "Administrator")]
     public async Task<IActionResult> Delete(Guid id)
     {
-        Genre? genre = await _context.Genres
-            .FirstOrDefaultAsync(g => g.Id == id && !g.IsDeleted);
+        Genre? getGenre = await _genreService.GetGenreByIdAsync(id);
 
-        if (genre == null)
+        if (getGenre == null)
         {
-            return NotFound();
+            TempData["ErrorMessage"] = "The genre you want to delete could not be found.";
+            return RedirectToAction("Index", "Genre");
         }
 
         GenreDeleteViewModel deleteGenre = new GenreDeleteViewModel()
         {
-            Id = genre.Id,
-            Name = genre.Name
+            Id = getGenre.Id,
+            Name = getGenre.Name
         };
 
         return View(deleteGenre);
@@ -147,26 +138,24 @@ public class GenreController : Controller
     [Authorize(Roles = "Administrator")]
     public async Task<IActionResult> Delete(GenreDeleteViewModel deleteGenre)
     {
-        Genre? genre = await _context.Genres
-            .FirstOrDefaultAsync(g => g.Id == deleteGenre.Id && !g.IsDeleted);
+        Genre? getGenre = await _genreService.GetGenreByIdAsync(deleteGenre.Id);
 
-        if (genre == null)
+        if (getGenre == null)
         {
-            return NotFound();
-        }
-
-        //Check if the genre is still associated with a books in stock
-        bool hasBooksInStock = await _context.Books
-            .AnyAsync(b => b.GenreId == genre.Id && !b.IsDeleted && b.Stock > 0);
-
-        if (hasBooksInStock)
-        {
-            TempData["ErrorMessage"] = "Cannot delete genre because there are still books in stock associated with it.";
+            TempData["ErrorMessage"] = "The genre you want to edit could not be found.";
             return RedirectToAction("Index", "Genre");
         }
 
-        genre.IsDeleted = true;
-        await _context.SaveChangesAsync();
+        bool hasBooksInStock = await _bookService.HasBooksInStockByGenreIdAsync(deleteGenre.Id);
+
+        if (hasBooksInStock)
+        {
+            TempData["ErrorMessage"] = $"{deleteGenre.Name} genre cannot be deleted because there are still books in stock.";
+            return RedirectToAction("Index", "Genre");
+        }
+
+        await _genreService.DeleteGenreAsync(deleteGenre, getGenre);
+
         return RedirectToAction("Index", "Genre");
     }
 }

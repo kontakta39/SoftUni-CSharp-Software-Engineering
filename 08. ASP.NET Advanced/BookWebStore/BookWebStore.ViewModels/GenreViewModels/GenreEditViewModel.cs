@@ -6,7 +6,7 @@ namespace BookWebStore.ViewModels;
 public class GenreEditViewModel
 {
     [Required]
-    public Guid Id { get; set; }
+    public Guid Id { get; set; } 
 
     [Required]
     [StringLength(GenreNameMaxLength, MinimumLength = GenreNameMinLength)]
