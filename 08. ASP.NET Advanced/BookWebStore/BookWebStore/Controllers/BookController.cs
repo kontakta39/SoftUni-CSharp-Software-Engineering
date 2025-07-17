@@ -125,7 +125,7 @@ public class BookController : Controller
         Book? bookCheck = await _context.Books
             .Include(b => b.Author)
             .Include(b => b.Genre)
-            .FirstOrDefaultAsync(b => b.Id == id && !b.IsDeleted);
+            .FirstOrDefaultAsync(b => b.Id == id);
 
         if (bookCheck == null)
         {

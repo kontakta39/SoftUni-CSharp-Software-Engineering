@@ -91,7 +91,7 @@ public class OrderController : Controller
 
         if (book == null)
         {
-            TempData["ErrorMessage"] = "The book does not exist.";
+            TempData["ErrorMessage"] = "The book is out of stock.";
             return RedirectToAction("Index", "Book");
         }
 
@@ -160,7 +160,7 @@ public class OrderController : Controller
             return Json(new
             {
                 success = false,
-                error = $"Only {stockBeforeUpdate} book(s) in stock.",
+                error = $"Only {stockBeforeUpdate} book{(stockBeforeUpdate == 1 ? "" : "s")} in stock.",
                 resetTo = stockBeforeUpdate
             });
         }

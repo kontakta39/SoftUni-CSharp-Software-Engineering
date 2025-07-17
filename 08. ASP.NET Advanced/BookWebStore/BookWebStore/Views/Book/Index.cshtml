@@ -34,53 +34,37 @@ else
         .OrderBy(b => b.Key) //sorting groups by letter
         .ToList();
 
-    foreach (var group in groupedBooks)
+    @foreach (var group in groupedBooks)
     {
-        <h3 class="text-start mt-5">Books with @group.Key letter</h3>
-        <hr class="mb-4" />
+        <h3 class="text-start mt-5 text-dark">Books starting with letter "<strong>@group.Key</strong>"</h3>
+        <hr class="mb-4 border-primary" />
 
-        <div class="row text-center">
-    @foreach (var book in group.OrderBy(a => a.Title))
-    {
-        <div class="col-md-3 mb-4 position-relative">
-            <div class="card h-100 position-relative">
+        <div class="row g-4">
+            @foreach (var book in group.OrderBy(b => b.Title))
+            {
+                <div class="col-sm-6 col-md-4 col-lg-3 mb-5">
+                    <div class="card shadow-sm border-1 d-flex flex-column bg-secondary bg-opacity-10">
+                        <a asp-controller="Book" asp-action="Details" asp-route-id="@book.Id" class="text-decoration-none text-reset flex-grow-1 d-flex flex-column">
+                            <div class="p-3" style="padding-bottom: 0;">
+                                <img src="@(!string.IsNullOrEmpty(book.ImageUrl) ? book.ImageUrl : Url.Content("~/img/book-no-image-available.jpg"))"
+                                        class="img-fluid rounded mx-auto d-block"
+                                        style="max-height: 300px; object-fit: contain;"
+                                        alt="Book Image Not Available" />
+                            </div>
 
-                <a asp-controller="Book" asp-action="Details" asp-route-id="@book.Id"
-                   class="stretched-link"></a>
+                            <div class="card-body text-center" style="padding-top: 0.25rem; padding-bottom: 0;">
+                                <h5 class="card-title text-dark fw-semibold mb-2">@book.Title</h5>
+                                <h6 class="card-subtitle text-muted mb-3">@book.Author</h6>
+                            </div>
+                        </a>
 
-                @if (!string.IsNullOrEmpty(book.ImageUrl))
-                {
-                    <img src="@book.ImageUrl"
-                         class="card-img-top img-fluid w-75 mx-auto d-block pt-3"
-                         style="object-fit: contain;"
-                         alt="No Image Available">
-                }
-                else
-                {
-                    <img src="~/img/book-no-image-available.jpg"
-                         class="card-img-top img-fluid w-75 mx-auto d-block pt-3"
-                         style="object-fit: contain;"
-                         alt="No Image Available">
-                }
-
-                <div class="card-body d-flex flex-column">
-                    <h4 class="card-title text-dark">@book.Title</h4>
-                    <h5 class="card-subtitle text-dark pb-3">@book.Author</h5>
-
-                    <div class="d-flex justify-content-center mt-auto">
-                        <form asp-controller="Order"
-                              asp-action="AddToCart"
-                              asp-route-bookId="@book.Id"
-                              method="post"
-                              class="flex-fill position-relative"
-                              style="z-index: 1;">
-                            <button type="submit" class="btn btn-success w-75">Buy</button>
+                        <form asp-controller="Order" asp-action="AddToCart" asp-route-bookId="@book.Id" method="post" class="text-center mb-3">
+                            <button type="submit" class="btn btn-success w-50">Buy</button>
                         </form>
+
                     </div>
                 </div>
-            </div>
+            }
         </div>
-    }
-</div>
     }
 }

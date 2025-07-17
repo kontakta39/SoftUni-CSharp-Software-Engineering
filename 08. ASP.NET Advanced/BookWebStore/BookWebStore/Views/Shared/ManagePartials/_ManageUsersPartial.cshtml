@@ -13,43 +13,75 @@
 }
 else
 {
-    <table class="table">
-        <thead>
-            <tr>
-                <th>Username</th>
-                <th>Email</th>
-                <th>Name</th>
-                <th>Current role</th>
-                <th>Make the user:</th>
-            </tr>
-        </thead>
-        <tbody>
-            @foreach (var userRole in Model)
-            {
-                <tr>
-                    <td>@userRole.User.UserName</td>
-                    <td>@userRole.User.Email</td>
-                    <td>@($"{userRole.User.FirstName} {userRole.User.LastName}")</td>
-                    <td>@string.Join(", ", userRole.Roles)</td>
-                    <td>
-                        <form asp-action="ChangeRole" asp-controller="Account" method="post">
-                            <input type="hidden" name="userId" value="@userRole.User.Id" />
-                            @if (!userRole.Roles.Contains("Administrator"))
-                            {
-                                <button class="btn btn-primary" name="role" value="Administrator">Administrator</button>
-                            }
-                            @if (!userRole.Roles.Contains("Moderator"))
-                            {
-                                <button class="btn btn-secondary" name="role" value="Moderator">Moderator</button>
-                            }
-                            @if (!userRole.Roles.Contains("Guest"))
-                            {
-                                <button class="btn btn-warning" name="role" value="Guest">Guest</button>
-                            }
-                        </form>
-                    </td>
-                </tr>
-            }
-        </tbody>
-    </table>
+    <div class="mt-4">
+        <div class="table-responsive">
+            <table class="table table-bordered text-center align-middle shadow-sm rounded-3 overflow-hidden">
+                <thead class="table-light">
+                    <tr>
+                        <th scope="col">Username</th>
+                        <th scope="col">Email</th>
+                        <th scope="col">Name</th>
+                        <th scope="col">Current Role</th>
+                        <th scope="col">Assign New Role</th>
+                    </tr>
+                </thead>
+                <tbody>
+                    @foreach (var userRole in Model)
+                    {
+                        <tr>
+                            <td class="fw-semibold">@userRole.User.UserName</td>
+                            <td>@userRole.User.Email</td>
+                            <td>@($"{userRole.User.FirstName} {userRole.User.LastName}")</td>
+                            <td>
+                                @{
+                                    var role = userRole.Roles.FirstOrDefault();
+                                    var badgeClass = role == "Administrator" ? "bg-primary text-white"
+                                    : role == "Moderator" ? "bg-secondary text-white"
+                                    : role == "Guest" ? "bg-warning text-dark"
+                                    : "";
+                                }
+                                @if (!string.IsNullOrEmpty(role))
+                                {
+                                    <span class="badge @badgeClass px-3 py-2 rounded-pill">
+                                        @string.Join(", ", userRole.Roles)
+                                    </span>
+                                }
+                                else
+                                {
+                                    <span>No Role</span>
+                                }
+                            </td>
+                            <td>
+                                <form asp-action="ChangeRole" asp-controller="Account" method="post" class="d-flex flex-wrap justify-content-center gap-2">
+                                    <input type="hidden" name="userId" value="@userRole.User.Id" />
+
+                                    @if (!userRole.Roles.Contains("Administrator"))
+                                    {
+                                        <button type="submit" name="role" value="Administrator"
+                                                class="btn btn-sm btn-primary rounded-pill px-3 shadow-sm">
+                                            <i class="bi bi-shield-lock me-1"></i>Administrator
+                                        </button>
+                                    }
+                                    @if (!userRole.Roles.Contains("Moderator"))
+                                    {
+                                        <button type="submit" name="role" value="Moderator"
+                                                class="btn btn-sm btn-secondary rounded-pill px-3 shadow-sm">
+                                            <i class="bi bi-person-badge me-1"></i>Moderator
+                                        </button>
+                                    }
+                                    @if (!userRole.Roles.Contains("Guest"))
+                                    {
+                                        <button type="submit" name="role" value="Guest"
+                                                class="btn btn-sm btn-warning rounded-pill px-3 shadow-sm text-dark">
+                                            <i class="bi bi-person me-1"></i>Guest
+                                        </button>
+                                    }
+                                </form>
+                            </td>
+                        </tr>
+                    }
+                </tbody>
+            </table>
+        </div>
+    </div>
 }

@@ -10,52 +10,68 @@
 </div>
 <hr class="mb-5" />
 
-<div class="row justify-content-center gx-5 mb-5">
-    <div class="col-md-4 text-center">
-        @if (!string.IsNullOrEmpty(Model.ImageUrl))
-        {
-            <img src="@Model.ImageUrl" class="img-fluid" alt="No Image Available" />
-        }
-        else
-        {
-            <img src="~/img/author-no-image-available.jpg" class="img-fluid" alt="No Image Available" />
-        }
-    </div>
-
-    <div class="col-md-6">
-        <div class="card-body">
-            <h5 class="card-title">@Model.Name</h5>
-            <hr />
-            <h6 class="card-subtitle mt-2 mb-2 text-muted">Nationality: @Model.Nationality</h6>
-            <hr />
-            @if (Model.BirthDate != null)
-            { 
-                <h6 class="card-subtitle mt-2 mb-2 text-muted">Birth Date: @Model.BirthDate</h6>
-                <hr />
-            }
-            @if (!string.IsNullOrEmpty(Model.Website))
-            {
-                string website = Model.Website;
-                if (!website.StartsWith("http://") && !website.StartsWith("https://"))
-                {
-                    website = "https://" + website;
-                }
-
-                <h6 class="card-subtitle mt-2 mb-2 text-muted">Website: <a href="@website" target="_blank">Click</a></h6>
-                <hr />
-            }
-
-            <p class="card-text mt-2 mb-2">@Model.Biography</p>
-            <hr />
-        </div>
-        @if (User.IsInRole("Administrator"))
-        {
-            <div class="card-footer text-center">
-                <div class="d-flex justify-content-between align-items-center">
-                    <a asp-controller="Author" asp-action="Edit" asp-route-id="@Model.Id" class="btn btn-primary d-flex justify-content-center align-items-center flex-fill mx-1">Edit</a>
-                    <a asp-controller="Author" asp-action="Delete" asp-route-id="@Model.Id" class="btn btn-danger d-flex justify-content-center align-items-center flex-fill mx-1">Delete</a>
-                </div>
+<div class="container mt-5">
+    <div class="row justify-content-center align-items-stretch gx-5">
+        <!-- Image column with card -->
+        <div class="col-md-4 d-flex">
+            <div class="card w-100 p-3 shadow-sm d-flex align-items-center justify-content-center">
+                <img src="@(!string.IsNullOrEmpty(Model.ImageUrl) ? Model.ImageUrl : Url.Content("~/img/author-no-image-available.jpg"))"
+                     class="img-fluid h-100"
+                     style="object-fit: contain;"
+                     alt="@Model.Name" />
             </div>
-        }
+        </div>
+
+        <div class="col-md-6">
+            <div class="card shadow-sm h-100">
+                <div class="card-header text-center bg-primary text-white">
+                    <h4 class="mb-0">@Model.Name</h4>
+                </div>
+
+                <div class="card-body px-4 py-3">
+                    <div class="d-flex flex-wrap mb-2">
+                        <h6 class="text-primary me-2 mb-0">Nationality:</h6>
+                        <p class="mb-0 text-muted">@Model.Nationality</p>
+                    </div>
+
+                    @if (Model.BirthDate != null)
+                    {
+                        <div class="d-flex flex-wrap mb-2">
+                            <h6 class="text-primary me-2 mb-0">Birth Date:</h6>
+                            <p class="mb-0 text-muted">@Model.BirthDate</p>
+                        </div>
+                    }
+
+                    @if (!string.IsNullOrEmpty(Model.Website))
+                    {
+                        var website = Model.Website;
+                        if (!website.StartsWith("http://") && !website.StartsWith("https://"))
+                        {
+                            website = "https://" + website;
+                        }
+
+                        <div class="d-flex flex-wrap mb-2">
+                            <h6 class="text-primary me-2 mb-0">Website:</h6>
+                            <p class="mb-0"><a href="@website" target="_blank">@website</a></p>
+                        </div>
+                    }
+
+                    <div class="d-flex align-items-start mb-2">
+                        <h6 class="text-primary me-2 mb-0 flex-shrink-0">Biography:</h6>
+                        <p class="mb-0 text-muted flex-grow-1">@Model.Biography</p>
+                    </div>
+                </div>
+
+                @if (User.IsInRole("Administrator"))
+                {
+                    <div class="card-footer bg-light d-flex justify-content-center gap-3">
+                        <a asp-controller="Author" asp-action="Edit" asp-route-id="@Model.Id"
+                           class="btn btn-outline-primary px-4">Edit</a>
+                        <a asp-controller="Author" asp-action="Delete" asp-route-id="@Model.Id"
+                           class="btn btn-outline-danger px-4">Delete</a>
+                    </div>
+                }
+            </div>
+        </div>
     </div>
 </div>

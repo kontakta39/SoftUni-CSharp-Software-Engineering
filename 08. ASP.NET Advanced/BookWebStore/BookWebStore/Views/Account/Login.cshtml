@@ -11,8 +11,8 @@
 </div>
 <hr class="mb-5" />
 
-<div class="d-flex flex-column justify-content-center align-items-center">
-    <div class="col-md-5">
+<div class="d-flex justify-content-center align-items-center">
+    <div class="col-lg-5">
         @{
             List<ModelError> еrrors = ViewData.ModelState
             .Where(e => string.IsNullOrEmpty(e.Key))
@@ -30,26 +30,42 @@
             <script>setTimeout(() => { const e=document.getElementById('errorAlert'); if(e){ e.style.transition='opacity 0.5s'; e.style.opacity='0'; setTimeout(() => e.remove(), 500); } }, 3000);</script>
         }
 
-        <form asp-action="LogIn" method="post">
-            <div class="form-floating mb-3">
-                <input asp-for="UsernameOrEmail" class="form-control" autocomplete="username" aria-required="true" placeholder="Please enter your username or email." />
-                <label asp-for="UsernameOrEmail">Username/Email</label>
-                <span asp-validation-for="UsernameOrEmail" class="text-danger"></span>
-            </div>
+        <div class="card shadow-lg rounded-4 border-0 mb-5">
+            <div class="card-body p-4">
+                <h2 class="text-center mb-4">
+                    <i class="bi bi-box-arrow-in-right text-primary me-2"></i>Sign in to your account
+                </h2>
 
-            <div class="form-floating mb-3">
-                <input asp-for="Password" class="form-control" autocomplete="current-password" aria-required="true" placeholder="Please enter your password." />
-                <label asp-for="Password">Password</label>
-                <span asp-validation-for="Password" class="text-danger"></span>
-            </div>
+                <form asp-action="LogIn" method="post">
+                    <div class="form-floating mb-4">
+                        <input asp-for="UsernameOrEmail" class="form-control" autocomplete="username" placeholder="Please enter your username or email." />
+                        <label asp-for="UsernameOrEmail">Username / Email</label>
+                        <span asp-validation-for="UsernameOrEmail" class="text-danger small"></span>
+                    </div>
 
-            <button id="login-submit" type="submit" class="w-100 btn btn-lg btn-primary">Log in</button>
+                    <div class="form-floating mb-4">
+                        <input asp-for="Password" class="form-control" autocomplete="current-password" placeholder="Please enter your password." />
+                        <label asp-for="Password">Password</label>
+                        <span asp-validation-for="Password" class="text-danger small"></span>
+                    </div>
 
-            <div class="d-flex mt-3 gap-3">
-                <a asp-controller="Account" asp-action="ForgotPassword" class="btn btn-warning w-50">Forgot Password</a>
-                <a asp-controller="Account" asp-action="Register" class="btn btn-secondary w-50">Register</a>
+                    <div class="d-grid mb-4">
+                        <button id="login-submit" type="submit" class="btn btn-primary btn-lg rounded-pill">
+                            <i class="bi bi-unlock me-2"></i>Log In
+                        </button>
+                    </div>
+
+                    <div class="d-flex justify-content-between gap-3">
+                        <a asp-controller="Account" asp-action="ForgotPassword" class="btn btn-outline-warning w-50">
+                            <i class="bi bi-question-circle me-1"></i>Forgot Password
+                        </a>
+                        <a asp-controller="Account" asp-action="Register" class="btn btn-outline-secondary w-50">
+                            <i class="bi bi-person-plus me-1"></i>Register
+                        </a>
+                    </div>
+                </form>
             </div>
-        </form>
+        </div>
     </div>
 </div>
 

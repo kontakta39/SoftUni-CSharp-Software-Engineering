@@ -32,7 +32,7 @@
                 if (data.success) {
                     const itemTotalElem = row.querySelector('.item-total');
                     itemTotalElem.textContent = `${data.itemTotal} lv.`;
-                    totalPriceElem.textContent = `Total Price: ${data.totalPrice} lv.`;
+                    totalPriceElem.innerHTML = `Total Price: <span class="text-primary">${data.totalPrice} lv.</span>`;
                     this.defaultValue = this.value;
                 } else {
                     showError(data.error);
