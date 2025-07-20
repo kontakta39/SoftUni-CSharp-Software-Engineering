@@ -53,6 +53,7 @@ public class Program
         builder.Services.AddRazorPages();
 
         builder.Services.AddScoped<IGenreService, GenreService>();
+        builder.Services.AddScoped<IAuthorService, AuthorService>();
         builder.Services.AddScoped<IBookService, BookService>();
 
         WebApplication? app = builder.Build();

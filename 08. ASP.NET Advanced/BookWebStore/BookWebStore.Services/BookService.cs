@@ -18,4 +18,10 @@ public class BookService : IBookService
         return await _context.Books
             .AnyAsync(b => b.GenreId == genreId && !b.IsDeleted && b.Stock > 0);
     }
+
+    public async Task<bool> HasBooksInStockByAuthorIdAsync(Guid authorId)
+    {
+        return await _context.Books
+            .AnyAsync(b => b.AuthorId == authorId && !b.IsDeleted && b.Stock > 0);
+    }
 }

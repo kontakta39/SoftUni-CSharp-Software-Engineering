@@ -12,7 +12,6 @@ public class AuthorDetailsViewModel
 
     public string Nationality { get; set; } = null!;
 
-    [DisplayFormat(DataFormatString = "{0:dd-MM-yyyy}")]
     public DateOnly? BirthDate { get; set; }
 
     public string? Website { get; set; } 

@@ -1,47 +1,51 @@
-﻿using BookWebStore.Data;
+﻿using System.Globalization;
+using System.Text.Json;
 using BookWebStore.Data.Models;
+using BookWebStore.Services.Interfaces;
 using BookWebStore.ViewModels;
 using Microsoft.AspNetCore.Authorization;
 using Microsoft.AspNetCore.Mvc;
-using Microsoft.EntityFrameworkCore;
-using System.Text.Json;
 
 namespace BookWebStore;
 
 public class AuthorController : Controller
 {
-    private readonly BookStoreDbContext _context;
+    private readonly IAuthorService _authorService;
+    private readonly IBookService _bookService;
+    private readonly string _countriesJsonPath;
 
-    public AuthorController(BookStoreDbContext context)
+    public AuthorController(IAuthorService authorService, IBookService bookService)
     {
-        _context = context;
+        _authorService = authorService;
+        _bookService = bookService;
+        _countriesJsonPath = Path.Combine(AppContext.BaseDirectory, "..", "..", "..", "..", "BookWebStore.Data", "Seed", "SeedData", "countries.json");
     }
 
     [HttpGet]
     [Authorize(Roles = "Administrator")]
     public async Task<IActionResult> Index()
     {
-        List<AuthorIndexViewModel> artists = await _context.Authors
-        .Where(a => a.IsDeleted == false)
-        .Select(a => new AuthorIndexViewModel()
-        {
-            Id = a.Id,
-            ImageUrl = a.ImageUrl,
-            Name = a.Name,
-            Nationality = a.Nationality
-        })
-        .ToListAsync();
+        List<Author> getAllAuthors = await _authorService.GetAllAuthorsAsync();
 
-        return View(artists);
+        List<AuthorIndexViewModel> authors = getAllAuthors
+            .Select(a => new AuthorIndexViewModel
+            {
+                Id = a.Id,
+                ImageUrl = a.ImageUrl,
+                Name = a.Name,
+                Nationality = a.Nationality
+            })
+            .ToList();
+
+        return View(authors);
     }
 
     [HttpGet]
     [Authorize(Roles = "Administrator")]
     public async Task<IActionResult> Add()
     {
-        string countriesJsonPath = Path.Combine(AppContext.BaseDirectory, "..", "..", "..", "..", "BookWebStore.Data", "Seed", "SeedData", "countries.json");
-        string jsonContent = await System.IO.File.ReadAllTextAsync(countriesJsonPath);
-        List<string>? countries = JsonSerializer.Deserialize<List<string>>(jsonContent) ?? new List<string>();
+        string jsonContent = await System.IO.File.ReadAllTextAsync(_countriesJsonPath);
+        List<string> countries = JsonSerializer.Deserialize<List<string>>(jsonContent) ?? new List<string>();
 
         if (!countries.Any())
         {
@@ -49,8 +53,10 @@ public class AuthorController : Controller
             return RedirectToAction("Index", "Author");
         }
 
-        AuthorAddViewModel addAuthor = new AuthorAddViewModel();
-        addAuthor.NationalityOptions = countries;
+        AuthorAddViewModel addAuthor = new AuthorAddViewModel()
+        {
+            NationalityOptions = countries
+        };
 
         return View(addAuthor);
     }
@@ -59,87 +65,8 @@ public class AuthorController : Controller
     [Authorize(Roles = "Administrator")]
     public async Task<IActionResult> Add(AuthorAddViewModel addAuthor)
     {
-        if (!ModelState.IsValid)
-        {
-            string countriesJsonPath = Path.Combine(AppContext.BaseDirectory, "..", "..", "..", "..", "BookWebStore.Data", "Seed", "SeedData", "countries.json");
-            string jsonContent = await System.IO.File.ReadAllTextAsync(countriesJsonPath);
-            List<string>? countries = JsonSerializer.Deserialize<List<string>>(jsonContent) ?? new List<string>();
-
-            if (!countries.Any())
-            {
-                TempData["ErrorMessage"] = "The list of countries is empty. Please check the data source.";
-                return RedirectToAction("Index", "Author");
-            }
-
-            addAuthor.NationalityOptions = countries;
-            return View(addAuthor);
-        }
-
-        bool authorExists = await _context.Authors
-            .AnyAsync(a => a.Name.ToLower() == addAuthor.Name.ToLower() && !a.IsDeleted);
-
-        if (authorExists)
-        {
-            ModelState.AddModelError("Name", "An author with this name already exists.");
-            return View(addAuthor);
-        }
-
-        Author author = new Author
-        {
-            Name = addAuthor.Name,
-            Biography = addAuthor.Biography,
-            Nationality = addAuthor.Nationality,
-            ImageUrl = addAuthor.ImageUrl,
-            BirthDate = addAuthor.BirthDate,
-            Website = addAuthor.Website
-        };
-
-        await _context.Authors.AddAsync(author);
-        await _context.SaveChangesAsync();
-        return RedirectToAction("Index", "Author");
-    }
-
-    [HttpGet]
-    [Authorize]
-    public async Task<IActionResult> Details(Guid id)
-    {
-        Author? authorCheck = await _context.Authors
-           .FirstOrDefaultAsync(a => a.Id == id && !a.IsDeleted);
-
-        if (authorCheck == null)
-        {
-            return NotFound();
-        }
-
-        AuthorDetailsViewModel detailsAuthor = new AuthorDetailsViewModel()
-        {
-            Id = authorCheck.Id,
-            Name = authorCheck.Name,
-            Biography = authorCheck.Biography,
-            Nationality = authorCheck.Nationality,
-            BirthDate = authorCheck.BirthDate,
-            Website = authorCheck.Website,
-            ImageUrl = authorCheck.ImageUrl
-        };
-
-        return View(detailsAuthor);
-    }
-
-    [HttpGet]
-    [Authorize(Roles = "Administrator")]
-    public async Task<IActionResult> Edit(Guid id)
-    {
-        Author? author = await _context.Authors
-                    .FirstOrDefaultAsync(a => a.Id == id && !a.IsDeleted);
-
-        if (author == null)
-        {
-            return NotFound();
-        }
-
-        string countriesJsonPath = Path.Combine(AppContext.BaseDirectory, "..", "..", "..", "..", "BookWebStore.Data", "Seed", "SeedData", "countries.json");
-        string jsonContent = await System.IO.File.ReadAllTextAsync(countriesJsonPath);
-        List<string>? countries = JsonSerializer.Deserialize<List<string>>(jsonContent) ?? new List<string>();
+        string jsonContent = await System.IO.File.ReadAllTextAsync(_countriesJsonPath);
+        List<string> countries = JsonSerializer.Deserialize<List<string>>(jsonContent) ?? new List<string>();
 
         if (!countries.Any())
         {
@@ -147,15 +74,88 @@ public class AuthorController : Controller
             return RedirectToAction("Index", "Author");
         }
 
+        if (!ModelState.IsValid)
+        {
+            addAuthor.NationalityOptions = countries;
+            return View(addAuthor);
+        }
+
+        if (addAuthor.BirthDate != null)
+        {
+            addAuthor.ParsedBirthDate = DateOnly.ParseExact(addAuthor.BirthDate, "yyyy-MM-dd", CultureInfo.InvariantCulture);
+        }
+
+        bool authorExists = await _authorService.AuthorNameExistsAsync(addAuthor.Name);
+
+        if (authorExists)
+        {
+            ModelState.AddModelError(nameof(addAuthor.Name), "An author with this name already exists.");
+            addAuthor.NationalityOptions = countries;
+            return View(addAuthor);
+        }
+
+        await _authorService.AddAuthorAsync(addAuthor);
+        return RedirectToAction("Index", "Author");
+    }
+
+    [HttpGet]
+    [Authorize]
+    public async Task<IActionResult> Details(Guid id)
+    {
+        Author? getAuthor = await _authorService.GetAuthorByIdAsync(id);
+
+        if (getAuthor == null)
+        {
+            TempData["ErrorMessage"] = "The author you are looking for does not exist.";
+            return RedirectToAction("Index", "Author");
+        }
+
+        AuthorDetailsViewModel authorDetails = new AuthorDetailsViewModel()
+        {
+            Id = getAuthor.Id,
+            Name = getAuthor.Name,
+            Biography = getAuthor.Biography,
+            Nationality = getAuthor.Nationality,
+            BirthDate = getAuthor.BirthDate,
+            Website = getAuthor.Website,
+            ImageUrl = getAuthor.ImageUrl
+        };
+
+        return View(authorDetails);
+    }
+
+    [HttpGet]
+    [Authorize(Roles = "Administrator")]
+    public async Task<IActionResult> Edit(Guid id)
+    {
+        Author? getAuthor = await _authorService.GetAuthorByIdAsync(id);
+
+        if (getAuthor == null)
+        {
+            TempData["ErrorMessage"] = "The author information you want to edit does not exist.";
+            return RedirectToAction("Index", "Author");
+        }
+
+        string jsonContent = await System.IO.File.ReadAllTextAsync(_countriesJsonPath);
+        List<string> countries = JsonSerializer.Deserialize<List<string>>(jsonContent) ?? new List<string>();
+
+        if (!countries.Any())
+        {
+            TempData["ErrorMessage"] = "The list of countries is empty.";
+            return RedirectToAction("Index", "Author");
+        }
+
+        string formattedDate = getAuthor.BirthDate?.ToString("yyyy-MM-dd") ?? "";
+
         AuthorEditViewModel editAuthor = new AuthorEditViewModel()
         {
-            Id = id,
-            Name = author.Name,
-            Biography = author.Biography,
-            Nationality = author.Nationality,
-            ImageUrl = author.ImageUrl,
-            Website = author.Website,
-            BirthDate = author.BirthDate,
+            Id = getAuthor.Id,
+            Name = getAuthor.Name,
+            Biography = getAuthor.Biography,
+            Nationality = getAuthor.Nationality,
+            ImageUrl = getAuthor.ImageUrl,
+            Website = getAuthor.Website,
+            BirthDate = formattedDate,
             NationalityOptions = countries
         };
 
@@ -166,47 +166,44 @@ public class AuthorController : Controller
     [Authorize(Roles = "Administrator")]
     public async Task<IActionResult> Edit(AuthorEditViewModel editAuthor)
     {
+        Author? getAuthor = await _authorService.GetAuthorByIdAsync(editAuthor.Id);
+
+        if (getAuthor == null)
+        {
+            TempData["ErrorMessage"] = "The author information you want to edit does not exist.";
+            return RedirectToAction("Index", "Author");
+        }
+
+        string jsonContent = await System.IO.File.ReadAllTextAsync(_countriesJsonPath);
+        List<string> countries = JsonSerializer.Deserialize<List<string>>(jsonContent) ?? new List<string>();
+
+        if (!countries.Any())
+        {
+            TempData["ErrorMessage"] = "The list of countries is empty. Please check the data source.";
+            return RedirectToAction("Index", "Author");
+        }
+
         if (!ModelState.IsValid)
         {
-            string countriesJsonPath = Path.Combine(AppContext.BaseDirectory, "..", "..", "..", "..", "BookWebStore.Data", "Seed", "SeedData", "countries.json");
-            string jsonContent = await System.IO.File.ReadAllTextAsync(countriesJsonPath);
-            List<string>? countries = JsonSerializer.Deserialize<List<string>>(jsonContent) ?? new List<string>();
-
-            if (!countries.Any())
-            {
-                TempData["ErrorMessage"] = "The list of countries is empty. Please check the data source.";
-                return RedirectToAction("Index", "Author");
-            }
-
             editAuthor.NationalityOptions = countries;
             return View(editAuthor);
         }
 
-        bool authorExists = await _context.Authors
-            .AnyAsync(a => a.Id != editAuthor.Id && a.Name.ToLower() == editAuthor.Name.ToLower() && !a.IsDeleted);
+        if (editAuthor.BirthDate != null)
+        {
+            editAuthor.ParsedBirthDate = DateOnly.ParseExact(editAuthor.BirthDate, "yyyy-MM-dd", CultureInfo.InvariantCulture);
+        }
+
+        bool authorExists = await _authorService.AuthorNameExistsAsync(editAuthor.Name, editAuthor.Id);
 
         if (authorExists)
         {
-            ModelState.AddModelError("Name", "An author with this name already exists.");
+            ModelState.AddModelError(nameof(editAuthor.Name), "An author with this name already exists.");
+            editAuthor.NationalityOptions = countries;
             return View(editAuthor);
         }
 
-        Author? author = _context.Authors
-            .FirstOrDefault(a => a.Id == editAuthor.Id && a.Name.ToLower() == editAuthor.Name.ToLower() && !a.IsDeleted);
-
-        if (author == null)
-        {
-            return NotFound();
-        }
-
-        author.Name = editAuthor.Name;
-        author.Biography = editAuthor.Biography;
-        author.Nationality = editAuthor.Nationality;
-        author.ImageUrl = editAuthor.ImageUrl;
-        author.BirthDate = editAuthor.BirthDate;
-        author.Website = editAuthor.Website;
-
-        await _context.SaveChangesAsync();
+        await _authorService.EditAuthorAsync(editAuthor, getAuthor);
         return RedirectToAction("Index", "Author");
     }
 
@@ -214,18 +211,18 @@ public class AuthorController : Controller
     [Authorize(Roles = "Administrator")]
     public async Task<IActionResult> Delete(Guid id)
     {
-        Author? author = await _context.Authors
-            .FirstOrDefaultAsync(a => a.Id == id && !a.IsDeleted);
+        Author? getAuthor = await _authorService.GetAuthorByIdAsync(id);
 
-        if (author == null)
+        if (getAuthor == null)
         {
-            return NotFound();
+            TempData["ErrorMessage"] = "The author you want to delete could not be found.";
+            return RedirectToAction("Index", "Author");
         }
 
         AuthorDeleteViewModel deleteAuthor = new AuthorDeleteViewModel()
         {
-            Id = author.Id,
-            Name = author.Name
+            Id = getAuthor.Id,
+            Name = getAuthor.Name
         };
 
         return View(deleteAuthor);
@@ -235,26 +232,24 @@ public class AuthorController : Controller
     [Authorize(Roles = "Administrator")]
     public async Task<IActionResult> Delete(AuthorDeleteViewModel deleteAuthor)
     {
-        Author? author = await _context.Authors
-            .FirstOrDefaultAsync(a => a.Id == deleteAuthor.Id && !a.IsDeleted);
+        Author? getAuthor = await _authorService.GetAuthorByIdAsync(deleteAuthor.Id);
 
-        if (author == null)
+        if (getAuthor == null)
         {
-            return NotFound();
-        }
-
-        //Check if the author still has books in stock
-        bool hasBooksInStock = await _context.Books
-            .AnyAsync(b => b.AuthorId == author.Id && !b.IsDeleted && b.Stock > 0);
-
-        if (hasBooksInStock)
-        {
-            TempData["ErrorMessage"] = "This author cannot be deleted because there are still books in stock.";
+            TempData["ErrorMessage"] = "The author you want to delete could not be found.";
             return RedirectToAction("Index", "Author");
         }
 
-        author.IsDeleted = true;
-        await _context.SaveChangesAsync();
+        bool hasBooksInStock = await _bookService.HasBooksInStockByAuthorIdAsync(deleteAuthor.Id);
+
+        if (hasBooksInStock)
+        {
+            TempData["ErrorMessage"] = $"Аuthor {deleteAuthor.Name} cannot be deleted because there are still books in stock.";
+            return RedirectToAction("Index", "Author");
+        }
+
+        await _authorService.DeleteAuthorAsync(deleteAuthor, getAuthor);
+
         return RedirectToAction("Index", "Author");
     }
 }

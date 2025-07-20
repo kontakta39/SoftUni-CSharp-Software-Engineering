@@ -23,9 +23,8 @@
             <div class="form-floating mb-3">
                 <select asp-for="Nationality" class="form-select" aria-required="true"
                         asp-items="@(new SelectList(Model.NationalityOptions, Model.Nationality))">
-                    <option value="" disabled selected hidden>Select Nationality</option>
                 </select>
-                <label asp-for="Nationality">Nationality</label>
+                <label asp-for="Nationality">Nationality*</label>
                 <span asp-validation-for="Nationality" class="text-danger"></span>
             </div>
 

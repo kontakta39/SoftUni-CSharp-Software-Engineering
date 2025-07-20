@@ -47,9 +47,10 @@ else
                         <a asp-controller="Author" asp-action="Details" asp-route-id="@author.Id" class="text-decoration-none text-reset flex-grow-1 d-flex flex-column">
                             <div class="p-3" style="padding-bottom: 0;">
                                 <img src="@(!string.IsNullOrEmpty(author.ImageUrl) ? author.ImageUrl : Url.Content("~/img/author-no-image-available.jpg"))"
-                                        class="img-fluid rounded mx-auto d-block"
-                                        style="max-height: 300px; object-fit: contain;"
-                                        alt="Author Image Not Available" />
+                                    class="img-fluid rounded mx-auto d-block"
+                                    style="max-height: 300px; object-fit: contain;"
+                                    alt="Author Image Not Available"
+                                    onerror="this.onerror=null; this.src='@Url.Content("~/img/author-no-image-available.jpg")';" />
                             </div>
 
                             <div class="card-body text-center" style="padding-top: 0.25rem; padding-bottom: 0;">
