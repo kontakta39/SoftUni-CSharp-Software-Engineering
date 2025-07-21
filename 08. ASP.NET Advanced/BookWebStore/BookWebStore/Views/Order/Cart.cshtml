@@ -48,8 +48,9 @@ else
                         <div class="col-md-2">
                             <a asp-controller="Book" asp-action="Details" asp-route-id="@order.BookId" target="_blank">
                                 <img src="@(string.IsNullOrEmpty(order.ImageUrl) ? Url.Content("~/img/book-no-cover-available.jpg") : order.ImageUrl)"
-                                     class="img-thumbnail shadow-sm"
-                                     style="max-width: 100px; height: auto;" alt="Book Cover" />
+                                    class="img-thumbnail shadow-sm"
+                                    style="max-width: 100px; height: auto;" alt="Book Image Not Available"
+                                    onerror="this.onerror=null; this.src='@Url.Content("~/img/book-no-cover-available.jpg")';" />
                             </a>
                         </div>
 
@@ -87,11 +88,11 @@ else
         <div class="card border shadow-sm bg-success bg-opacity-10">
             <div class="card-body py-3">
                 <div class="row justify-content-end align-items-center">
-                    <div class="col-md-3 text-end">
+                    <div class="col-md-4 text-end">
                         <h4 class="fw-bold total-price mb-0">
                             <i class="bi bi-cash-coin me-1"></i>
                             Total Price:
-                            <span class="text-primary fw-semibold">@($"{Model.Sum(p => p.ItemTotal):F2} lv.")</span>
+                            <span class="text-primary">@($"{Model.Sum(p => p.ItemTotal):F2} lv.")</span>
                         </h4>
                     </div>
                     <div class="col-md-3 text-end">

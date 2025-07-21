@@ -16,9 +16,9 @@ public class CompletedOrderViewModel
 
     public int Quantity { get; set; }
 
-    public decimal? Price { get; set; }
-
-    public decimal? TotalPrice { get; set; }
+    public decimal UnitPrice { get; set; }
 
     public bool IsReturned { get; set; }
+
+    public bool IsDeleted { get; set; }
 }

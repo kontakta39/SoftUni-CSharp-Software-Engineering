@@ -15,10 +15,10 @@ public class OrderCartViewModel
     public int Quantity { get; set; }
 
     [Column(TypeName = "decimal(18,2)")]
-    public decimal? UnitPrice { get; set; }
+    public decimal UnitPrice { get; set; }
 
     [Column(TypeName = "decimal(18,2)")]
-    public decimal ItemTotal => (UnitPrice ?? 0) * Quantity;
+    public decimal ItemTotal => UnitPrice;
 
     public bool IsCompleted { get; set; }
 }

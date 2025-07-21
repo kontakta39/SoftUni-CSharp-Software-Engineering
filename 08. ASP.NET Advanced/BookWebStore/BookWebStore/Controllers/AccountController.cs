@@ -382,7 +382,7 @@ public class AccountController : Controller
                     Title = ob.Book.Title,
                     ImageUrl = ob.Book.ImageUrl!,
                     Quantity = ob.Quantity,
-                    Price = ob.Quantity * ob.UnitPrice,
+                    UnitPrice = ob.UnitPrice,
                     IsReturned = ob.IsReturned
                 })
                 .ToListAsync();

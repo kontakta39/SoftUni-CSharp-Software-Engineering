@@ -1,49 +1,48 @@
-﻿using BookWebStore.Data;
-using BookWebStore.Data.Models;
+﻿using BookWebStore.Data.Models;
+using BookWebStore.Services.Interfaces;
 using BookWebStore.ViewModels;
 using Microsoft.AspNetCore.Authorization;
-using Microsoft.AspNetCore.Identity;
 using Microsoft.AspNetCore.Mvc;
-using Microsoft.EntityFrameworkCore;
 
 namespace BookWebStore;
 
 public class OrderController : Controller
 {
-    private readonly BookStoreDbContext _context;
-    private readonly UserManager<ApplicationUser> _userManager;
+    private readonly IOrderService _orderService;
+    private readonly IAccountService _accountService;
+    private readonly IBookService _bookService;
 
-    public OrderController(BookStoreDbContext context, UserManager<ApplicationUser> userManager)
+    public OrderController(IOrderService orderService, IAccountService accountService, IBookService bookService)
     {
-        _context = context;
-        _userManager = userManager;
+        _orderService = orderService;
+        _accountService = accountService;
+        _bookService = bookService;
     }
 
     [HttpGet]
     [Authorize]
     public async Task<IActionResult> Cart()
     {
-        ApplicationUser? user = await _userManager.GetUserAsync(User);
+        ApplicationUser? user = await _accountService.GetCurrentUserAsync(User);
 
         if (user == null)
         {
             return NotFound();
         }
 
-        List<OrderCartViewModel> cart = await _context.OrdersBooks
-        .Where(ob => ob.Order.BuyerId == user.Id && !ob.Order.IsCompleted)
-        .Include(ob => ob.Order)
-        .Include(ob => ob.Book)
-        .Select(ob => new OrderCartViewModel
-        {
-            OrderId = ob.OrderId,
-            BookId = ob.BookId,
-            BookTitle = ob.Book.Title,
-            ImageUrl = ob.Book.ImageUrl,
-            Quantity = ob.Quantity,
-            UnitPrice = ob.UnitPrice
-        })
-        .ToListAsync();
+        List<OrderBook> orderBooks = await _orderService.GetCartItemsAsync(user);
+
+        List<OrderCartViewModel> cart = orderBooks
+            .Select(ob => new OrderCartViewModel
+            {
+                OrderId = ob.OrderId,
+                BookId = ob.BookId,
+                BookTitle = ob.Book.Title,
+                ImageUrl = ob.Book.ImageUrl,
+                Quantity = ob.Quantity,
+                UnitPrice = ob.UnitPrice
+            })
+            .ToList();
 
         return View(cart);
     }
@@ -52,17 +51,23 @@ public class OrderController : Controller
     [Authorize]
     public async Task<IActionResult> AddToCart(Guid bookId)
     {
-        ApplicationUser? user = await _userManager.GetUserAsync(User);
+        ApplicationUser? user = await _accountService.GetCurrentUserAsync(User);
 
         if (user == null)
         {
             return NotFound();
         }
 
-        int quantity = 1;
+        //Get the book that should be added to the cart
+        Book? getBook = await _bookService.GetBookByIdAsync(bookId);
 
-        Order? order = await _context.Orders
-            .FirstOrDefaultAsync(o => o.BuyerId == user.Id && !o.IsCompleted);
+        if (getBook == null)
+        {
+            TempData["ErrorMessage"] = "The book you want to add to the cart does not exist.";
+            return RedirectToAction("Index", "Book");
+        }
+
+        Order? order = await _orderService.GetUserCurrentOrderAsync(user.Id);
 
         if (order == null)
         {
@@ -73,58 +78,25 @@ public class OrderController : Controller
             List<int> digits = Enumerable.Range(1, 9).ToList();
             List<int> shuffledDigits = digits.OrderBy(x => random.Next()).ToList();
 
-            // Concatenate the digits into a single number
+            //Concatenate the digits into a single number
             string randomNumber = "#" + string.Join("", shuffledDigits);
 
-            order = new Order
-            {
-                BuyerId = user.Id,
-                OrderNumber = randomNumber,
-                TotalPrice = 0
-            };
-
-            _context.Orders.Add(order);
-        }
-
-        Book? book = await _context.Books
-            .FirstOrDefaultAsync(b => b.Id == bookId && !b.IsDeleted);
-
-        if (book == null)
-        {
-            TempData["ErrorMessage"] = "The book is out of stock.";
-            return RedirectToAction("Index", "Book");
+            order = await _orderService.CreateNewOrderAsync(user.Id, randomNumber);
         }
 
         //Check if the book is not already added to the Cart
-        OrderBook? existingOrderBook = await _context.OrdersBooks
-            .FirstOrDefaultAsync(ob => ob.OrderId == order.Id && ob.BookId == book.Id);
+        OrderBook? orderBook = await _orderService.GetOrderBookAsync(order!.Id, getBook.Id);
 
-        if (existingOrderBook != null)
+        if (orderBook != null)
         {
             TempData["ErrorMessage"] = "The book has already been added to the cart.";
             return RedirectToAction("Cart", "Order");
         }
-        else
-        {
-            order.OrdersBooks.Add(new OrderBook
-            {
-                OrderId = order.Id,
-                BookId = book.Id,
-                Quantity = quantity,
-                UnitPrice = book.Price
-            });
 
-            //Calculating the total price
-            order.TotalPrice += book.Price;
-            book.Stock -= quantity;
+        orderBook = await _orderService.AddBookToOrderAsync(order, getBook);
+        await _orderService.UpdateQuantityAsync(orderBook, 1);
+        await _orderService.RecalculatePricesAsync(order, orderBook);
 
-            if (book.Stock <= 0)
-            {
-                book.IsDeleted = true;
-            }
-        }
-
-        await _context.SaveChangesAsync();
         return RedirectToAction("Cart", "Order");
     }
 
@@ -132,54 +104,52 @@ public class OrderController : Controller
     [Authorize]
     public async Task<IActionResult> UpdateQuantity(Guid orderId, Guid bookId, int quantity)
     {
+        ApplicationUser? user = await _accountService.GetCurrentUserAsync(User);
+
+        if (user == null)
+        {
+            return NotFound();
+        }
+
         if (quantity < 1)
         {
             return Json(new { success = false, error = "Quantity must be at least 1.", resetTo = 1 });
         }
 
-        List<OrderBook>? orderBooks = await _context.OrdersBooks
-            .Include(ob => ob.Book)
-            .Include(ob => ob.Order)
-            .Where(ob => ob.OrderId == orderId && !ob.Order.IsCompleted)
-            .ToListAsync();
+        Order? order = await _orderService.GetUserCurrentOrderAsync(user.Id, orderId);
 
-        OrderBook? orderBook = orderBooks.FirstOrDefault(ob => ob.BookId == bookId);
+        if (order == null)
+        {
+            return Json(new { success = false, error = "The order does not exist." });
+        }
+
+        OrderBook? orderBook = await _orderService.GetOrderBookAsync(orderId, bookId);
 
         if (orderBook == null)
         {
-            return Json(new { success = false, error = "Item not found." });
+            return Json(new { success = false, error = "Book not found." });
         }
 
-        int currentQuantityInCart = orderBook.Quantity;
-        //Restoring the full available stock
-        int stockBeforeUpdate = orderBook.Book.Stock + currentQuantityInCart;
-        int newStock = stockBeforeUpdate - quantity;
+        int availableStock = orderBook.Book.Stock + orderBook.Quantity; 
 
-        if (newStock < 0)
+        if (quantity > availableStock)
         {
             return Json(new
             {
                 success = false,
-                error = $"Only {stockBeforeUpdate} book{(stockBeforeUpdate == 1 ? "" : "s")} in stock.",
-                resetTo = stockBeforeUpdate
+                error = $"Only {availableStock} book{(availableStock == 1 ? "" : "s")} available in stock.",
+                resetTo = orderBook.Quantity
             });
         }
 
-        //Update availability
-        orderBook.Book.Stock = newStock;
-        orderBook.Book.IsDeleted = orderBook.Book.Stock == 0;
-
-        orderBook.Quantity = quantity;
-        decimal itemTotal = orderBook.Quantity * orderBook.UnitPrice;
-        orderBook.Order.TotalPrice = orderBooks.Sum(ob => ob.Quantity * ob.UnitPrice);
-
-        await _context.SaveChangesAsync();
+        await _orderService.UpdateQuantityAsync(orderBook, quantity);
+        await _orderService.RecalculatePricesAsync(order, orderBook);
 
         return Json(new
         {
             success = true,
-            itemTotal = itemTotal.ToString("F2"),
-            totalPrice = orderBook.Order.TotalPrice.ToString("F2")
+            itemTotal = orderBook.UnitPrice.ToString("F2"),
+            totalPrice = order.TotalPrice.ToString("F2")
         });
     }
 
@@ -187,64 +157,14 @@ public class OrderController : Controller
     [Authorize]
     public async Task<IActionResult> RemoveFromCart(Guid orderId, Guid bookId)
     {
-        ApplicationUser? user = await _userManager.GetUserAsync(User);
+        ApplicationUser? user = await _accountService.GetCurrentUserAsync(User);
 
         if (user == null)
         {
             return NotFound();
         }
 
-        Order? currentOrder = await _context.Orders
-            .FirstOrDefaultAsync(o => o.BuyerId == user.Id && o.Id == orderId && !o.IsCompleted);
-
-        if (currentOrder == null)
-        {
-            TempData["ErrorMessage"] = "The order does not exist.";
-            return RedirectToAction("Cart", "Order");
-        }
-
-        OrderBook? orderBookToBeDeleted = await _context.OrdersBooks
-            .Include(ob => ob.Book)
-            .FirstOrDefaultAsync(ob => ob.OrderId == currentOrder.Id && ob.BookId == bookId);
-
-        if (orderBookToBeDeleted == null)
-        {
-            TempData["ErrorMessage"] = "The book does not exist in the order.";
-            return RedirectToAction("Cart", "Order");
-        }
-
-        currentOrder.TotalPrice -= orderBookToBeDeleted.Quantity * orderBookToBeDeleted.UnitPrice;
-        orderBookToBeDeleted.Book.Stock += orderBookToBeDeleted.Quantity;
-
-        if (orderBookToBeDeleted.Book.Stock >= 1)
-        {
-            orderBookToBeDeleted.Book.IsDeleted = false;
-        }
-
-        _context.OrdersBooks.Remove(orderBookToBeDeleted);
-
-        if (currentOrder.TotalPrice == 0)
-        {
-            _context.Orders.Remove(currentOrder);
-        }
-
-        await _context.SaveChangesAsync();
-        return RedirectToAction("Cart", "Order");
-    }
-
-    [HttpPost]
-    [Authorize]
-    public async Task<IActionResult> CompleteOrder(Guid orderId)
-    {
-        ApplicationUser? user = await _userManager.GetUserAsync(User);
-
-        if (user == null)
-        {
-            return NotFound();
-        }
-
-        Order? order = await _context.Orders
-            .FirstOrDefaultAsync(o => o.BuyerId == user.Id && o.Id == orderId && !o.IsCompleted);
+        Order? order = await _orderService.GetUserCurrentOrderAsync(user.Id, orderId);
 
         if (order == null)
         {
@@ -252,11 +172,43 @@ public class OrderController : Controller
             return RedirectToAction("Cart", "Order");
         }
 
-        order.IsCompleted = true;
+        OrderBook? orderBook = await _orderService.GetOrderBookAsync(order.Id, bookId);
+
+        if (orderBook == null)
+        {
+            TempData["ErrorMessage"] = "The book does not exist in the order.";
+            return RedirectToAction("Cart", "Order");
+        }
+
+        await _orderService.UpdateQuantityAsync(orderBook);
+        await _orderService.RemoveFromCartAsync(order, orderBook);
+
+        return RedirectToAction("Cart", "Order");
+    }
+
+    [HttpPost]
+    [Authorize]
+    public async Task<IActionResult> CompleteOrder(Guid orderId)
+    {
+        ApplicationUser? user = await _accountService.GetCurrentUserAsync(User);
+
+        if (user == null)
+        {
+            return NotFound();
+        }
+
+        Order? order = await _orderService.GetUserCurrentOrderAsync(user.Id, orderId);
+
+        if (order == null)
+        {
+            TempData["ErrorMessage"] = "The order does not exist.";
+            return RedirectToAction("Cart", "Order");
+        }
+
+        await _orderService.CompleteOrderAsync(order);
+
         TempData["OrderNumber"] = order.OrderNumber;
         TempData["RedirectFromCompleteOrder"] = true;
-
-        await _context.SaveChangesAsync();
         return RedirectToAction("OrderSuccess", "Order");
     }
 
@@ -278,40 +230,36 @@ public class OrderController : Controller
     [Authorize]
     public async Task<IActionResult> ReturnBook(Guid orderId, Guid bookId)
     {
-        ApplicationUser? user = await _userManager.GetUserAsync(User);
+        ApplicationUser? user = await _accountService.GetCurrentUserAsync(User);
 
         if (user == null)
         {
             return NotFound();
         }
 
-        Order? finishedOrder = await _context.Orders
-            .FirstOrDefaultAsync(o => o.BuyerId == user.Id && o.Id == orderId && o.IsCompleted);
+        Order? order = await _orderService.FindCompletedOrderAsync(user.Id, orderId);
 
-        if (finishedOrder == null)
+        if (order == null)
         {
             TempData["ErrorMessage"] = "The order does not exist.";
             return RedirectToAction("Manage", "Account", new { page = "Orders" });
         }
 
-        OrderBook? orderBookToBeReturned = await _context.OrdersBooks
-            .Include(ob => ob.Order)
-            .Include(ob => ob.Book)
-            .FirstOrDefaultAsync(ob => ob.OrderId == finishedOrder.Id && ob.BookId == bookId && !ob.IsReturned);
+        OrderBook? orderBook = await _orderService.GetOrderBookAsync(order.Id, bookId, false);
 
-        if (orderBookToBeReturned == null)
+        if (orderBook == null)
         {
-            TempData["ErrorMessage"] = "The book does not exist in the order.";
+            TempData["ErrorMessage"] = "This book has already been returned.";
             return RedirectToAction("Manage", "Account", new { page = "Orders" });
         }
 
         OrderReturnBookViewModel returnBook = new OrderReturnBookViewModel()
         {
-            OrderId = orderBookToBeReturned.OrderId,
-            BookId = orderBookToBeReturned.BookId,
-            OrderNumber = orderBookToBeReturned.Order.OrderNumber,
-            OrderDate = orderBookToBeReturned.Order.OrderDate,
-            Title = orderBookToBeReturned.Book.Title
+            OrderId = orderBook.OrderId,
+            BookId = orderBook.BookId,
+            OrderNumber = orderBook.Order.OrderNumber,
+            OrderDate = orderBook.Order.OrderDate,
+            Title = orderBook.Book.Title
         };
 
         return View(returnBook);
@@ -321,54 +269,44 @@ public class OrderController : Controller
     [Authorize]
     public async Task<IActionResult> ReturnBook(OrderReturnBookViewModel returnBook)
     {
-        ApplicationUser? user = await _userManager.GetUserAsync(User);
+        ApplicationUser? user = await _accountService.GetCurrentUserAsync(User);
 
         if (user == null)
         {
             return NotFound();
         }
 
-        Order? finishedOrder = await _context.Orders
-            .FirstOrDefaultAsync(o => o.BuyerId == user.Id && o.Id == returnBook.OrderId && o.IsCompleted);
+        Order? order = await _orderService.FindCompletedOrderAsync(user.Id, returnBook.OrderId);
 
-        if (finishedOrder == null)
+        if (order == null)
         {
             TempData["ErrorMessage"] = "The order does not exist.";
             return RedirectToAction("Manage", "Account", new { page = "Orders" });
         }
 
         DateOnly currentDate = DateOnly.FromDateTime(DateTime.Now);
-        bool hasDateExpired = currentDate > finishedOrder.OrderDate.AddDays(30);
+        bool hasDateExpired = currentDate > order.OrderDate.AddDays(30);
 
         if (hasDateExpired)
         {
             TempData["RedirectFromReturnBook"] = true;
+            return RedirectToAction("ReturnExpired", "Order");
+        }
+
+        OrderBook? orderBook = await _orderService.GetOrderBookAsync(order.Id, returnBook.BookId, false);
+
+        if (orderBook == null)
+        {
+            TempData["ErrorMessage"] = "This book has already been returned.";
             return RedirectToAction("Manage", "Account", new { page = "Orders" });
         }
 
-        OrderBook? orderBookToBeReturned = await _context.OrdersBooks
-            .Include(ob => ob.Book)
-            .FirstOrDefaultAsync(ob => ob.OrderId == returnBook.OrderId && ob.BookId == returnBook.BookId && !ob.IsReturned);
+        await _orderService.UpdateQuantityAsync(orderBook);
+        await _orderService.ReturnBookAsync(order, orderBook);
 
-        if (orderBookToBeReturned == null)
-        {
-            TempData["ErrorMessage"] = "The book does not exist in the order.";
-            return RedirectToAction("OrdersList", "Order");
-        }
-
-        orderBookToBeReturned.Book.Stock += orderBookToBeReturned.Quantity;
-
-        if (orderBookToBeReturned.Book.Stock >= 1)
-        {
-            orderBookToBeReturned.Book.IsDeleted = false;
-        }
-
-        orderBookToBeReturned.IsReturned = true;
-        TempData["BookTitle"] = orderBookToBeReturned.Book.Title;
-        TempData["OrderNumber"] = orderBookToBeReturned.Order.OrderNumber;
+        TempData["BookTitle"] = orderBook.Book.Title;
+        TempData["OrderNumber"] = order.OrderNumber;
         TempData["RedirectFromReturnBook"] = true;
-
-        await _context.SaveChangesAsync();
         return RedirectToAction("ReturnSuccess", "Order");
     }
 

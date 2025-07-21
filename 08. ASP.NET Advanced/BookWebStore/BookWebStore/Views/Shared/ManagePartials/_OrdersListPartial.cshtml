@@ -37,10 +37,10 @@ else
     <div class="@(shouldScroll ? "overflow-auto max-vh-75 p-2" : "")">
         @foreach (var orderGroup in ordersGrouped)
         {
-            var orderBookInfo = orderGroup.First();
+            CompletedOrderViewModel orderBookInfo = orderGroup.First();
             DateOnly currentDate = DateOnly.FromDateTime(DateTime.Now);
             bool hasDateExpired = currentDate > orderBookInfo.OrderDate.AddDays(30);
-            decimal? totalPrice = orderGroup.Sum(ob => ob.Price);
+            decimal totalPrice = orderGroup.Sum(ob => ob.UnitPrice);
 
             <div class="card shadow-sm mb-5 border-1">
                 <div class="card-header bg-light border-bottom">
@@ -62,9 +62,10 @@ else
                             <div class="col-md-3 text-center">
                                 <a asp-controller="Book" asp-action="Details" asp-route-id="@orderBook.BookId">
                                     <img src="@(!string.IsNullOrEmpty(orderBook.ImageUrl) ? orderBook.ImageUrl : Url.Content("~/img/book-no-cover-available.jpg"))"
-                                         class="img-fluid rounded shadow-sm"
-                                         style="max-height: 100px;"
-                                         alt="Book Cover" />
+                                        class="img-fluid rounded shadow-sm"
+                                        style="max-height: 100px;"
+                                        alt="Book Image Not Available"
+                                        onerror="this.onerror=null; this.src='@Url.Content("~/img/book-no-image-available.jpg")';" />
                                 </a>
                             </div>
                             <div class="col-md-3">
@@ -78,7 +79,7 @@ else
                             </div>
                             <div class="col-md-3 text-center">
                                 <span class="fw-semibold fs-5 bg-secondary text-white rounded-pill px-3 py-1 d-inline-block">
-                                    @($"{orderBook.Price:F2} lv.")
+                                    @($"{orderBook.UnitPrice:F2} lv.")
                                 </span>
                             </div>
                             <div class="col-md-2 text-end">
@@ -87,17 +88,26 @@ else
                                     <a asp-controller="Order" asp-action="ReturnBook"
                                        asp-route-orderId="@orderBook.OrderId"
                                        asp-route-bookId="@orderBook.BookId"
-                                       class="btn btn-outline-danger">
+                                       class="btn btn-outline-primary">
                                         <i class="bi bi-arrow-counterclockwise me-1"></i>Return
                                     </a>
                                 }
                                 else
                                 {
-                                    <a asp-controller="Order" asp-action="AddToCart"
-                                       asp-route-bookId="@orderBook.BookId"
-                                       class="btn btn-outline-success">
-                                        <i class="bi bi-cart-plus me-1"></i>Buy again
-                                    </a>
+                                    if (orderBook.IsDeleted)
+                                    {
+                                        <span class="text-danger bg-light border border-danger rounded fw-semibold p-2">
+                                            <i class="bi bi-x-circle me-1"></i> Out of stock
+                                        </span>
+                                    }
+                                    else
+                                    {
+                                        <a asp-controller="Order" asp-action="AddToCart"
+                                           asp-route-bookId="@orderBook.BookId"
+                                           class="btn btn-outline-success">
+                                            <i class="bi bi-cart-plus me-1"></i>Buy again
+                                        </a>
+                                    }
                                 }
                             </div>
                         </div>

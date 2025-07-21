@@ -52,9 +52,11 @@ public class Program
         builder.Services.AddControllersWithViews();
         builder.Services.AddRazorPages();
 
+        builder.Services.AddScoped<IAccountService, AccountService>();
         builder.Services.AddScoped<IGenreService, GenreService>();
         builder.Services.AddScoped<IAuthorService, AuthorService>();
         builder.Services.AddScoped<IBookService, BookService>();
+        builder.Services.AddScoped<IOrderService, OrderService>();
         builder.Services.AddScoped<IReviewService, ReviewService>();
 
         WebApplication? app = builder.Build();

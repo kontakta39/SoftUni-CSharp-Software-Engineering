@@ -1,4 +1,4 @@
-﻿@model List<(ApplicationUser User, IList<string> Roles)>
+﻿@model List<(ApplicationUser User, string Role)>
 
 @{
     ViewData["Title"] = "Manage users";
@@ -34,16 +34,15 @@ else
                             <td>@($"{userRole.User.FirstName} {userRole.User.LastName}")</td>
                             <td>
                                 @{
-                                    var role = userRole.Roles.FirstOrDefault();
-                                    var badgeClass = role == "Administrator" ? "bg-primary text-white"
-                                    : role == "Moderator" ? "bg-secondary text-white"
-                                    : role == "Guest" ? "bg-warning text-dark"
+                                    var badgeClass = userRole.Role == "Administrator" ? "bg-primary text-white"
+                                    : userRole.Role == "Moderator" ? "bg-secondary text-white"
+                                    : userRole.Role == "Guest" ? "bg-warning text-dark"
                                     : "";
                                 }
-                                @if (!string.IsNullOrEmpty(role))
+                                @if (!string.IsNullOrEmpty(userRole.Role))
                                 {
-                                    <span class="badge @badgeClass px-3 py-2 rounded-pill">
-                                        @string.Join(", ", userRole.Roles)
+                                    <span class="@badgeClass btn btn-sm fw-semibold px-3 rounded-pill shadow-sm">
+                                        @userRole.Role
                                     </span>
                                 }
                                 else
@@ -54,22 +53,21 @@ else
                             <td>
                                 <form asp-action="ChangeRole" asp-controller="Account" method="post" class="d-flex flex-wrap justify-content-center gap-2">
                                     <input type="hidden" name="userId" value="@userRole.User.Id" />
-
-                                    @if (!userRole.Roles.Contains("Administrator"))
+                                    @if (!userRole.Role.Contains("Administrator"))
                                     {
                                         <button type="submit" name="role" value="Administrator"
                                                 class="btn btn-sm btn-primary rounded-pill px-3 shadow-sm">
                                             <i class="bi bi-shield-lock me-1"></i>Administrator
                                         </button>
                                     }
-                                    @if (!userRole.Roles.Contains("Moderator"))
+                                    @if (!userRole.Role.Contains("Moderator"))
                                     {
                                         <button type="submit" name="role" value="Moderator"
                                                 class="btn btn-sm btn-secondary rounded-pill px-3 shadow-sm">
                                             <i class="bi bi-person-badge me-1"></i>Moderator
                                         </button>
                                     }
-                                    @if (!userRole.Roles.Contains("Guest"))
+                                    @if (!userRole.Role.Contains("Guest"))
                                     {
                                         <button type="submit" name="role" value="Guest"
                                                 class="btn btn-sm btn-warning rounded-pill px-3 shadow-sm text-dark">

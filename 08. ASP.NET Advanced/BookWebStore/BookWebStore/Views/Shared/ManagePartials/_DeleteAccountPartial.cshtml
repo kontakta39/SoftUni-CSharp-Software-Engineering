@@ -1,4 +1,5 @@
-﻿@{
+﻿@using Microsoft.AspNetCore.Mvc.ModelBinding
+@{
     ViewData["Title"] = "Delete account";
 }
 
@@ -7,6 +8,23 @@
 
 <div class="row">
     <div class="col-md-10">
+        @{
+            List<ModelError> еrrors = ViewData.ModelState
+            .Where(e => string.IsNullOrEmpty(e.Key))
+            .SelectMany(e => e.Value!.Errors)
+            .ToList();
+        }
+        @if (еrrors.Any())
+        {
+            <div id="errorAlert" class="alert alert-danger text-center">
+                @foreach (var error in еrrors)
+                {
+                    <p class="m-0">@error.ErrorMessage</p>
+                }
+            </div>
+            <script>setTimeout(() => { const e=document.getElementById('errorAlert'); if(e){ e.style.transition='opacity 0.5s'; e.style.opacity='0'; setTimeout(() => e.remove(), 500); } }, 3000);</script>
+        }
+
         <p>This page allows you to permanently delete your account and all associated personal data.<br /> 
             Once deleted, this action cannot be undone.
         </p>

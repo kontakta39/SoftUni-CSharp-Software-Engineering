@@ -9,7 +9,7 @@
 <hr />
 
 <div class="row">
-    <div class="col-md-6">
+    <div class="col-md-7">
         <form asp-action="UpdateProfile" method="post">
             <div class="form-floating mb-3">
                 <input asp-for="@Model.Username" class="form-control" disabled />
@@ -17,9 +17,9 @@
                 <input type="hidden" name="Username" value="@Model.Username" />
             </div>
             <div class="form-floating mb-3">
-                <input asp-for="@Model.PhoneNumber" class="form-control" placeholder="Please enter your phone number." />
-                <label asp-for="@Model.PhoneNumber" class="form-label">Phone number</label>
-                <span asp-validation-for="@Model.PhoneNumber" class="text-danger"></span>
+                <input asp-for="@Model.PhoneNumber" class="form-control" disabled />
+                <label asp-for="@Model.PhoneNumber" class="form-label">Current phone number</label>
+                <input type="hidden" name="CurrentPhoneNumber" value="@Model.PhoneNumber" />
             </div>
             <button type="submit" class="w-100 btn btn-lg btn-primary">Save</button>
         </form>

@@ -5,14 +5,15 @@
     quantityInputs.forEach(function (input) {
         input.defaultValue = input.value;
 
-        input.addEventListener('change', async function () {
+        input.addEventListener('input', debounce(async function () {
             const newQuantity = parseInt(this.value);
             const row = this.closest('.row');
             const orderId = row.querySelector('.order-id')?.value;
             const bookId = row.querySelector('.book-id')?.value;
 
-            if (!orderId || !bookId) {
-                showError("Something went wrong while updating the quantity. Please refresh the page and try again.");
+            if (!orderId || !bookId || isNaN(newQuantity) || newQuantity < 1) {
+                showError("Invalid quantity or missing order/book ID.");
+                this.value = this.defaultValue;
                 return;
             }
 
@@ -46,8 +47,16 @@
             } catch (error) {
                 showError("Unexpected error occurred. Please try again later.");
             }
-        });
+        }, 500)); // 500 ms debounce delay
     });
+
+    function debounce(func, delay) {
+        let timer;
+        return function (...args) {
+            clearTimeout(timer);
+            timer = setTimeout(() => func.apply(this, args), delay);
+        };
+    }
 
     function showError(message) {
         const alert = document.getElementById('errorAlert');
