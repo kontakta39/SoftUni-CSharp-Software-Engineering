@@ -3,6 +3,8 @@
 
 @{
     ViewData["Title"] = "Edit book";
+    decimal price = Model.Price < 1 ? 1m : (Model.Price > 200 ? 200m : Model.Price);
+    string formattedPrice = price.ToString("0.00", System.Globalization.CultureInfo.InvariantCulture);
 }
 
 <div class="d-flex justify-content-center align-items-center">
@@ -36,9 +38,8 @@
                 <div class="form-floating mb-3">
                     <select asp-for="AuthorId" class="form-select" aria-required="true"
                             asp-items="@(new SelectList(Model.Authors, "Id", "Name", Model.AuthorId))">
-                        <option value="" disabled selected hidden>Select Author</option>
                     </select>
-                    <label asp-for="AuthorId">Author</label>
+                    <label asp-for="AuthorId">Author*</label>
                     <span asp-validation-for="AuthorId" class="text-danger"></span>
                 </div>
             }
@@ -57,16 +58,8 @@
                 <div class="form-floating mb-3">
                     <select asp-for="GenreId" class="form-select" aria-required="true" 
                             asp-items="@(new SelectList(Model.Genres, "Id", "Name", Model.GenreId))">
-                        @if (!Model.GenreId.HasValue)
-                        {
-                            <option value="" disabled selected>Select Genre</option>
-                        }
-                        else
-                        {
-                            <option value="" disabled>Select Genre</option>
-                        }
                     </select>
-                    <label asp-for="GenreId">Genre</label>
+                    <label asp-for="GenreId">Genre*</label>
                     <span asp-validation-for="GenreId" class="text-danger"></span>
                 </div>
             }
@@ -95,7 +88,8 @@
             {
                 <div class="form-floating mb-3">
                     <input asp-for="ReleaseYear"
-                       class="form-control" type="number" step="1" min="1000" max="2025" />
+                       class="form-control" type="number" step="1" min="1000" max="2024"
+                       value="@(Model.ReleaseYear < 1000 ? 1000 : (Model.ReleaseYear > 2024 ? 2024 : Model.ReleaseYear))" />
                     <label asp-for="ReleaseYear">Release Year*</label>
                     <span asp-validation-for="ReleaseYear" class="text-danger"></span>
                 </div>
@@ -113,7 +107,8 @@
             {
                 <div class="form-floating mb-3">
                     <input asp-for="PagesNumber"
-                            class="form-control" type="number" step="1" min="50" max="1000" />
+                            class="form-control" type="number" step="1" min="50" max="1000"
+                            value="@(Model.PagesNumber < 50 ? 50 : (Model.PagesNumber > 1000 ? 1000 : Model.PagesNumber))" />
                     <label asp-for="PagesNumber">Pages Number*</label>
                     <span asp-validation-for="PagesNumber" class="text-danger"></span>
                 </div>
@@ -129,14 +124,15 @@
 
             <div class="form-floating mb-3">
                 <input asp-for="Price"
-                       class="form-control" type="number" step="0.01" min="1" max="200" />
+                       class="form-control" type="number" step="0.01" min="1" max="200" value="@formattedPrice" />
                 <label asp-for="Price">Price*</label>
                 <span asp-validation-for="Price" class="text-danger"></span>
             </div>
 
             <div class="form-floating mb-3">
                 <input asp-for="Stock"
-                       class="form-control" type="number" step="1" min="1" max="100" />
+                       class="form-control" type="number" step="1" min="1" max="100"
+                       value="@(Model.Stock < 1 ? 1 : (Model.Stock > 100 ? 100 : Model.Stock))" />
                 <label asp-for="Stock">Stock*</label>
                 <span asp-validation-for="Stock" class="text-danger"></span>
             </div>

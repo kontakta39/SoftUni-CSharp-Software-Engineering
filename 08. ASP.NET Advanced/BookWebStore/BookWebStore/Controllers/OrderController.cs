@@ -152,8 +152,8 @@ public class OrderController : Controller
 
         int currentQuantityInCart = orderBook.Quantity;
         //Restoring the full available stock
-        int? stockBeforeUpdate = orderBook.Book.Stock + currentQuantityInCart;
-        int? newStock = stockBeforeUpdate - quantity;
+        int stockBeforeUpdate = orderBook.Book.Stock + currentQuantityInCart;
+        int newStock = stockBeforeUpdate - quantity;
 
         if (newStock < 0)
         {
@@ -170,7 +170,7 @@ public class OrderController : Controller
         orderBook.Book.IsDeleted = orderBook.Book.Stock == 0;
 
         orderBook.Quantity = quantity;
-        decimal? itemTotal = orderBook.Quantity * orderBook.UnitPrice;
+        decimal itemTotal = orderBook.Quantity * orderBook.UnitPrice;
         orderBook.Order.TotalPrice = orderBooks.Sum(ob => ob.Quantity * ob.UnitPrice);
 
         await _context.SaveChangesAsync();
@@ -178,8 +178,8 @@ public class OrderController : Controller
         return Json(new
         {
             success = true,
-            itemTotal = itemTotal?.ToString("F2"),
-            totalPrice = orderBook.Order.TotalPrice?.ToString("F2")
+            itemTotal = itemTotal.ToString("F2"),
+            totalPrice = orderBook.Order.TotalPrice.ToString("F2")
         });
     }
 

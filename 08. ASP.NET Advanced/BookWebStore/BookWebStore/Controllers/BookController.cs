@@ -1,35 +1,41 @@
-﻿using BookWebStore.Data;
-using BookWebStore.Data.Models;
+﻿using BookWebStore.Data.Models;
+using BookWebStore.Services.Interfaces;
 using BookWebStore.ViewModels;
 using Microsoft.AspNetCore.Authorization;
 using Microsoft.AspNetCore.Mvc;
-using Microsoft.EntityFrameworkCore;
 
 namespace BookWebStore.Controllers;
 
 public class BookController : Controller
 {
-    private readonly BookStoreDbContext _context;
+    private readonly IBookService _bookService;
+    private readonly IGenreService _genreService;
+    private readonly IAuthorService _authorService;
+    private readonly IReviewService _reviewService;
 
-    public BookController(BookStoreDbContext context)
+    public BookController(IBookService bookService, IGenreService genreService, IAuthorService authorService, IReviewService reviewService)
     {
-        _context = context;
+        _bookService = bookService;
+        _genreService = genreService;
+        _authorService = authorService;
+        _reviewService = reviewService;
     }
 
     [HttpGet]
     public async Task<IActionResult> Index()
     {
-        List<BookIndexViewModel> books = await _context.Books
-          .Where(b => !b.IsDeleted && b.Stock > 0)
-          .Select(b => new BookIndexViewModel()
-          {
-              Id = b.Id,
-              Title = b.Title,
-              ImageUrl = b.ImageUrl,
-              Author = b.Author.Name,
-              Genre = b.Genre.Name
-          })
-          .ToListAsync();
+        List<Book> getAllBooks = await _bookService.GetAllBooksAsync();
+
+        List<BookIndexViewModel> books = getAllBooks
+            .Select(b => new BookIndexViewModel()
+            {
+                Id = b.Id,
+                Title = b.Title,
+                ImageUrl = b.ImageUrl,
+                Author = b.Author.Name,
+                Genre = b.Genre.Name
+            })
+            .ToList();
 
         return View(books);
     }
@@ -38,27 +44,26 @@ public class BookController : Controller
     [Authorize(Roles = "Administrator")]
     public async Task<IActionResult> Add()
     {
-        BookAddViewModel addBook = new BookAddViewModel();
+        List<Genre> genres = await _genreService.GetAllGenresAsync();
+        List<Author> authors = await _authorService.GetAllAuthorsAsync();
 
-        addBook.Genres = await _context.Genres
-            .Where(g => !g.IsDeleted)
-            .ToListAsync();
-
-        addBook.Authors = await _context.Authors
-            .Where(a => !a.IsDeleted)
-            .ToListAsync();
-
-        if (!addBook.Genres.Any())
+        if (!genres.Any())
         {
             TempData["ErrorMessage"] = "The list of genres is empty.";
             return RedirectToAction("Index", "Book");
         }
 
-        if (!addBook.Authors.Any())
+        if (!authors.Any())
         {
             TempData["ErrorMessage"] = "The list of authors is empty.";
-            return RedirectToAction("Index", "Author");
+            return RedirectToAction("Index", "Book");
         }
+
+        BookAddViewModel addBook = new BookAddViewModel
+        {
+            Genres = genres,
+            Authors = authors
+        };
 
         return View(addBook);
     }
@@ -67,92 +72,73 @@ public class BookController : Controller
     [Authorize(Roles = "Administrator")]
     public async Task<IActionResult> Add(BookAddViewModel addBook)
     {
+        List<Genre> genres = await _genreService.GetAllGenresAsync();
+        List<Author> authors = await _authorService.GetAllAuthorsAsync();
+
+        if (!genres.Any())
+        {
+            TempData["ErrorMessage"] = "The list of genres is empty.";
+            return RedirectToAction("Index", "Book");
+        }
+
+        if (!authors.Any())
+        {
+            TempData["ErrorMessage"] = "The list of authors is empty.";
+            return RedirectToAction("Index", "Book");
+        }
+
         if (!ModelState.IsValid)
         {
-            addBook.Genres = await _context.Genres
-               .Where(g => !g.IsDeleted)
-               .ToListAsync();
-
-            addBook.Authors = await _context.Authors
-                .Where(a => !a.IsDeleted)
-                .ToListAsync();
-
-            if (!addBook.Genres.Any())
-            {
-                TempData["ErrorMessage"] = "The list of genres is empty.";
-                return RedirectToAction("Index", "Book");
-            }
-
-            if (!addBook.Authors.Any())
-            {
-                TempData["ErrorMessage"] = "The list of authors is empty.";
-                return RedirectToAction("Index", "Author");
-            }
+            addBook.Genres = genres;
+            addBook.Authors = authors;
 
             return View(addBook);
         }
 
-        bool bookExists = await _context.Books
-            .AnyAsync(a => a.Title.ToLower() == addBook.Title.ToLower() && !a.IsDeleted);
+        bool bookExists = await _bookService.BookNameExistsAsync(addBook.Title);
 
         if (bookExists)
         {
-            ModelState.AddModelError("Title", "A book with this title already exists.");
+            ModelState.AddModelError(nameof(addBook.Title), "A book with this name already exists.");
+            addBook.Genres = genres;
+            addBook.Authors = authors;
             return View(addBook);
         }
 
-        Book book = new Book()
-        {
-            Title = addBook.Title,
-            Publisher = addBook.Publisher,
-            ReleaseYear = addBook.ReleaseYear,
-            PagesNumber = addBook.PagesNumber,
-            ImageUrl = addBook.ImageUrl,
-            Price = addBook.Price,
-            Stock = addBook.Stock,
-            AuthorId = addBook.AuthorId,
-            GenreId = addBook.GenreId
-        };
-
-        await _context.Books.AddAsync(book);
-        await _context.SaveChangesAsync();
+        await _bookService.AddBookAsync(addBook);
         return RedirectToAction("Index", "Book");
     }
 
     [HttpGet]
     public async Task<IActionResult> Details(Guid id)
     {
-        Book? bookCheck = await _context.Books
-            .Include(b => b.Author)
-            .Include(b => b.Genre)
-            .FirstOrDefaultAsync(b => b.Id == id);
+        Book? getBook = await _bookService.GetBookByIdAsync(id);
 
-        if (bookCheck == null)
+        if (getBook == null)
         {
-            TempData["ErrorMessage"] = "Book was not found.";
+            TempData["ErrorMessage"] = "The book you are looking for does not exist.";
             return RedirectToAction("Index", "Book");
         }
 
+        List<Review> bookReviews = await _reviewService.GetBookReviewsAsync(getBook.Id);
+
         BookDetailsViewModel detailsBook = new BookDetailsViewModel()
         {
-            Id = bookCheck.Id,
-            Title = bookCheck.Title,
-            Publisher = bookCheck.Publisher,
-            ReleaseYear = bookCheck.ReleaseYear,
-            PagesNumber = bookCheck.PagesNumber,
-            ImageUrl = bookCheck.ImageUrl,
-            Price = bookCheck.Price,
-            Stock = bookCheck.Stock,
-            Author = bookCheck.Author.Name,
-            Genre = bookCheck.Genre.Name,
-            AuthorId = bookCheck.Author.Id,
-            IsDeleted = bookCheck.IsDeleted
+            Id = getBook.Id,
+            Title = getBook.Title,
+            Publisher = getBook.Publisher,
+            ReleaseYear = getBook.ReleaseYear,
+            PagesNumber = getBook.PagesNumber,
+            ImageUrl = getBook.ImageUrl,
+            Price = getBook.Price,
+            Stock = getBook.Stock,
+            Author = getBook.Author.Name,
+            Genre = getBook.Genre.Name,
+            AuthorId = getBook.Author.Id,
+            IsDeleted = getBook.IsDeleted
         };
 
-        detailsBook.Reviews = await _context.Reviews
-            .Where(r => r.BookId == id)
-            .Include(r => r.User)
-            .OrderByDescending(r => r.ReviewDate)
+        detailsBook.Reviews = bookReviews
             .Select(r => new ReviewIndexViewModel
             {
                 Id = r.Id,
@@ -165,7 +151,7 @@ public class BookController : Controller
                 Rating = r.Rating,
                 IsEdited = r.IsEdited
             })
-            .ToListAsync();
+            .ToList();
 
         return View(detailsBook);
     }
@@ -174,50 +160,44 @@ public class BookController : Controller
     [Authorize(Roles = "Administrator, Moderator")]
     public async Task<IActionResult> Edit(Guid id)
     {
-        Book? book = await _context.Books
-            .FirstOrDefaultAsync(b => b.Id == id && !b.IsDeleted);
+        Book? getBook = await _bookService.GetBookByIdAsync(id);
 
-        if (book == null)
+        if (getBook == null)
         {
-            return NotFound();
+            TempData["ErrorMessage"] = "The book information you want to edit does not exist.";
+            return RedirectToAction("Index", "Book");
         }
 
-        List<Genre> allGenres = await _context.Genres
-            .Where(g => !g.IsDeleted)
-            .ToListAsync();
+        List<Genre> genres = await _genreService.GetAllGenresAsync();
+        List<Author> authors = await _authorService.GetAllAuthorsAsync();
 
-        List<Author> allAuthors = await _context.Authors
-            .Where(a => !a.IsDeleted)
-            .ToListAsync();
-
-        if (!allGenres.Any())
+        if (!genres.Any())
         {
             TempData["ErrorMessage"] = "The list of genres is empty.";
             return RedirectToAction("Index", "Book");
         }
 
-        if (!allAuthors.Any())
+        if (!authors.Any())
         {
             TempData["ErrorMessage"] = "The list of authors is empty.";
-            return RedirectToAction("Index", "Author");
+            return RedirectToAction("Index", "Book");
         }
 
         BookEditViewModel editBook = new BookEditViewModel()
         {
-            Id = book.Id,
-            Title = book.Title,
-            Publisher = book.Publisher,
-            ReleaseYear = book.ReleaseYear,
-            PagesNumber = book.PagesNumber,
-            ImageUrl = book.ImageUrl,
-            Price = book.Price,
-            Stock = book.Stock,
-            AuthorId = book.AuthorId,
-            GenreId = book.GenreId
+            Id = getBook.Id,
+            Title = getBook.Title,
+            Publisher = getBook.Publisher,
+            ReleaseYear = getBook.ReleaseYear,
+            PagesNumber = getBook.PagesNumber,
+            ImageUrl = getBook.ImageUrl,
+            Price = getBook.Price,
+            Stock = getBook.Stock,
+            AuthorId = getBook.AuthorId,
+            GenreId = getBook.GenreId,
+            Genres = genres,
+            Authors = authors
         };
-
-        editBook.Genres = allGenres;
-        editBook.Authors = allAuthors;
 
         return View(editBook);
     }
@@ -226,59 +206,47 @@ public class BookController : Controller
     [Authorize(Roles = "Administrator, Moderator")]
     public async Task<IActionResult> Edit(BookEditViewModel editBook)
     {
+        Book? getBook = await _bookService.GetBookByIdAsync(editBook.Id);
+
+        if (getBook == null)
+        {
+            TempData["ErrorMessage"] = "The book information you want to edit does not exist.";
+            return RedirectToAction("Index", "Book");
+        }
+
+        List<Genre> genres = await _genreService.GetAllGenresAsync();
+        List<Author> authors = await _authorService.GetAllAuthorsAsync();
+
+        if (!genres.Any())
+        {
+            TempData["ErrorMessage"] = "The list of genres is empty.";
+            return RedirectToAction("Index", "Book");
+        }
+
+        if (!authors.Any())
+        {
+            TempData["ErrorMessage"] = "The list of authors is empty.";
+            return RedirectToAction("Index", "Book");
+        }
+
         if (!ModelState.IsValid)
         {
-            editBook.Genres = await _context.Genres
-               .Where(g => !g.IsDeleted)
-               .ToListAsync();
-
-            editBook.Authors = await _context.Authors
-                .Where(a => !a.IsDeleted)
-                .ToListAsync();
-
-            if (!editBook.Genres.Any())
-            {
-                TempData["ErrorMessage"] = "The list of genres is empty.";
-                return RedirectToAction("Index", "Book");
-            }
-
-            if (!editBook.Authors.Any())
-            {
-                TempData["ErrorMessage"] = "The list of authors is empty.";
-                return RedirectToAction("Index", "Author");
-            }
-
+            editBook.Genres = genres;
+            editBook.Authors = authors;
             return View(editBook);
         }
 
-        bool bookExists = await _context.Books
-            .AnyAsync(b => b.Id != editBook.Id && b.Title.ToLower() == editBook.Title.ToLower() && !b.IsDeleted);
+        bool bookExists = await _bookService.BookNameExistsAsync(editBook.Title, editBook.Id);
 
         if (bookExists)
         {
-            ModelState.AddModelError("Title", "A book with this title already exists.");
+            ModelState.AddModelError(nameof(editBook.Title), "A book with this name already exists.");
+            editBook.Genres = genres;
+            editBook.Authors = authors;
             return View(editBook);
         }
 
-        Book? book = _context.Books
-           .FirstOrDefault(a => a.Id == editBook.Id && a.Title.ToLower() == editBook.Title.ToLower() && !a.IsDeleted);
-
-        if (book == null)
-        {
-            return NotFound();
-        }
-
-        book.Title = editBook.Title;
-        book.Publisher = editBook.Publisher;
-        book.ReleaseYear = editBook.ReleaseYear;
-        book.PagesNumber = editBook.PagesNumber;
-        book.ImageUrl = editBook.ImageUrl;
-        book.Price = editBook.Price;
-        book.Stock = editBook.Stock;
-        book.AuthorId = editBook.AuthorId;
-        book.GenreId = editBook.GenreId;
-
-        await _context.SaveChangesAsync();
+        await _bookService.EditBookAsync(editBook, getBook);
         return RedirectToAction("Index", "Book");
     }
 }

@@ -55,6 +55,7 @@ public class Program
         builder.Services.AddScoped<IGenreService, GenreService>();
         builder.Services.AddScoped<IAuthorService, AuthorService>();
         builder.Services.AddScoped<IBookService, BookService>();
+        builder.Services.AddScoped<IReviewService, ReviewService>();
 
         WebApplication? app = builder.Build();
 
