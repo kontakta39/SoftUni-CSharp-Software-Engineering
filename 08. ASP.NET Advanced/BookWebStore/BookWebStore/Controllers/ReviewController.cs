@@ -1,73 +1,77 @@
-﻿using BookWebStore.Data;
-using BookWebStore.Data.Models;
+﻿using BookWebStore.Data.Models;
+using BookWebStore.Services.Interfaces;
 using BookWebStore.ViewModels;
 using Microsoft.AspNetCore.Authorization;
-using Microsoft.AspNetCore.Identity;
 using Microsoft.AspNetCore.Mvc;
-using Microsoft.EntityFrameworkCore;
 
 namespace BookWebStore.Controllers;
 
 public class ReviewController : Controller
 {
-    private readonly BookStoreDbContext _context;
-    private readonly UserManager<ApplicationUser> _userManager;
+    private readonly IReviewService _reviewService;
+    private readonly IAccountService _accountService;
+    private readonly IBookService _bookService;
 
-    public ReviewController(BookStoreDbContext context, UserManager<ApplicationUser> userManager)
+    public ReviewController(IReviewService reviewService, IAccountService accountService, IBookService bookService)
     {
-        _context = context;
-        _userManager = userManager;
+        _reviewService = reviewService;
+        _accountService = accountService;
+        _bookService = bookService;
     }
 
     [HttpGet]
     [Authorize]
     public async Task<IActionResult> Add(Guid bookId)
     {
-        ApplicationUser? user = await _userManager.GetUserAsync(User);
+        ApplicationUser? user = await _accountService.GetCurrentUserAsync(User);
 
         if (user == null)
         {
             return NotFound();
         }
 
-        Book? book = await _context.Books
-            .Where(a => a.Id == bookId)
-            .FirstOrDefaultAsync();
+        Book? getBook = await _bookService.GetBookByIdAsync(bookId);
 
-        if (book == null)
+        if (getBook == null)
         {
             TempData["ErrorMessage"] = "The book does not exist.";
             return RedirectToAction("Index", "Book");
         }
 
-        //Check if the user has already reviewed this album
-        bool reviewExists = await _context.Reviews
-            .AnyAsync(r => r.BookId == book.Id && r.UserId == user.Id);
+        Review? review = await _reviewService.ReviewExistsAsync(getBook.Id, user.Id);
 
-        if (reviewExists)
+        if (review != null)
         {
             TempData["ErrorMessage"] = "You have already written a review for this book.";
-            return RedirectToAction("Details", "Book", new { id = book.Id });
+            return RedirectToAction("Details", "Book", new { id = getBook.Id });
         }
 
-        ReviewAddViewModel addReview = new ReviewAddViewModel
+        ReviewAddViewModel reviewAddViewModel = new ReviewAddViewModel
         {
-            BookId = book.Id,
-            BookTitle = book.Title
+            BookId = getBook.Id,
+            BookTitle = getBook.Title
         };
 
-        return View(addReview);
+        return View(reviewAddViewModel);
     }
 
     [HttpPost]
     [Authorize]
     public async Task<IActionResult> Add(ReviewAddViewModel addReview)
     {
-        ApplicationUser? user = await _userManager.GetUserAsync(User);
+        ApplicationUser? user = await _accountService.GetCurrentUserAsync(User);
 
         if (user == null)
         {
             return NotFound();
+        }
+
+        Book? getBook = await _bookService.GetBookByIdAsync(addReview.BookId);
+
+        if (getBook == null)
+        {
+            TempData["ErrorMessage"] = "The book does not exist.";
+            return RedirectToAction("Index", "Book");
         }
 
         if (!ModelState.IsValid)
@@ -75,69 +79,59 @@ public class ReviewController : Controller
             return View(addReview);
         }
 
-        Book? book = await _context.Books
-            .Where(a => a.Id == addReview.BookId)
-            .FirstOrDefaultAsync();
+        Review? review = await _reviewService.ReviewExistsAsync(getBook.Id, user.Id);
 
-        if (book == null)
-        {
-            TempData["ErrorMessage"] = "The book does not exist.";
-            return RedirectToAction("Index", "Book");
-        }
-
-        //Check if the user has already reviewed this album
-        bool reviewExists = await _context.Reviews
-            .AnyAsync(r => r.BookId == book.Id && r.UserId == user.Id);
-
-        if (reviewExists)
+        if (review != null)
         {
             TempData["ErrorMessage"] = "You have already written a review for this book.";
-            return RedirectToAction("Details", "Book", new { id = book.Id });
+            return RedirectToAction("Details", "Book", new { id = getBook.Id });
         }
 
-        Review review = new Review
-        {
-            BookId = book.Id,
-            UserId = user.Id,
-            Rating = addReview.Rating,
-            ReviewText = addReview.ReviewText
-        };
-
-        await _context.Reviews.AddAsync(review);
-        await _context.SaveChangesAsync();
-
-        return RedirectToAction("Details", "Book", new { id = book.Id });
+        await _reviewService.AddReviewAsync(addReview, user);
+            
+        return RedirectToAction("Details", "Book", new { id = addReview.BookId });
     }
 
     [HttpGet]
     [Authorize]
-    public async Task<IActionResult> Edit(Guid reviewId, Guid bookId)
+    public async Task<IActionResult> Edit(Guid bookId)
     {
-        ApplicationUser? user = await _userManager.GetUserAsync(User);
+        ApplicationUser? user = await _accountService.GetCurrentUserAsync(User);
 
         if (user == null)
         {
             return NotFound();
         }
 
-        //Find the review that should be edited
-        Review? findReview = await _context.Reviews
-            .Include(r => r.Book)
-            .FirstOrDefaultAsync(r => r.Id == reviewId && r.UserId == user.Id && r.BookId == bookId && !r.IsEdited);
+        Book? getBook = await _bookService.GetBookByIdAsync(bookId);
 
-        if (findReview == null)
+        if (getBook == null)
+        {
+            TempData["ErrorMessage"] = "The book does not exist.";
+            return RedirectToAction("Index", "Book");
+        }
+
+        Review? review = await _reviewService.ReviewExistsAsync(getBook.Id, user.Id);
+
+        if (review == null)
         {
             TempData["ErrorMessage"] = "You haven't written a review for this book.";
-            return RedirectToAction("Details", "Book", new { id = bookId });
+            return RedirectToAction("Details", "Book", new { id = getBook.Id });
+        }
+
+        if (review.IsEdited)
+        {
+            TempData["ErrorMessage"] = "You have already written a review for this book.";
+            return RedirectToAction("Details", "Book", new { id = getBook.Id });
         }
 
         ReviewEditViewModel editReview = new ReviewEditViewModel()
         {
-            Id = findReview.Id,
-            BookId = findReview.BookId,
-            BookTitle = findReview.Book.Title,
-            Rating = findReview.Rating,
-            ReviewText = findReview.ReviewText
+            Id = review.Id,
+            BookId = review.BookId,
+            BookTitle = review.Book.Title,
+            Rating = review.Rating,
+            ReviewText = review.ReviewText
         };
 
         return View(editReview);
@@ -146,12 +140,20 @@ public class ReviewController : Controller
     [HttpPost]
     [Authorize]
     public async Task<IActionResult> Edit(ReviewEditViewModel editReview)
-    { 
-        ApplicationUser? user = await _userManager.GetUserAsync(User);
+    {
+        ApplicationUser? user = await _accountService.GetCurrentUserAsync(User);
 
         if (user == null)
         {
             return NotFound();
+        }
+
+        Book? getBook = await _bookService.GetBookByIdAsync(editReview.BookId);
+
+        if (getBook == null)
+        {
+            TempData["ErrorMessage"] = "The book does not exist.";
+            return RedirectToAction("Index", "Book");
         }
 
         if (!ModelState.IsValid)
@@ -159,22 +161,22 @@ public class ReviewController : Controller
             return View(editReview);
         }
 
-        //Find the review that should be edited
-        Review? review = await _context.Reviews
-            .FirstOrDefaultAsync(r => r.Id == editReview.Id && r.UserId == user.Id && r.BookId == editReview.BookId && !r.IsEdited);
+        Review? review = await _reviewService.ReviewExistsAsync(getBook.Id, user.Id);
 
         if (review == null)
         {
-            TempData["ErrorMessage"] = "The review was not found.";
-            return RedirectToAction("Details", "Book", new { id = editReview.BookId });
+            TempData["ErrorMessage"] = "You haven't written a review for this book.";
+            return RedirectToAction("Details", "Book", new { id = getBook.Id });
         }
 
-        review.ReviewDate = DateOnly.FromDateTime(DateTime.UtcNow);
-        review.Rating = editReview.Rating;
-        review.ReviewText = editReview.ReviewText;
-        review.IsEdited = true;
+        if (review.IsEdited)
+        {
+            TempData["ErrorMessage"] = "You have already written a review for this book.";
+            return RedirectToAction("Details", "Book", new { id = getBook.Id });
+        }
 
-        await _context.SaveChangesAsync();
-        return RedirectToAction("Details", "Book", new { id = review.BookId });
+        await _reviewService.EditReviewAsync(editReview, review, user);
+
+        return RedirectToAction("Details", "Book", new { id = editReview.BookId });
     }
 }

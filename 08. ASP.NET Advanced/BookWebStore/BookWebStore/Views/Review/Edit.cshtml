@@ -13,7 +13,6 @@
 <div class="d-flex flex-column justify-content-center align-items-center">
     <div class="col-md-5">
         <form asp-action="Edit" method="post">
-            <input type="hidden" asp-for="Id" />
             <input type="hidden" asp-for="BookId" />
             <div class="form-floating mb-3">
                 <input type="hidden" asp-for="BookTitle" />
@@ -23,7 +22,6 @@
 
             <div class="form-floating mb-3">
                 <select asp-for="Rating" class="form-select" aria-required="true">
-                    <option value="" disabled selected>Select rating</option>
                     @for (int i = 1; i <= 5; i++)
                     {
                         <option value="@i">@i star@(i > 1 ? "s" : "")</option>

@@ -22,7 +22,7 @@
 
             <div class="form-floating mb-3">
                 <select asp-for="Rating" class="form-select" aria-required="true">
-                    <option value="" disabled selected>Select rating</option>
+                    <option value="" disabled selected hidden>Select rating</option>
                     @for (int i = 1; i <= 5; i++)
                     {
                         <option value="@i">@i star@(i > 1 ? "s" : "")</option>
