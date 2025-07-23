@@ -1,30 +1,28 @@
-﻿using BookWebStore.Data;
-using BookWebStore.Data.Models;
+﻿using BookWebStore.Data.Models;
+using BookWebStore.Services.Interfaces;
 using BookWebStore.ViewModels;
 using Microsoft.AspNetCore.Authorization;
-using Microsoft.AspNetCore.Identity;
 using Microsoft.AspNetCore.Mvc;
-using Microsoft.EntityFrameworkCore;
 
 namespace BookWebStore.Controllers;
 
 public class BlogController : Controller
 {
-    private readonly BookStoreDbContext _context;
-    private readonly UserManager<ApplicationUser> _userManager;
+    private readonly IBlogService _blogService;
+    private readonly IAccountService _accountService;
 
-    public BlogController(BookStoreDbContext context, UserManager<ApplicationUser> userManager)
+    public BlogController(IBlogService blogService, IAccountService accountService)
     {
-        _context = context;
-        _userManager = userManager;
+        _blogService = blogService;
+        _accountService = accountService;
     }
 
     [HttpGet]
     public async Task<IActionResult> Index()
     {
-        List<BlogIndexViewModel> allBlogs = await _context.Blogs
-           .Where(b => !b.IsDeleted)
-           .Include(b => b.Publisher)
+        List<Blog> getAllBlogs = await _blogService.GetAllBlogsAsync();
+
+        List<BlogIndexViewModel> blogs = getAllBlogs
            .Select(b => new BlogIndexViewModel()
            {
                Id = b.Id,
@@ -33,9 +31,9 @@ public class BlogController : Controller
                Publisher = $"{b.Publisher.FirstName} {b.Publisher.LastName}"
 
            })
-           .ToListAsync();
+           .ToList();
 
-        return View(allBlogs);
+        return View(blogs);
     }
 
     [HttpGet]
@@ -50,7 +48,7 @@ public class BlogController : Controller
     [Authorize(Roles = "Administrator")]
     public async Task<IActionResult> Add(BlogAddViewModel addBlog)
     {
-        ApplicationUser? publisher = await _userManager.GetUserAsync(User);
+        ApplicationUser? publisher = await _accountService.GetCurrentUserAsync(User);
 
         if (publisher == null)
         {
@@ -62,16 +60,7 @@ public class BlogController : Controller
             return View(addBlog);
         }
 
-        Blog blog = new Blog()
-        {
-            Title = addBlog.Title,
-            ImageUrl = addBlog.ImageUrl,
-            PublisherId = publisher.Id,
-            Content = addBlog.Content
-        };
-
-        await _context.Blogs.AddAsync(blog);
-        await _context.SaveChangesAsync();
+        await _blogService.AddBlogAsync(addBlog, publisher);
 
         return RedirectToAction("Index", "Blog");
     }
@@ -79,55 +68,44 @@ public class BlogController : Controller
     [HttpGet]
     public async Task<IActionResult> Details(Guid id)
     {
-        Blog? blogCheck = await _context.Blogs
-           .Include(b => b.Publisher)
-           .FirstOrDefaultAsync(b => b.Id == id && !b.IsDeleted);
+        Blog? blog = await _blogService.GetBlogByIdAsync(id);
 
-        if (blogCheck == null)
+        if (blog == null)
         {
             TempData["ErrorMessage"] = "Blog was not found.";
             return RedirectToAction("Index", "Blog");
         }
 
-        BlogDetailsViewModel blog = new BlogDetailsViewModel()
+        BlogDetailsViewModel blogDetails = new BlogDetailsViewModel()
         {
-            Id = blogCheck.Id,
-            Title = blogCheck.Title,
-            Publisher = $"{blogCheck.Publisher.FirstName} {blogCheck.Publisher.LastName}",
-            PublishDate = blogCheck.PublishDate,
-            ImageUrl = blogCheck.ImageUrl,
-            Content = blogCheck.Content
+            Id = blog.Id,
+            Title = blog.Title,
+            Publisher = $"{blog.Publisher.FirstName} {blog.Publisher.LastName}",
+            PublishDate = blog.PublishDate,
+            ImageUrl = blog.ImageUrl,
+            Content = blog.Content
         };
 
-        return View(blog);
+        return View(blogDetails);
     }
 
     [HttpGet]
-    [Authorize(Roles = "Administrator")]
+    [Authorize(Roles = "Administrator, Moderator")]
     public async Task<IActionResult> Edit(Guid id)
     {
-        ApplicationUser? publisher = await _userManager.GetUserAsync(User);
+        ApplicationUser? publisher = await _accountService.GetCurrentUserAsync(User);
 
         if (publisher == null)
         {
             return NotFound();
         }
 
-        Blog? blog = await _context.Blogs
-             .FirstOrDefaultAsync(b => b.Id == id && !b.IsDeleted);
+        Blog? blog = await _blogService.GetBlogByIdAsync(id);
 
         if (blog == null)
         {
-            return NotFound();
-        }
-
-        //Check if the user is the author or is it Master Admin
-        bool isOwner = blog.PublisherId == publisher.Id;
-        bool isMasterAdmin = publisher.Email == "kontakta39@mail.bg";
-
-        if (!isOwner && !isMasterAdmin)
-        {
-            return RedirectToAction("AccessDenied", "Home");
+            TempData["ErrorMessage"] = "The blog you want to edit does not exist.";
+            return RedirectToAction("Index", "Blog");
         }
 
         BlogEditViewModel editBlog = new BlogEditViewModel()
@@ -135,6 +113,7 @@ public class BlogController : Controller
             Id = blog.Id,
             Title = blog.Title,
             ImageUrl = blog.ImageUrl,
+            PublisherId = blog.PublisherId,
             Content = blog.Content
         };
 
@@ -142,10 +121,10 @@ public class BlogController : Controller
     }
 
     [HttpPost]
-    [Authorize(Roles = "Administrator")]
+    [Authorize(Roles = "Administrator, Moderator")]
     public async Task<IActionResult> Edit(BlogEditViewModel editBlog)
     {
-        ApplicationUser? publisher = await _userManager.GetUserAsync(User);
+        ApplicationUser? publisher = await _accountService.GetCurrentUserAsync(User);
 
         if (publisher == null)
         {
@@ -157,28 +136,16 @@ public class BlogController : Controller
             return View(editBlog);
         }
 
-        Blog? blog = await _context.Blogs
-             .FirstOrDefaultAsync(b => b.Id == editBlog.Id && !b.IsDeleted);
+        Blog? blog = await _blogService.GetBlogByIdAsync(editBlog.Id);
 
         if (blog == null)
         {
-            return NotFound();
+            TempData["ErrorMessage"] = "The blog you want to edit does not exist.";
+            return RedirectToAction("Index", "Blog");
         }
 
-        //Check if the user is the author or is it Master Admin
-        bool isOwner = blog.PublisherId == publisher.Id;
-        bool isMasterAdmin = publisher.Email == "kontakta39@mail.bg";
+        await _blogService.EditBlogAsync(editBlog, blog);
 
-        if (!isOwner && !isMasterAdmin)
-        {
-            return RedirectToAction("AccessDenied", "Home");
-        }
-
-        blog.Title = editBlog.Title;
-        blog.ImageUrl = editBlog.ImageUrl;
-        blog.Content = editBlog.Content;
-
-        await _context.SaveChangesAsync();
         return RedirectToAction("Index", "Blog");
     }
 
@@ -186,27 +153,25 @@ public class BlogController : Controller
     [Authorize(Roles = "Administrator")]
     public async Task<IActionResult> Delete(Guid id)
     {
-        ApplicationUser? publisher = await _userManager.GetUserAsync(User);
+        ApplicationUser? publisher = await _accountService.GetCurrentUserAsync(User);
 
         if (publisher == null)
         {
             return NotFound();
         }
 
-        Blog? blog = await _context.Blogs
-            .Include(b => b.Publisher)
-            .FirstOrDefaultAsync(b => b.Id == id && !b.IsDeleted);
+        Blog? blog = await _blogService.GetBlogByIdAsync(id);
 
         if (blog == null)
         {
-            return NotFound();
+            TempData["ErrorMessage"] = "The blog you want to delete does not exist.";
+            return RedirectToAction("Index", "Blog");
         }
 
-        //Check if the user is the author or is it Master Admin
-        bool isOwner = blog.PublisherId == publisher.Id;
+        //Check if the user is Master Admin
         bool isMasterAdmin = publisher.Email == "kontakta39@mail.bg";
 
-        if (!isOwner && !isMasterAdmin)
+        if (!isMasterAdmin)
         {
             return RedirectToAction("AccessDenied", "Home");
         }
@@ -225,32 +190,31 @@ public class BlogController : Controller
     [Authorize(Roles = "Administrator")]
     public async Task<IActionResult> Delete(BlogDeleteViewModel deleteBlog)
     {
-        ApplicationUser? publisher = await _userManager.GetUserAsync(User);
+        ApplicationUser? publisher = await _accountService.GetCurrentUserAsync(User);
 
         if (publisher == null)
         {
             return NotFound();
         }
 
-        Blog? blog = await _context.Blogs
-            .FirstOrDefaultAsync(b => b.Id == deleteBlog.Id && !b.IsDeleted);
+        Blog? blog = await _blogService.GetBlogByIdAsync(deleteBlog.Id);
 
         if (blog == null)
         {
-            return NotFound();
+            TempData["ErrorMessage"] = "The blog you want to delete does not exist.";
+            return RedirectToAction("Index", "Blog");
         }
 
-        //Check if the user is the author or is it Master Admin
-        bool isOwner = blog.PublisherId == publisher.Id;
+        //Check if the user is Master Admin
         bool isMasterAdmin = publisher.Email == "kontakta39@mail.bg";
 
-        if (!isOwner && !isMasterAdmin)
+        if (!isMasterAdmin)
         {
             return RedirectToAction("AccessDenied", "Home");
         }
 
-        blog.IsDeleted = true;
-        await _context.SaveChangesAsync();
+        await _blogService.DeleteBlogAsync(blog);
+
         return RedirectToAction("Index", "Blog");
     }
 }

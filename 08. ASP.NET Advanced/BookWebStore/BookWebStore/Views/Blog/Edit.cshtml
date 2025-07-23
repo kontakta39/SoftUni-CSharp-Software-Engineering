@@ -1,8 +1,12 @@
 ﻿@using BookWebStore.ViewModels
+@using Microsoft.AspNetCore.Identity
 @model BlogEditViewModel
+@inject UserManager<ApplicationUser> UserManager
 
 @{
     ViewData["Title"] = "Edit blog";
+    ApplicationUser? user = await UserManager.GetUserAsync(User);
+    bool isBlogCreator = Model.PublisherId == user!.Id;
 }
 
 <div class="d-flex justify-content-center align-items-center">
@@ -13,19 +17,43 @@
 <div class="d-flex flex-column justify-content-center align-items-center mb-5">
     <div class="col-md-5">
         <form asp-action="Edit" method="post">
-            <div class="form-floating mb-3">
-                <textarea asp-for="Title" class="form-control h-auto" aria-required="true" rows="2" placeholder="Please enter blog name."></textarea>
-                <label asp-for="Title">Title*</label>
-                <span asp-validation-for="Title" class="text-danger"></span>
-            </div>
+            <input type="hidden" asp-for="Id" />
+            <input type="hidden" asp-for="PublisherId" />
+            @if (User.IsInRole("Administrator") || isBlogCreator)
+            {
+                <div class="form-floating mb-3">
+                    <textarea asp-for="Title" class="form-control h-auto" rows="2" placeholder="Please enter blog name."></textarea>
+                    <label asp-for="Title">Title*</label>
+                    <span asp-validation-for="Title" class="text-danger"></span>
+                </div>
+            }
+            else if (User.IsInRole("Moderator"))
+            {
+                <div class="form-floating mb-3">
+                    <input type="hidden" asp-for="Title" />
+                    <input asp-for="Title" class="form-control" disabled />
+                    <label asp-for="Title">Book Title</label>
+                </div>
+            }
+
+            @if (User.IsInRole("Administrator") || isBlogCreator)
+            {
+                <div class="form-floating mb-3">
+                    <input asp-for="ImageUrl" class="form-control" placeholder="Please enter valid image URL." />
+                    <label asp-for="ImageUrl">Image Link (Optional)</label>
+                </div>
+            }
+            else if (User.IsInRole("Moderator"))
+            {
+                <div class="form-floating mb-3">
+                    <input type="hidden" asp-for="ImageUrl" />
+                    <input asp-for="ImageUrl" class="form-control" disabled />
+                    <label asp-for="ImageUrl">Image Link</label>
+                </div>
+            }
 
             <div class="form-floating mb-3">
-                <input asp-for="ImageUrl" class="form-control" aria-required="false" placeholder="Please enter valid image URL." />
-                <label asp-for="ImageUrl">Image Link (Optional)</label>
-            </div>
-
-            <div class="form-floating mb-3">
-                <textarea asp-for="Content" class="form-control h-auto" aria-required="true" rows="10" placeholder="Please enter some text..."></textarea>
+                <textarea asp-for="Content" class="form-control h-auto" rows="10" placeholder="Please enter some text..."></textarea>
                 <label asp-for="Content">Content*</label>
                 <span asp-validation-for="Content" class="text-danger"></span>
             </div>

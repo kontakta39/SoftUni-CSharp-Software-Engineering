@@ -15,6 +15,9 @@ public class BlogEditViewModel
     public string? ImageUrl { get; set; }
 
     [Required]
+    public string PublisherId { get; set; } = null!;
+
+    [Required]
     [MinLength(BlogContentMinLength)]
     public string Content { get; set; } = null!;
 }

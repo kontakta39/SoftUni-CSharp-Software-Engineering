@@ -1,8 +1,12 @@
 ﻿@using BookWebStore.ViewModels
+@using Microsoft.AspNetCore.Identity
 @model BlogDetailsViewModel
+@inject UserManager<ApplicationUser> UserManager
 
 @{
     ViewData["Title"] = "Blog Information";
+    ApplicationUser? user = await UserManager.GetUserAsync(User);
+    bool isMasterAdmin = User.IsInRole("Administrator") && user!.Email == "kontakta39@mail.bg" && user.UserName == "kontakta39";
 }
 
 <div class="d-flex justify-content-center align-items-center mb-3 mt-3">
@@ -16,8 +20,9 @@
     <div class="row justify-content-center mb-4">
         <div class="col-12 col-md-10">
             <img src="@(!string.IsNullOrEmpty(Model.ImageUrl) ? Model.ImageUrl : Url.Content("~/img/blog-no-image-available.jpg"))"
-                 alt="@Model.Title"
-                 class="img-fluid rounded shadow-sm w-100" />
+                class="img-fluid rounded shadow-sm w-100"
+                alt="Blog Image Not Available"
+                onerror="this.onerror=null; this.src='@Url.Content("~/img/blog-no-image-available.jpg")';" />
         </div>
     </div>
 
@@ -44,12 +49,20 @@
                 </div>
             </div>
 
-            @if (User.IsInRole("Administrator"))
+            @if (User.IsInRole("Administrator") && isMasterAdmin)
             {
                 <div class="row justify-content-center mt-4">
                     <div class="col-auto d-flex gap-3">
                         <a asp-controller="Blog" asp-action="Edit" asp-route-id="@Model.Id" class="btn btn-primary flex-fill px-4" style="min-width: 200px;">Edit</a>
                         <a asp-controller="Blog" asp-action="Delete" asp-route-id="@Model.Id" class="btn btn-danger flex-fill px-4" style="min-width: 200px;">Delete</a>
+                    </div>
+                </div>
+            }
+            else if (User.IsInRole("Administrator") || User.IsInRole("Moderator"))
+            {
+                <div class="row justify-content-center mt-4">
+                    <div class="col-auto d-flex gap-3">
+                        <a asp-controller="Blog" asp-action="Edit" asp-route-id="@Model.Id" class="btn btn-primary flex-fill px-4" style="min-width: 200px;">Edit</a>
                     </div>
                 </div>
             }

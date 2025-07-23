@@ -58,6 +58,7 @@ public class Program
         builder.Services.AddScoped<IBookService, BookService>();
         builder.Services.AddScoped<IOrderService, OrderService>();
         builder.Services.AddScoped<IReviewService, ReviewService>();
+        builder.Services.AddScoped<IBlogService, BlogService>();
 
         WebApplication? app = builder.Build();
 
