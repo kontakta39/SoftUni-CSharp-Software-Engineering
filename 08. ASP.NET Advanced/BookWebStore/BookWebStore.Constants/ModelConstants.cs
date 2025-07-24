@@ -5,6 +5,8 @@ public static class ModelConstants
     public const int ApplicationUserNameMinLength = 3;
     public const int ApplicationUserNameMaxLength = 20;
 
+    public const string LoginUsernameOrEmailCheck = @"^[^@\s]+@[^@\s]+\.[^@\s]+$";
+
     public const int PasswordMinLength = 6;
     public const int PasswordMaxLength = 20;
 

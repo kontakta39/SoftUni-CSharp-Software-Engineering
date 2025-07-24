@@ -4,10 +4,10 @@
 
 @{
     ViewData["Title"] = "Manage Account";
-    ApplicationUser user = await UserManager.GetUserAsync(User);
-    IList<string> roles = await UserManager.GetRolesAsync(user);
-    string role = roles.FirstOrDefault();
-    bool isMasterAdmin = User.IsInRole("Administrator") && user.Email == "kontakta39@mail.bg" && user.UserName == "kontakta39";
+    ApplicationUser? user = await UserManager.GetUserAsync(User);
+    IList<string> roles = await UserManager.GetRolesAsync(user!);
+    string? role = roles.FirstOrDefault();
+    bool isMasterAdmin = User.IsInRole("Administrator") && user!.Email == "kontakta39@mail.bg" && user.UserName == "kontakta39";
     string? activePage = ViewData["ActivePage"]?.ToString();
     
 }
@@ -15,7 +15,7 @@
 @if (SignInManager.IsSignedIn(User))
 {
     <div class="d-flex justify-content-center align-items-center mb-3 mt-3">
-        <h1>Hello, @role.ToLower() @user.FirstName @user.LastName</h1>
+        <h1>Hello, @role!.ToLower() @user!.FirstName @user.LastName</h1>
     </div>
     <hr class="mb-5" />
 
@@ -63,7 +63,7 @@
             }
             else if (activePage == "Profile")
             {
-                @await Html.PartialAsync("ManagePartials/_ProfilePartial")
+                @await Html.PartialAsync("ManagePartials/_UpdateProfilePartial")
             }
             else if (activePage == "Orders")
             {
@@ -71,7 +71,7 @@
             }
             else if (activePage == "Email")
             {
-                @await Html.PartialAsync("ManagePartials/_EmailPartial")
+                @await Html.PartialAsync("ManagePartials/_ChangeEmailPartial")
             }
             else if (activePage == "ChangePassword")
             {

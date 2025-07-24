@@ -12,11 +12,11 @@
 <hr class="mb-5" />
 
 <div class="d-flex justify-content-center align-items-center">
-    <div class="col-lg-5">
+    <div class="col-lg-6">
         @{
             List<ModelError> еrrors = ViewData.ModelState
             .Where(e => string.IsNullOrEmpty(e.Key))
-            .SelectMany(e => e.Value.Errors)
+            .SelectMany(e => e.Value!.Errors)
             .ToList();
         }
         @if (еrrors.Any())

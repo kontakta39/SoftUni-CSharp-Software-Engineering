@@ -16,7 +16,7 @@
         @{
             List<ModelError> еrrors = ViewData.ModelState
             .Where(e => string.IsNullOrEmpty(e.Key))
-            .SelectMany(e => e.Value.Errors)
+            .SelectMany(e => e.Value!.Errors)
             .ToList();
         }
         @if (еrrors.Any())

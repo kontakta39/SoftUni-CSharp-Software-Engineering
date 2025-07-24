@@ -16,10 +16,18 @@
                 <label asp-for="@Model.Username" class="form-label">Username</label>
                 <input type="hidden" name="Username" value="@Model.Username" />
             </div>
+            @if (!string.IsNullOrEmpty(Model.CurrentPhoneNumber))
+            {
+                <div class="form-floating mb-3">
+                    <input asp-for="@Model.CurrentPhoneNumber" class="form-control" disabled />
+                    <label asp-for="@Model.CurrentPhoneNumber" class="form-label">Current phone number</label>
+                    <input type="hidden" name="CurrentPhoneNumber" value="@Model.CurrentPhoneNumber" />
+                </div>
+            }
             <div class="form-floating mb-3">
-                <input asp-for="@Model.PhoneNumber" class="form-control" disabled />
-                <label asp-for="@Model.PhoneNumber" class="form-label">Current phone number</label>
-                <input type="hidden" name="CurrentPhoneNumber" value="@Model.PhoneNumber" />
+                <input asp-for="@Model.NewPhoneNumber" class="form-control" placeholder="Please enter new phone number." />
+                <label asp-for="@Model.NewPhoneNumber" class="form-label">New phone number</label>
+                <span asp-validation-for="@Model.NewPhoneNumber" class="text-danger"></span>
             </div>
             <button type="submit" class="w-100 btn btn-lg btn-primary">Save</button>
         </form>
