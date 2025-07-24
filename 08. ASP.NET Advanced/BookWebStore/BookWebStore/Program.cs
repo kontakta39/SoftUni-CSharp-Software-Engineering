@@ -1,5 +1,7 @@
 using BookWebStore.Data;
 using BookWebStore.Data.Models;
+using BookWebStore.Repositories;
+using BookWebStore.Repositories.Interfaces;
 using BookWebStore.Services;
 using BookWebStore.Services.Interfaces;
 using Microsoft.AspNetCore.Identity;
@@ -59,6 +61,8 @@ public class Program
         builder.Services.AddScoped<IOrderService, OrderService>();
         builder.Services.AddScoped<IReviewService, ReviewService>();
         builder.Services.AddScoped<IBlogService, BlogService>();
+
+        builder.Services.AddScoped<IGenreRepository, GenreRepository>();
 
         WebApplication? app = builder.Build();
 

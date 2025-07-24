@@ -1,38 +1,32 @@
-﻿using BookWebStore.Data;
-using BookWebStore.Data.Models;
+﻿using BookWebStore.Data.Models;
+using BookWebStore.Repositories.Interfaces;
 using BookWebStore.Services.Interfaces;
 using BookWebStore.ViewModels;
-using Microsoft.EntityFrameworkCore;
 
 namespace BookWebStore.Services;
 
 public class GenreService : IGenreService
 {
-    private readonly BookStoreDbContext _context;
+    private readonly IGenreRepository _genreRepository;
 
-    public GenreService(BookStoreDbContext context)
+    public GenreService(IGenreRepository genreRepository)
     {
-        _context = context;
+        _genreRepository = genreRepository;
     }
 
     public async Task<List<Genre>> GetAllGenresAsync()
     {
-        return await _context.Genres
-            .Where(g => !g.IsDeleted)
-            .ToListAsync();
+        return await _genreRepository.GetAllAsync();
     }
 
     public async Task<Genre?> GetGenreByIdAsync(Guid id)
     {
-        return await _context.Genres
-            .FirstOrDefaultAsync(g => g.Id == id && !g.IsDeleted);
+        return await _genreRepository.GetByIdAsync(id);
     }
 
     public async Task<bool> GenreNameExistsAsync(string name, Guid? id = null)
     {
-        return await _context.Genres
-            .AnyAsync(g => g.Name.ToLower() == name.ToLower() &&
-            (id == null || g.Id != id) && !g.IsDeleted);
+        return await _genreRepository.ExistsByNameAsync(name, id);
     }
 
     public async Task AddGenreAsync(GenreAddViewModel addGenre)
@@ -42,19 +36,19 @@ public class GenreService : IGenreService
             Name = addGenre.Name
         };
 
-        await _context.Genres.AddAsync(genre);
-        await _context.SaveChangesAsync();
+        await _genreRepository.AddAsync(genre);
+        await _genreRepository.SaveChangesAsync();
     }
 
     public async Task EditGenreAsync(GenreEditViewModel editGenre, Genre genre)
     {
         genre.Name = editGenre.Name;
-        await _context.SaveChangesAsync();
+        await _genreRepository.SaveChangesAsync();
     }
 
     public async Task DeleteGenreAsync(GenreDeleteViewModel deleteGenre, Genre genre)
     {
         genre.IsDeleted = true;
-        await _context.SaveChangesAsync();
+        await _genreRepository.SaveChangesAsync();
     }
 }

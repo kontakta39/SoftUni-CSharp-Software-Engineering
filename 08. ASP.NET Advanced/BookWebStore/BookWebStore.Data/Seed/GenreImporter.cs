@@ -26,10 +26,7 @@ public static class GenreImporter
 
             if (!genreExists)
             {
-                if (genre.Id == Guid.Empty)
-                    genre.Id = Guid.NewGuid();
-
-                context.Genres.Add(genre);
+                await context.Genres.AddAsync(genre);
             }
         }
 
