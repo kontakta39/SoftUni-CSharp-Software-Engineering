@@ -63,6 +63,7 @@ public class Program
         builder.Services.AddScoped<IBlogService, BlogService>();
 
         builder.Services.AddScoped<IGenreRepository, GenreRepository>();
+        builder.Services.AddScoped<IAuthorRepository, AuthorRepository>();
 
         WebApplication? app = builder.Build();
 
