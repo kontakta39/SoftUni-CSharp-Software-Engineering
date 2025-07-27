@@ -1,42 +1,32 @@
-﻿using BookWebStore.Data;
-using BookWebStore.Data.Models;
+﻿using BookWebStore.Data.Models;
+using BookWebStore.Repositories.Interfaces;
 using BookWebStore.Services.Interfaces;
 using BookWebStore.ViewModels;
-using Microsoft.EntityFrameworkCore;
 
 namespace BookWebStore.Services;
 
 public class BookService : IBookService
 {
-    private readonly BookStoreDbContext _context;
+    private readonly IBookRepository _bookRepository;
 
-    public BookService(BookStoreDbContext context)
+    public BookService(IBookRepository bookRepository)
     {
-        _context = context;
+        _bookRepository = bookRepository;
     }
 
     public async Task<List<Book>> GetAllBooksAsync()
     {
-        return await _context.Books
-            .Include(b => b.Author)
-            .Include(b => b.Genre)
-            .Where(b => !b.IsDeleted && b.Stock > 0)
-            .ToListAsync();
+        return await _bookRepository.GetAllAsync(); 
     }
 
     public async Task<Book?> GetBookByIdAsync(Guid id)
     {
-        return await _context.Books
-            .Include(b => b.Author)
-            .Include(b => b.Genre)
-            .FirstOrDefaultAsync(b => b.Id == id && !b.IsDeleted);
+        return await _bookRepository.GetByIdAsync(id);
     }
 
     public async Task<bool> BookNameExistsAsync(string title, Guid? id = null)
     {
-        return await _context.Books
-            .AnyAsync(b => b.Title.ToLower() == title.ToLower() &&
-            (id == null || b.Id != id) && !b.IsDeleted);
+        return await _bookRepository.ExistsByNameAsync(title, id);
     }
 
     public async Task AddBookAsync(BookAddViewModel addBook)
@@ -54,8 +44,8 @@ public class BookService : IBookService
             GenreId = addBook.GenreId
         };
 
-        await _context.Books.AddAsync(book);
-        await _context.SaveChangesAsync();
+        await _bookRepository.AddAsync(book);
+        await _bookRepository.SaveChangesAsync();
     }
 
     public async Task EditBookAsync(BookEditViewModel editBook, Book book)
@@ -70,18 +60,16 @@ public class BookService : IBookService
         book.AuthorId = editBook.AuthorId;
         book.GenreId = editBook.GenreId;
 
-        await _context.SaveChangesAsync();
+        await _bookRepository.SaveChangesAsync();
     }
 
     public async Task<bool> HasBooksInStockByGenreIdAsync(Guid genreId)
     {
-        return await _context.Books
-            .AnyAsync(b => b.GenreId == genreId && !b.IsDeleted && b.Stock > 0);
+        return await _bookRepository.HasBooksInStockByGenreAsync(genreId);
     }
 
     public async Task<bool> HasBooksInStockByAuthorIdAsync(Guid authorId)
     {
-        return await _context.Books
-            .AnyAsync(b => b.AuthorId == authorId && !b.IsDeleted && b.Stock > 0);
+        return await _bookRepository.HasBooksInStockByAuthorAsync(authorId);
     }
 }
