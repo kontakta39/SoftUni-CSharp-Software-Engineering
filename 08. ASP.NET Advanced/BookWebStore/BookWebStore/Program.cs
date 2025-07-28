@@ -65,6 +65,7 @@ public class Program
         builder.Services.AddScoped<IGenreRepository, GenreRepository>();
         builder.Services.AddScoped<IAuthorRepository, AuthorRepository>();
         builder.Services.AddScoped<IBookRepository, BookRepository>();
+        builder.Services.AddScoped<IOrderRepository, OrderRepository>();
 
         WebApplication? app = builder.Build();
 

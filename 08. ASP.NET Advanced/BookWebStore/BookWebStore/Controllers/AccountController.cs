@@ -417,7 +417,7 @@ public class AccountController : Controller
                 return View("Manage", profileModel);
 
             case "Orders":
-                List<OrderBook> orderedBooksList = await _orderService.GetCompletedOrdersByUserAsync(user);
+                List<OrderBook> orderedBooksList = await _orderService.GetCompletedOrdersByUserAsync(user.Id);
 
                 List<CompletedOrderViewModel> userCompletedOrders = orderedBooksList
                 .Select(ob => new CompletedOrderViewModel

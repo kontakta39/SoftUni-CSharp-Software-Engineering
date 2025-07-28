@@ -1,76 +1,61 @@
-﻿using BookWebStore.Data;
-using BookWebStore.Data.Models;
+﻿using BookWebStore.Data.Models;
+using BookWebStore.Repositories.Interfaces;
 using BookWebStore.Services.Interfaces;
-using Microsoft.EntityFrameworkCore;
 
 namespace BookWebStore.Services;
 
 public class OrderService : IOrderService
 {
-    private readonly BookStoreDbContext _context;
+    private readonly IOrderRepository _orderRepository;
 
-    public OrderService(BookStoreDbContext context)
+    public OrderService(IOrderRepository orderRepository)
     {
-        _context = context;
+        _orderRepository = orderRepository;
     }
 
-    public async Task<List<OrderBook>> GetCartItemsAsync(ApplicationUser user)
+    public async Task<List<OrderBook>> GetCartItemsAsync(string buyerId)
     {
-        List<OrderBook> cart = await _context.OrdersBooks
-           .Include(ob => ob.Order)
-           .Include(ob => ob.Book)
-           .Where(ob => ob.Order.BuyerId == user.Id && !ob.Order.IsCompleted)
-           .ToListAsync();
-
-        return cart;
+        return await _orderRepository.GetCartItemsAsync(buyerId);
     }
 
     public async Task<Order?> GetUserCurrentOrderAsync(string buyerId, Guid? orderId = null)
     {
-        return await _context.Orders
-            .Include(o => o.OrdersBooks)
-            .FirstOrDefaultAsync(o => o.BuyerId == buyerId &&
-                (orderId == null || o.Id == orderId) && !o.IsCompleted);
+        return await _orderRepository.GetUserCurrentOrderAsync(buyerId, orderId);
     }
 
     public async Task<Order?> FindCompletedOrderAsync(string buyerId, Guid orderId)
     {
-        return await _context.Orders
-            .FirstOrDefaultAsync(o => o.BuyerId == buyerId && o.Id == orderId && o.IsCompleted);
+        return await _orderRepository.FindCompletedOrderAsync(buyerId, orderId);
     }
 
-    public async Task<Order?> CreateNewOrderAsync(string userId, string orderNumber)
+    public async Task<Order?> CreateNewOrderAsync(string buyerId, string orderNumber)
     {
         Order order = new Order
         {
-            BuyerId = userId,
+            BuyerId = buyerId,
             OrderNumber = orderNumber
         };
 
-        await _context.Orders.AddAsync(order);
-        await _context.SaveChangesAsync();
+        await _orderRepository.AddAsync(order);
+        await _orderRepository.SaveChangesAsync();
         return order;
     }
 
     public async Task<OrderBook?> GetOrderBookAsync(Guid orderId, Guid bookId, bool? isReturned = null)
     {
-        return await _context.OrdersBooks
-                        .Include(ob => ob.Order)
-                        .Include(ob => ob.Book)
-                        .FirstOrDefaultAsync(ob => ob.OrderId == orderId && ob.BookId == bookId &&
-                        (isReturned == null || ob.IsReturned == isReturned));
+        return await _orderRepository.GetOrderBookAsync(orderId, bookId, isReturned);
     }
 
-    public async Task<OrderBook> AddBookToOrderAsync(Order order, Book book)
+    public async Task<OrderBook> AddBookToOrderAsync(Order order, Guid bookId)
     {
         OrderBook orderBook = new OrderBook
         {
             OrderId = order.Id,
-            BookId = book.Id
+            BookId = bookId
         };
 
         order.OrdersBooks.Add(orderBook);
-        await _context.SaveChangesAsync();
+        await _orderRepository.SaveChangesAsync();
         return orderBook;
     }
 
@@ -95,7 +80,7 @@ public class OrderService : IOrderService
             orderBook.Book.IsDeleted = orderBook.Book.Stock < 1;
         }
 
-        await _context.SaveChangesAsync();
+        await _orderRepository.SaveChangesAsync();
     }
 
     public async Task RecalculatePricesAsync(Order order, OrderBook orderBook)
@@ -107,7 +92,7 @@ public class OrderService : IOrderService
         order.TotalPrice = order.OrdersBooks
             .Sum(ob => ob.UnitPrice);
 
-        await _context.SaveChangesAsync();
+        await _orderRepository.SaveChangesAsync();
     }
 
     public async Task RemoveFromCartAsync(Order order, OrderBook orderBook)
@@ -117,31 +102,26 @@ public class OrderService : IOrderService
 
         if (order.TotalPrice == 0)
         {
-            _context.Orders.Remove(order);
+            _orderRepository.Remove(order);
         }
 
-        await _context.SaveChangesAsync();
+        await _orderRepository.SaveChangesAsync();
     }
 
     public async Task CompleteOrderAsync(Order order)
     {
         order.IsCompleted = true;
-        await _context.SaveChangesAsync();
+        await _orderRepository.SaveChangesAsync();
     }
 
     public async Task ReturnBookAsync(Order order, OrderBook orderBook)
     {
         orderBook.IsReturned = true;
-        await _context.SaveChangesAsync();
+        await _orderRepository.SaveChangesAsync();
     }
 
-    public async Task<List<OrderBook>> GetCompletedOrdersByUserAsync(ApplicationUser user)
+    public async Task<List<OrderBook>> GetCompletedOrdersByUserAsync(string buyerId)
     {
-        return await _context.OrdersBooks
-            .Include(ob => ob.Book)
-            .Include(ob => ob.Order)
-            .Where(ob => ob.Order.BuyerId == user.Id && ob.Order.IsCompleted)
-            .OrderBy(ob => ob.Order.OrderDate)
-            .ToListAsync();
+        return await _orderRepository.GetCompletedOrdersByUserAsync(buyerId);
     }
 }

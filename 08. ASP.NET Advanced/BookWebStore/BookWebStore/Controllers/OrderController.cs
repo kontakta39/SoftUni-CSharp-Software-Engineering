@@ -30,7 +30,7 @@ public class OrderController : Controller
             return NotFound();
         }
 
-        List<OrderBook> orderBooks = await _orderService.GetCartItemsAsync(user);
+        List<OrderBook> orderBooks = await _orderService.GetCartItemsAsync(user.Id);
 
         List<OrderCartViewModel> cart = orderBooks
             .Select(ob => new OrderCartViewModel
@@ -93,7 +93,7 @@ public class OrderController : Controller
             return RedirectToAction("Cart", "Order");
         }
 
-        orderBook = await _orderService.AddBookToOrderAsync(order, getBook);
+        orderBook = await _orderService.AddBookToOrderAsync(order, getBook.Id);
         await _orderService.UpdateQuantityAsync(orderBook, 1);
         await _orderService.RecalculatePricesAsync(order, orderBook);
 
