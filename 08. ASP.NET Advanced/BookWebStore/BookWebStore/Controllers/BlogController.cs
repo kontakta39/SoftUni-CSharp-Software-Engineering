@@ -60,7 +60,7 @@ public class BlogController : Controller
             return View(addBlog);
         }
 
-        await _blogService.AddBlogAsync(addBlog, publisher);
+        await _blogService.AddBlogAsync(addBlog, publisher.Id);
 
         return RedirectToAction("Index", "Blog");
     }

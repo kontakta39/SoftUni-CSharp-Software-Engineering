@@ -9,7 +9,7 @@ public interface IBlogService
 
     Task<Blog?> GetBlogByIdAsync(Guid id);
 
-    Task AddBlogAsync(BlogAddViewModel addBlog, ApplicationUser publisher);
+    Task AddBlogAsync(BlogAddViewModel addBlog, string publisherId);
 
     Task EditBlogAsync(BlogEditViewModel editBlog, Blog blog);
 
