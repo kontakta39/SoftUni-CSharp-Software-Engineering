@@ -1,37 +1,27 @@
-﻿using BookWebStore.Data;
-using BookWebStore.Data.Models;
+﻿using BookWebStore.Data.Models;
+using BookWebStore.Repositories.Interfaces;
 using BookWebStore.Services.Interfaces;
 using BookWebStore.ViewModels;
-using Microsoft.EntityFrameworkCore;
 
 namespace BookWebStore.Services;
 
 public class ReviewService : IReviewService
 {
-    private readonly BookStoreDbContext _context;
+    private readonly IReviewRepository _reviewRepository;
 
-    public ReviewService(BookStoreDbContext context)
+    public ReviewService(IReviewRepository reviewRepository)
     {
-        _context = context;
+        _reviewRepository = reviewRepository;
     }
 
     public async Task<List<Review>> GetBookReviewsAsync(Guid bookId)
     {
-        List<Review> bookReviews = await _context.Reviews
-            .Include(r => r.User)
-            .Where(r => r.BookId == bookId)
-            .OrderByDescending(r => r.ReviewDate)
-            .ToListAsync();
-
-        return bookReviews;
+        return await _reviewRepository.GetBookReviewsAsync(bookId);
     }
 
     public async Task<Review?> ReviewExistsAsync(Guid bookId, string userId)
     {
-        //Check if the user has already reviewed this book
-        return await _context.Reviews
-            .Include(r => r.Book)
-            .FirstOrDefaultAsync(r => r.UserId == userId && r.BookId == bookId);
+        return await _reviewRepository.ReviewExistsAsync(bookId, userId);
     }
 
     public async Task AddReviewAsync(ReviewAddViewModel addReview, ApplicationUser user)
@@ -44,8 +34,8 @@ public class ReviewService : IReviewService
             ReviewText = addReview.ReviewText
         };
 
-        await _context.Reviews.AddAsync(review);
-        await _context.SaveChangesAsync();
+        await _reviewRepository.AddAsync(review);
+        await _reviewRepository.SaveChangesAsync();
     }
 
     public async Task EditReviewAsync(ReviewEditViewModel editReview, Review review, ApplicationUser user)
@@ -55,6 +45,6 @@ public class ReviewService : IReviewService
         review.ReviewText = editReview.ReviewText;
         review.IsEdited = true;
 
-        await _context.SaveChangesAsync();
+        await _reviewRepository.SaveChangesAsync();
     }
 }
