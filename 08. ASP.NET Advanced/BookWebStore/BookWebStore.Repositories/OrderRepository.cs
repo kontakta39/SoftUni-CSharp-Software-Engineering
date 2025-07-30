@@ -37,11 +37,6 @@ public class OrderRepository : IOrderRepository
             .FirstOrDefaultAsync(o => o.BuyerId == buyerId && o.Id == orderId && o.IsCompleted);
     }
 
-    public async Task AddAsync(Order order)
-    {
-        await _context.Orders.AddAsync(order);
-    }
-
     public async Task<OrderBook?> GetOrderBookAsync(Guid orderId, Guid bookId, bool? isReturned = null)
     {
         return await _context.OrdersBooks
@@ -49,16 +44,6 @@ public class OrderRepository : IOrderRepository
                 .Include(ob => ob.Book)
                 .FirstOrDefaultAsync(ob => ob.OrderId == orderId && ob.BookId == bookId &&
                 (isReturned == null || ob.IsReturned == isReturned));
-    }
-
-    public void Remove(Order order)
-    {
-        _context.Orders.Remove(order);
-    }
-
-    public async Task SaveChangesAsync()
-    {
-        await _context.SaveChangesAsync();
     }
 
     public async Task<List<OrderBook>> GetCompletedOrdersByUserAsync(string buyerId)

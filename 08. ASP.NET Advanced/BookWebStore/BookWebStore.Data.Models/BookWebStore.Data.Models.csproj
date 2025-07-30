@@ -13,6 +13,7 @@
 
 <ItemGroup>
   <ProjectReference Include="..\BookWebStore.Constants\BookWebStore.Constants.csproj" />
+  <ProjectReference Include="..\BookWebStore.Data.Entities\BookWebStore.Data.Entities.csproj" />
 </ItemGroup>	
 	
 </Project>

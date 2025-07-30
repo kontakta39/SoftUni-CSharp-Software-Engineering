@@ -248,7 +248,7 @@ public class AuthorController : Controller
             return RedirectToAction("Index", "Author");
         }
 
-        await _authorService.DeleteAuthorAsync(deleteAuthor, getAuthor);
+        await _authorService.DeleteAuthorAsync(getAuthor);
 
         return RedirectToAction("Index", "Author");
     }

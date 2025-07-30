@@ -168,8 +168,8 @@ public class AccountController : Controller
             return View(forgotPassword);
         }
 
-        string token = await _accountService.GenerateUserResetTokenAsync(user);
-        string encodedEmail = Convert.ToBase64String(Encoding.UTF8.GetBytes(user.Email!));
+        string token = await _accountService.GenerateUserResetTokenAsync(user!);
+        string encodedEmail = Convert.ToBase64String(Encoding.UTF8.GetBytes(user!.Email!));
         string safeEncodedEmail = HttpUtility.UrlEncode(encodedEmail);
         string resetLink = Url.Action("ResetPassword", "Account", new { token, email = safeEncodedEmail }, Request.Scheme)!;
 
@@ -494,7 +494,7 @@ public class AccountController : Controller
             return View("Manage", profileViewModel);
         }
             
-        await _accountService.UpdateUserProfile(profileViewModel, user);
+        await _accountService.UpdateUserProfile(profileViewModel.NewPhoneNumber, user);
 
         return RedirectToAction("Manage", new { page = "Profile" });
     }

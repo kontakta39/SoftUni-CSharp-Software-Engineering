@@ -8,10 +8,12 @@ namespace BookWebStore.Services;
 public class ReviewService : IReviewService
 {
     private readonly IReviewRepository _reviewRepository;
+    private readonly IBaseRepository _baseRepository;
 
-    public ReviewService(IReviewRepository reviewRepository)
+    public ReviewService(IReviewRepository reviewRepository, IBaseRepository baseRepository)
     {
         _reviewRepository = reviewRepository;
+        _baseRepository = baseRepository;
     }
 
     public async Task<List<Review>> GetBookReviewsAsync(Guid bookId)
@@ -34,8 +36,8 @@ public class ReviewService : IReviewService
             ReviewText = addReview.ReviewText
         };
 
-        await _reviewRepository.AddAsync(review);
-        await _reviewRepository.SaveChangesAsync();
+        await _baseRepository.AddAsync(review);
+        await _baseRepository.SaveChangesAsync();
     }
 
     public async Task EditReviewAsync(ReviewEditViewModel editReview, Review review, ApplicationUser user)
@@ -45,6 +47,6 @@ public class ReviewService : IReviewService
         review.ReviewText = editReview.ReviewText;
         review.IsEdited = true;
 
-        await _reviewRepository.SaveChangesAsync();
+        await _baseRepository.SaveChangesAsync();
     }
 }

@@ -7,8 +7,4 @@ public interface IReviewRepository
     Task<List<Review>> GetBookReviewsAsync(Guid bookId);
 
     Task<Review?> ReviewExistsAsync(Guid bookId, string userId);
-
-    Task AddAsync(Review review);
-
-    Task SaveChangesAsync();
 }

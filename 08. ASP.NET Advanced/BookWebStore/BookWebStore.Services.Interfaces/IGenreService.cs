@@ -15,5 +15,5 @@ public interface IGenreService
 
     Task EditGenreAsync(GenreEditViewModel editGenre, Genre genre);       
 
-    Task DeleteGenreAsync(GenreDeleteViewModel deleteGenre, Genre genre);  
+    Task DeleteGenreAsync(Genre genre);  
 }

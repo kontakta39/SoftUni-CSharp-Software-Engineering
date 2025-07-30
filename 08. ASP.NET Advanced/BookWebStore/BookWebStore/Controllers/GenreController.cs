@@ -154,7 +154,7 @@ public class GenreController : Controller
             return RedirectToAction("Index", "Genre");
         }
 
-        await _genreService.DeleteGenreAsync(deleteGenre, getGenre);
+        await _genreService.DeleteGenreAsync(getGenre);
 
         return RedirectToAction("Index", "Genre");
     }

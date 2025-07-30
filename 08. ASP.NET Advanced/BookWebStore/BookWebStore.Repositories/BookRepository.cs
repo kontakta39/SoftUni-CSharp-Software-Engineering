@@ -14,7 +14,7 @@ public class BookRepository : IBookRepository
         _context = context;
     }
 
-    public async Task<List<Book>> GetAllAsync()
+    public async Task<List<Book>> GetAllBooksAsync()
     {
         return await _context.Books
             .Include(b => b.Author)
@@ -23,7 +23,7 @@ public class BookRepository : IBookRepository
             .ToListAsync();
     }
 
-    public async Task<Book?> GetByIdAsync(Guid id)
+    public async Task<Book?> GetBookByIdAsync(Guid id)
     { 
         return await _context.Books
             .Include(b => b.Author)
@@ -31,32 +31,9 @@ public class BookRepository : IBookRepository
             .FirstOrDefaultAsync(b => b.Id == id && !b.IsDeleted);
     }
 
-    public async Task<bool> ExistsByNameAsync(string title, Guid? id = null)
+    public async Task<bool> HasBooksInStockByPropertyIdAsync(string propertyName, Guid nameId)
     {
         return await _context.Books
-            .AnyAsync(b => b.Title.ToLower() == title.ToLower() &&
-            (id == null || b.Id != id) && !b.IsDeleted);
-    }
-
-    public async Task AddAsync(Book book)
-    {
-        await _context.Books.AddAsync(book);
-    }
-
-    public async Task SaveChangesAsync()
-    {
-        await _context.SaveChangesAsync();
-    }
-
-    public async Task<bool> HasBooksInStockByGenreAsync(Guid genreId)
-    {
-        return await _context.Books
-            .AnyAsync(b => b.GenreId == genreId && !b.IsDeleted && b.Stock > 0);
-    }
-
-    public async Task<bool> HasBooksInStockByAuthorAsync(Guid authorId)
-    {
-        return await _context.Books
-            .AnyAsync(b => b.AuthorId == authorId && !b.IsDeleted && b.Stock > 0);
+            .AnyAsync(b => EF.Property<Guid>(b, propertyName) == nameId && !b.IsDeleted && b.Stock > 0);
     }
 }

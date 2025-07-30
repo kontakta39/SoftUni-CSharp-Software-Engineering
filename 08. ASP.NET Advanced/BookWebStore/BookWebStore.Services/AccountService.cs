@@ -1,6 +1,6 @@
 ﻿using System.Security.Claims;
-using BookWebStore.Data;
 using BookWebStore.Data.Models;
+using BookWebStore.Repositories.Interfaces;
 using BookWebStore.Services.Interfaces;
 using BookWebStore.ViewModels;
 using Microsoft.AspNetCore.Identity;
@@ -12,13 +12,13 @@ public class AccountService : IAccountService
 {
     private readonly SignInManager<ApplicationUser> _signInManager;
     private readonly UserManager<ApplicationUser> _userManager;
-    private readonly BookStoreDbContext _context;
+    private readonly IBaseRepository _baseRepository;
 
-    public AccountService(SignInManager<ApplicationUser> signInManager, UserManager<ApplicationUser> userManager, BookStoreDbContext context)
+    public AccountService(SignInManager<ApplicationUser> signInManager, UserManager<ApplicationUser> userManager, IBaseRepository baseRepository)
     {
         _signInManager = signInManager;
         _userManager = userManager;
-        _context = context;
+        _baseRepository = baseRepository;
     }
 
     public async Task<ApplicationUser?> GetCurrentUserAsync(ClaimsPrincipal currentUser)
@@ -128,10 +128,10 @@ public class AccountService : IAccountService
         return await _userManager.Users.AnyAsync(u => u.Id != userId && u.PhoneNumber == phoneNumber);
     }
 
-    public async Task UpdateUserProfile(ProfileViewModel profileViewModel, ApplicationUser user)
+    public async Task UpdateUserProfile(string newPhoneNumber, ApplicationUser user)
     {
-        user.PhoneNumber = profileViewModel.NewPhoneNumber;
-        await _context.SaveChangesAsync();
+        user.PhoneNumber = newPhoneNumber;
+        await _baseRepository.SaveChangesAsync();
     }
 
     public async Task<bool> UserEmailExistsAsync(string email, string userId)
@@ -143,7 +143,7 @@ public class AccountService : IAccountService
     {
         user.Email = emailViewModel.NewEmail;
         user.NormalizedEmail = emailViewModel.NewEmail!.ToUpper();
-        await _context.SaveChangesAsync();
+        await _baseRepository.SaveChangesAsync();
     }
 
     public async Task<IdentityResult> ChangeUserPasswordAsync(ApplicationUser user, string oldPassword, string newPassword)

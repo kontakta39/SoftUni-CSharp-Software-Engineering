@@ -4,11 +4,7 @@ namespace BookWebStore.Repositories.Interfaces;
 
 public interface IBlogRepository
 {
-    Task<List<Blog>> GetAllAsync();
+    Task<List<Blog>> GetAllBlogsAsync();
 
-    Task<Blog?> GetByIdAsync(Guid id);
-
-    Task AddAsync(Blog blog);
-
-    Task SaveChangesAsync();
+    Task<Blog?> GetBlogByIdAsync(Guid id);
 }

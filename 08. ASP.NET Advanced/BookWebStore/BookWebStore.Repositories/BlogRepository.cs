@@ -14,7 +14,7 @@ public class BlogRepository : IBlogRepository
         _context = context;
     }
 
-    public async Task<List<Blog>> GetAllAsync()
+    public async Task<List<Blog>> GetAllBlogsAsync()
     {
         return await _context.Blogs
            .Include(b => b.Publisher)
@@ -22,20 +22,10 @@ public class BlogRepository : IBlogRepository
            .ToListAsync();
     }
 
-    public async Task<Blog?> GetByIdAsync(Guid id)
+    public async Task<Blog?> GetBlogByIdAsync(Guid id)
     {
         return await _context.Blogs
             .Include(b => b.Publisher)
             .FirstOrDefaultAsync(b => b.Id == id && !b.IsDeleted);
-    }
-
-    public async Task AddAsync(Blog blog)
-    {
-        await _context.Blogs.AddAsync(blog);
-    }
-
-    public async Task SaveChangesAsync()
-    {
-        await _context.SaveChangesAsync();
     }
 }

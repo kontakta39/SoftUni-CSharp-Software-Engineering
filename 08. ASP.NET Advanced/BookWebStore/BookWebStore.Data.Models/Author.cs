@@ -1,9 +1,10 @@
 ﻿using System.ComponentModel.DataAnnotations;
+using BookWebStore.Data.Entities;
 using static BookWebStore.Constants.ModelConstants;
 
 namespace BookWebStore.Data.Models;
 
-public class Author
+public class Author : IEntity
 {
     [Key]
     public Guid Id { get; set; } = Guid.NewGuid();

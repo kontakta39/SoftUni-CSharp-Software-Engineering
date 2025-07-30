@@ -7,26 +7,26 @@ namespace BookWebStore.Services;
 
 public class GenreService : IGenreService
 {
-    private readonly IGenreRepository _genreRepository;
+    private readonly IBaseRepository _baseRepository;
 
-    public GenreService(IGenreRepository genreRepository)
+    public GenreService(IBaseRepository baseRepository)
     {
-        _genreRepository = genreRepository;
+        _baseRepository = baseRepository;
     }
 
     public async Task<List<Genre>> GetAllGenresAsync()
     {
-        return await _genreRepository.GetAllAsync();
+        return await _baseRepository.GetAllAsync<Genre>();
     }
 
     public async Task<Genre?> GetGenreByIdAsync(Guid id)
     {
-        return await _genreRepository.GetByIdAsync(id);
+        return await _baseRepository.GetByIdAsync<Genre>(id);
     }
 
     public async Task<bool> GenreNameExistsAsync(string name, Guid? id = null)
     {
-        return await _genreRepository.ExistsByNameAsync(name, id);
+        return await _baseRepository.ExistsByPropertyAsync<Genre>("Name", name, id);
     }
 
     public async Task AddGenreAsync(GenreAddViewModel addGenre)
@@ -36,19 +36,19 @@ public class GenreService : IGenreService
             Name = addGenre.Name
         };
 
-        await _genreRepository.AddAsync(genre);
-        await _genreRepository.SaveChangesAsync();
+        await _baseRepository.AddAsync(genre);
+        await _baseRepository.SaveChangesAsync();
     }
 
     public async Task EditGenreAsync(GenreEditViewModel editGenre, Genre genre)
     {
         genre.Name = editGenre.Name;
-        await _genreRepository.SaveChangesAsync();
+        await _baseRepository.SaveChangesAsync();
     }
 
-    public async Task DeleteGenreAsync(GenreDeleteViewModel deleteGenre, Genre genre)
+    public async Task DeleteGenreAsync(Genre genre)
     {
         genre.IsDeleted = true;
-        await _genreRepository.SaveChangesAsync();
+        await _baseRepository.SaveChangesAsync();
     }
 }

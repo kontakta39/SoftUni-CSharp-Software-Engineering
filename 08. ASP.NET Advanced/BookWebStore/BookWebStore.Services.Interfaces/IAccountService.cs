@@ -45,7 +45,7 @@ public interface IAccountService
 
     Task<bool> UserPhoneNumberExistsAsync(string phoneNumber, string userId);
 
-    Task UpdateUserProfile(ProfileViewModel profileViewModel, ApplicationUser user);
+    Task UpdateUserProfile(string newPhoneNumber, ApplicationUser user);
 
     Task<bool> UserEmailExistsAsync(string email, string userId);
 

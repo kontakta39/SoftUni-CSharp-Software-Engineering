@@ -7,26 +7,26 @@ namespace BookWebStore.Services;
 
 public class AuthorService : IAuthorService
 {
-    private readonly IAuthorRepository _authorRepository;
+    private readonly IBaseRepository _baseRepository;
 
-    public AuthorService(IAuthorRepository authorRepository)
+    public AuthorService(IBaseRepository baseRepository)
     {
-        _authorRepository = authorRepository;
+        _baseRepository = baseRepository;
     }
 
     public async Task<List<Author>> GetAllAuthorsAsync()
     {
-        return await _authorRepository.GetAllAsync();
+        return await _baseRepository.GetAllAsync<Author>();
     }
 
     public async Task<Author?> GetAuthorByIdAsync(Guid id)
     {
-        return await _authorRepository.GetByIdAsync(id);
+        return await _baseRepository.GetByIdAsync<Author>(id);
     }
 
     public async Task<bool> AuthorNameExistsAsync(string name, Guid? id = null)
     {
-        return await _authorRepository.ExistsByNameAsync(name, id);
+        return await _baseRepository.ExistsByPropertyAsync<Author>("Name", name, id);
     }
 
     public async Task AddAuthorAsync(AuthorAddViewModel addAuthor)
@@ -41,8 +41,8 @@ public class AuthorService : IAuthorService
             Website = addAuthor.Website
         };
 
-        await _authorRepository.AddAsync(author);
-        await _authorRepository.SaveChangesAsync();
+        await _baseRepository.AddAsync(author);
+        await _baseRepository.SaveChangesAsync();
     }
 
     public async Task EditAuthorAsync(AuthorEditViewModel editAuthor, Author author)
@@ -54,12 +54,12 @@ public class AuthorService : IAuthorService
         author.BirthDate = editAuthor.ParsedBirthDate;
         author.Website = editAuthor.Website;
 
-        await _authorRepository.SaveChangesAsync();
+        await _baseRepository.SaveChangesAsync();
     }
 
-    public async Task DeleteAuthorAsync(AuthorDeleteViewModel deleteAuthor, Author author)
+    public async Task DeleteAuthorAsync(Author author)
     {
         author.IsDeleted = true;
-        await _authorRepository.SaveChangesAsync();
+        await _baseRepository.SaveChangesAsync();
     }
 }

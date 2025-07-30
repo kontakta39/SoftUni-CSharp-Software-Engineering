@@ -8,25 +8,27 @@ namespace BookWebStore.Services;
 public class BookService : IBookService
 {
     private readonly IBookRepository _bookRepository;
+    private readonly IBaseRepository _baseRepository;
 
-    public BookService(IBookRepository bookRepository)
+    public BookService(IBookRepository bookRepository, IBaseRepository baseRepository)
     {
         _bookRepository = bookRepository;
+        _baseRepository = baseRepository;
     }
 
     public async Task<List<Book>> GetAllBooksAsync()
     {
-        return await _bookRepository.GetAllAsync(); 
+        return await _bookRepository.GetAllBooksAsync(); 
     }
 
     public async Task<Book?> GetBookByIdAsync(Guid id)
     {
-        return await _bookRepository.GetByIdAsync(id);
+        return await _bookRepository.GetBookByIdAsync(id);
     }
 
     public async Task<bool> BookNameExistsAsync(string title, Guid? id = null)
     {
-        return await _bookRepository.ExistsByNameAsync(title, id);
+        return await _baseRepository.ExistsByPropertyAsync<Book>("Title", title, id);
     }
 
     public async Task AddBookAsync(BookAddViewModel addBook)
@@ -44,8 +46,8 @@ public class BookService : IBookService
             GenreId = addBook.GenreId
         };
 
-        await _bookRepository.AddAsync(book);
-        await _bookRepository.SaveChangesAsync();
+        await _baseRepository.AddAsync(book);
+        await _baseRepository.SaveChangesAsync();
     }
 
     public async Task EditBookAsync(BookEditViewModel editBook, Book book)
@@ -60,16 +62,16 @@ public class BookService : IBookService
         book.AuthorId = editBook.AuthorId;
         book.GenreId = editBook.GenreId;
 
-        await _bookRepository.SaveChangesAsync();
+        await _baseRepository.SaveChangesAsync();
     }
 
     public async Task<bool> HasBooksInStockByGenreIdAsync(Guid genreId)
     {
-        return await _bookRepository.HasBooksInStockByGenreAsync(genreId);
+        return await _bookRepository.HasBooksInStockByPropertyIdAsync("GenreId", genreId);
     }
 
     public async Task<bool> HasBooksInStockByAuthorIdAsync(Guid authorId)
     {
-        return await _bookRepository.HasBooksInStockByAuthorAsync(authorId);
+        return await _bookRepository.HasBooksInStockByPropertyIdAsync("AuthorId", authorId);
     }
 }

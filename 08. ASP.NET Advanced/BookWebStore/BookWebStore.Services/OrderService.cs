@@ -7,10 +7,12 @@ namespace BookWebStore.Services;
 public class OrderService : IOrderService
 {
     private readonly IOrderRepository _orderRepository;
+    private readonly IBaseRepository _baseRepository;
 
-    public OrderService(IOrderRepository orderRepository)
+    public OrderService(IOrderRepository orderRepository, IBaseRepository baseRepository)
     {
         _orderRepository = orderRepository;
+        _baseRepository = baseRepository;
     }
 
     public async Task<List<OrderBook>> GetCartItemsAsync(string buyerId)
@@ -36,8 +38,8 @@ public class OrderService : IOrderService
             OrderNumber = orderNumber
         };
 
-        await _orderRepository.AddAsync(order);
-        await _orderRepository.SaveChangesAsync();
+        await _baseRepository.AddAsync(order);
+        await _baseRepository.SaveChangesAsync();
         return order;
     }
 
@@ -55,7 +57,7 @@ public class OrderService : IOrderService
         };
 
         order.OrdersBooks.Add(orderBook);
-        await _orderRepository.SaveChangesAsync();
+        await _baseRepository.SaveChangesAsync();
         return orderBook;
     }
 
@@ -80,7 +82,7 @@ public class OrderService : IOrderService
             orderBook.Book.IsDeleted = orderBook.Book.Stock < 1;
         }
 
-        await _orderRepository.SaveChangesAsync();
+        await _baseRepository.SaveChangesAsync();
     }
 
     public async Task RecalculatePricesAsync(Order order, OrderBook orderBook)
@@ -92,7 +94,7 @@ public class OrderService : IOrderService
         order.TotalPrice = order.OrdersBooks
             .Sum(ob => ob.UnitPrice);
 
-        await _orderRepository.SaveChangesAsync();
+        await _baseRepository.SaveChangesAsync();
     }
 
     public async Task RemoveFromCartAsync(Order order, OrderBook orderBook)
@@ -102,22 +104,22 @@ public class OrderService : IOrderService
 
         if (order.TotalPrice == 0)
         {
-            _orderRepository.Remove(order);
+            _baseRepository.Remove(order);
         }
 
-        await _orderRepository.SaveChangesAsync();
+        await _baseRepository.SaveChangesAsync();
     }
 
     public async Task CompleteOrderAsync(Order order)
     {
         order.IsCompleted = true;
-        await _orderRepository.SaveChangesAsync();
+        await _baseRepository.SaveChangesAsync();
     }
 
     public async Task ReturnBookAsync(Order order, OrderBook orderBook)
     {
         orderBook.IsReturned = true;
-        await _orderRepository.SaveChangesAsync();
+        await _baseRepository.SaveChangesAsync();
     }
 
     public async Task<List<OrderBook>> GetCompletedOrdersByUserAsync(string buyerId)

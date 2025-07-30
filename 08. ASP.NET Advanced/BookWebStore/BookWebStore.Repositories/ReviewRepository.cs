@@ -29,14 +29,4 @@ public class ReviewRepository : IReviewRepository
             .Include(r => r.Book)
             .FirstOrDefaultAsync(r => r.UserId == userId && r.BookId == bookId);
     }
-
-    public async Task AddAsync(Review review)
-    {
-        await _context.Reviews.AddAsync(review);
-    }
-
-    public async Task SaveChangesAsync()
-    {
-        await _context.SaveChangesAsync();
-    }
 }

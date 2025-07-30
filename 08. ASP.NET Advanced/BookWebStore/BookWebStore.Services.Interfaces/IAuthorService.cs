@@ -15,5 +15,5 @@ public interface IAuthorService
 
     Task EditAuthorAsync(AuthorEditViewModel editAuthor, Author author);
 
-    Task DeleteAuthorAsync(AuthorDeleteViewModel deleteAuthor, Author author);
+    Task DeleteAuthorAsync(Author author);
 }
