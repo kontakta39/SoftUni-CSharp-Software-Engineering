@@ -4,7 +4,6 @@ using BookWebStore.Repositories.Interfaces;
 using BookWebStore.Services.Interfaces;
 using BookWebStore.ViewModels;
 using Microsoft.AspNetCore.Identity;
-using Microsoft.EntityFrameworkCore;
 
 namespace BookWebStore.Services;
 
@@ -12,12 +11,14 @@ public class AccountService : IAccountService
 {
     private readonly SignInManager<ApplicationUser> _signInManager;
     private readonly UserManager<ApplicationUser> _userManager;
+    private readonly IAccountRepository _accountRepository;
     private readonly IBaseRepository _baseRepository;
 
-    public AccountService(SignInManager<ApplicationUser> signInManager, UserManager<ApplicationUser> userManager, IBaseRepository baseRepository)
+    public AccountService(SignInManager<ApplicationUser> signInManager, UserManager<ApplicationUser> userManager, IAccountRepository accountRepository, IBaseRepository baseRepository)
     {
         _signInManager = signInManager;
         _userManager = userManager;
+        _accountRepository = accountRepository;
         _baseRepository = baseRepository;
     }
 
@@ -118,14 +119,12 @@ public class AccountService : IAccountService
 
     public async Task<List<ApplicationUser>> GetAllUsersAsync()
     {
-        return await _userManager.Users
-            .Where(u => u.Email != "kontakta39@mail.bg" && u.UserName != "kontakta39")
-            .ToListAsync();
+        return await _accountRepository.GetAllNonAdminUsersAsync();
     }
 
     public async Task<bool> UserPhoneNumberExistsAsync(string phoneNumber, string userId)
     {
-        return await _userManager.Users.AnyAsync(u => u.Id != userId && u.PhoneNumber == phoneNumber);
+        return await _accountRepository.UserPropertyExistsAsync("PhoneNumber", phoneNumber, userId);
     }
 
     public async Task UpdateUserProfile(string newPhoneNumber, ApplicationUser user)
@@ -136,7 +135,7 @@ public class AccountService : IAccountService
 
     public async Task<bool> UserEmailExistsAsync(string email, string userId)
     {
-        return await _userManager.Users.AnyAsync(u => u.Id != userId && u.Email == email);
+        return await _accountRepository.UserPropertyExistsAsync("Email", email, userId);
     }
 
     public async Task ChangeEmailAsync(EmailViewModel emailViewModel, ApplicationUser user)

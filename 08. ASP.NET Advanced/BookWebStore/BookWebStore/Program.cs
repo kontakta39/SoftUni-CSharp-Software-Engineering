@@ -63,6 +63,7 @@ public class Program
         builder.Services.AddScoped<IBlogService, BlogService>();
 
         builder.Services.AddScoped<IBaseRepository, BaseRepository>();
+        builder.Services.AddScoped<IAccountRepository, AccountRepository>();
         builder.Services.AddScoped<IBookRepository, BookRepository>();
         builder.Services.AddScoped<IOrderRepository, OrderRepository>();
         builder.Services.AddScoped<IReviewRepository, ReviewRepository>();
