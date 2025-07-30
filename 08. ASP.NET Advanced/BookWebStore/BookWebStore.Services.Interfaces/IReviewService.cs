@@ -9,7 +9,7 @@ public interface IReviewService
 
     Task<Review?> ReviewExistsAsync(Guid bookId, string userId);
 
-    Task AddReviewAsync(ReviewAddViewModel addReview, ApplicationUser user);
+    Task AddReviewAsync(ReviewAddViewModel addReview, string userId);
 
-    Task EditReviewAsync(ReviewEditViewModel editReview, Review review, ApplicationUser user);
+    Task EditReviewAsync(ReviewEditViewModel editReview, Review review);
 }

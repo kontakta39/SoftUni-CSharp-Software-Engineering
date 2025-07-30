@@ -24,7 +24,7 @@ public interface IOrderService
 
     Task CompleteOrderAsync(Order order);
 
-    Task ReturnBookAsync(Order order, OrderBook orderBook);
+    Task ReturnBookAsync(OrderBook orderBook);
 
     Task<List<OrderBook>> GetCompletedOrdersByUserAsync(string buyerId);
 }

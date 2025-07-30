@@ -87,7 +87,7 @@ public class ReviewController : Controller
             return RedirectToAction("Details", "Book", new { id = getBook.Id });
         }
 
-        await _reviewService.AddReviewAsync(addReview, user);
+        await _reviewService.AddReviewAsync(addReview, user.Id);
             
         return RedirectToAction("Details", "Book", new { id = addReview.BookId });
     }
@@ -175,7 +175,7 @@ public class ReviewController : Controller
             return RedirectToAction("Details", "Book", new { id = getBook.Id });
         }
 
-        await _reviewService.EditReviewAsync(editReview, review, user);
+        await _reviewService.EditReviewAsync(editReview, review);
 
         return RedirectToAction("Details", "Book", new { id = editReview.BookId });
     }

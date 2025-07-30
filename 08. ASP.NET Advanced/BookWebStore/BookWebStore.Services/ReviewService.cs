@@ -26,12 +26,12 @@ public class ReviewService : IReviewService
         return await _reviewRepository.ReviewExistsAsync(bookId, userId);
     }
 
-    public async Task AddReviewAsync(ReviewAddViewModel addReview, ApplicationUser user)
+    public async Task AddReviewAsync(ReviewAddViewModel addReview, string userId)
     {
         Review review = new Review
         {
             BookId = addReview.BookId,
-            UserId = user.Id,
+            UserId = userId,
             Rating = addReview.Rating,
             ReviewText = addReview.ReviewText
         };
@@ -40,7 +40,7 @@ public class ReviewService : IReviewService
         await _baseRepository.SaveChangesAsync();
     }
 
-    public async Task EditReviewAsync(ReviewEditViewModel editReview, Review review, ApplicationUser user)
+    public async Task EditReviewAsync(ReviewEditViewModel editReview, Review review)
     {
         review.ReviewDate = DateOnly.FromDateTime(DateTime.UtcNow);
         review.Rating = editReview.Rating;

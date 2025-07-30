@@ -66,7 +66,7 @@ public class OrderService : IOrderService
         if (newQuantity == null)
         {
             orderBook.Book.Stock += orderBook.Quantity;
-            orderBook.Book.IsDeleted = orderBook.Book.Stock <= 0;
+            orderBook.Book.IsDeleted = false;
         }
         else
         {
@@ -77,9 +77,8 @@ public class OrderService : IOrderService
 
             //Updating the quantity in the cart
             orderBook.Quantity = newQuantity.Value;
-            orderBook.Book.Stock -= difference;
-
-            orderBook.Book.IsDeleted = orderBook.Book.Stock < 1;
+            orderBook.Book.Stock = Math.Max(0, orderBook.Book.Stock - difference);
+            orderBook.Book.IsDeleted = orderBook.Book.Stock == 0;
         }
 
         await _baseRepository.SaveChangesAsync();
@@ -116,7 +115,7 @@ public class OrderService : IOrderService
         await _baseRepository.SaveChangesAsync();
     }
 
-    public async Task ReturnBookAsync(Order order, OrderBook orderBook)
+    public async Task ReturnBookAsync(OrderBook orderBook)
     {
         orderBook.IsReturned = true;
         await _baseRepository.SaveChangesAsync();

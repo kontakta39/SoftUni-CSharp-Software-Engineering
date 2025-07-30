@@ -302,7 +302,7 @@ public class OrderController : Controller
         }
 
         await _orderService.UpdateQuantityAsync(orderBook);
-        await _orderService.ReturnBookAsync(order, orderBook);
+        await _orderService.ReturnBookAsync(orderBook);
 
         TempData["BookTitle"] = orderBook.Book.Title;
         TempData["OrderNumber"] = order.OrderNumber;
