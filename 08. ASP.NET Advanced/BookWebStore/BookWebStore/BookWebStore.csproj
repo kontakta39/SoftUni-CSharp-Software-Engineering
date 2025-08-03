@@ -30,9 +30,4 @@
     <ProjectReference Include="..\BookWebStore.ViewModels\BookWebStore.ViewModels.csproj" />
   </ItemGroup>
 
-  <ItemGroup>
-    <Folder Include="Views\Genre\" />
-    <Folder Include="Views\Author\" />
-  </ItemGroup>
-
 </Project>

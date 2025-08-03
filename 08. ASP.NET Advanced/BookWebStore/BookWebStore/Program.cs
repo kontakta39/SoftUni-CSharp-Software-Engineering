@@ -15,7 +15,15 @@ public class Program
     {
         WebApplicationBuilder? builder = WebApplication.CreateBuilder(args);
 
-        // Add services to the container.
+        //Configuration sources
+        builder.Configuration
+            .SetBasePath(Directory.GetCurrentDirectory())
+            .AddJsonFile("appsettings.json", optional: false, reloadOnChange: true)
+            .AddJsonFile($"appsettings.{builder.Environment.EnvironmentName}.json", optional: true)
+            .AddUserSecrets<Program>(optional: true)
+            .AddEnvironmentVariables();
+
+        //Add services to the container
         string? connectionString = builder.Configuration.GetConnectionString("BookStoreConnectionString") ?? throw new InvalidOperationException("Connection string 'BookStoreConnectionString' not found.");
         builder.Services.AddDbContext<BookStoreDbContext>(options =>
             options.UseSqlServer(connectionString));
@@ -44,7 +52,7 @@ public class Program
             options.TokenLifespan = TimeSpan.FromMinutes(30);
         });
 
-        // Configure cookie authentication for login and access denied paths
+        //Configure cookie authentication for login and access denied paths
         builder.Services.ConfigureApplicationCookie(options =>
         {
             options.LoginPath = "/Account/Login";
@@ -71,7 +79,7 @@ public class Program
 
         WebApplication? app = builder.Build();
 
-        // Configure the HTTP request pipeline.
+        //Configure the HTTP request pipeline
         if (app.Environment.IsDevelopment())
         {
             app.UseMigrationsEndPoint();
@@ -86,6 +94,7 @@ public class Program
         app.UseStatusCodePagesWithReExecute("/Home/NotFound");
 
         app.UseHttpsRedirection();
+        app.UseStaticFiles();
         app.UseRouting();
 
         app.UseAuthentication();
