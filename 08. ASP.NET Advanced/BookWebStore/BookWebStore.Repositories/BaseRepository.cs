@@ -21,6 +21,14 @@ public class BaseRepository : IBaseRepository
             .ToListAsync();
     }
 
+    public async Task<List<TType>> SearchByPropertyAsync<TType>(string propertyName, string loweredTerm)
+    where TType : class, IEntity
+    {
+        return await _context.Set<TType>()
+         .Where(e => EF.Property<string>(e, propertyName).ToLower().Contains(loweredTerm) && !e.IsDeleted)
+         .ToListAsync();
+    }
+
     public async Task<TType?> GetByIdAsync<TType>(Guid id) where TType : class, IEntity
     {
         return await _context.Set<TType>()

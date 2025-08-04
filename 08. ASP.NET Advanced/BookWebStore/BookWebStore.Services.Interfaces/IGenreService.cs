@@ -7,6 +7,8 @@ public interface IGenreService
 {
     Task<List<Genre>> GetAllGenresAsync();
 
+    Task<List<Genre>> SearchGenresAsync(string loweredTerm);
+
     Task<Genre?> GetGenreByIdAsync(Guid id);
 
     Task<bool> GenreNameExistsAsync(string name, Guid? id = null);

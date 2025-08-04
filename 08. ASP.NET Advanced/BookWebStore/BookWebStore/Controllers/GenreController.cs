@@ -19,11 +19,36 @@ public class GenreController : Controller
 
     [HttpGet]
     [Authorize(Roles = "Administrator")]
-    public async Task<IActionResult> Index()
+    public async Task<IActionResult> Index(string? searchTerm)
     {
-        List<Genre> getAllGenres = await _genreService.GetAllGenresAsync();
+        List<Genre> genres = new List<Genre>();
 
-        List<GenreIndexViewModel> genres = getAllGenres
+        if (string.IsNullOrWhiteSpace(searchTerm))
+        {
+            genres = await _genreService.GetAllGenresAsync();
+
+            //Search with empty field
+            if (Request.Query.ContainsKey("searchTerm"))
+            {
+                TempData["ErrorMessage"] = "Please enter a search term.";
+            }
+        }
+        else
+        {
+            //Valid search
+            string loweredTerm = searchTerm.ToLower();
+            genres = await _genreService.SearchGenresAsync(loweredTerm);
+            ViewData["SearchTerm"] = searchTerm;
+
+            //Valid search with no results
+            if (!genres.Any())
+            {
+                ViewData["NoResultsMessage"] = $"No genres found matching \"{searchTerm}\".";
+            }
+        }
+
+        List<GenreIndexViewModel> getGenres = genres
+            .OrderBy(g => g.Name)
             .Select(g => new GenreIndexViewModel
             {
                 Id = g.Id,
@@ -31,7 +56,7 @@ public class GenreController : Controller
             })
             .ToList();
 
-        return View(genres);
+        return View(getGenres);
     }
 
     [HttpGet]

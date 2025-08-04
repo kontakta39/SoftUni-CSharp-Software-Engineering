@@ -19,6 +19,11 @@ public class GenreService : IGenreService
         return await _baseRepository.GetAllAsync<Genre>();
     }
 
+    public async Task<List<Genre>> SearchGenresAsync(string loweredTerm)
+    {
+        return await _baseRepository.SearchByPropertyAsync<Genre>("Name", loweredTerm);
+    }
+
     public async Task<Genre?> GetGenreByIdAsync(Guid id)
     {
         return await _baseRepository.GetByIdAsync<Genre>(id);
