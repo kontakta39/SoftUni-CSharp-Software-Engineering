@@ -54,6 +54,45 @@ public class GenreServiceTests
     }
 
     [Test]
+    public async Task SearchGenresAsync_ReturnsMatchingGenres_WhenTheyExist()
+    {
+        string loweredTerm = "sci"; 
+        List<Genre> expectedGenres = new List<Genre>
+        {
+            new Genre { Name = "Science Fiction" },
+            new Genre { Name = "Sci-Fi" }
+        };
+
+        _mockRepository
+            .Setup(repo => repo.SearchByPropertyAsync<Genre>("Name", loweredTerm))
+            .ReturnsAsync(expectedGenres);
+
+        List<Genre> result = await _genreService.SearchGenresAsync(loweredTerm);
+
+        Assert.Multiple(() =>
+        {
+            Assert.That(result.Count, Is.EqualTo(2));
+            Assert.That(result[0].Name, Is.EqualTo(expectedGenres[0].Name));
+            Assert.That(result[1].Name, Is.EqualTo(expectedGenres[1].Name));
+        });
+    }
+
+    [Test]
+    public async Task SearchGenresAsync_ReturnsEmptyList_WhenNoGenresMatch()
+    {
+        string searchTerm = "Nonexistent Genre";
+        List<Genre> expectedGenres = new List<Genre>();
+
+        _mockRepository
+            .Setup(r => r.SearchByPropertyAsync<Genre>("Name", searchTerm))
+            .ReturnsAsync(expectedGenres);
+
+        List<Genre> result = await _genreService.SearchGenresAsync(searchTerm);
+
+        Assert.That(result.Count, Is.EqualTo(0));
+    }
+
+    [Test]
     public async Task GetGenreByIdAsync_ReturnsCorrectGenre()
     {
         Guid genreId = Guid.NewGuid();
