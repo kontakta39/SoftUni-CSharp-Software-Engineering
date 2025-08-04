@@ -7,6 +7,8 @@ public interface IAuthorService
 {
     Task<List<Author>> GetAllAuthorsAsync();
 
+    Task<List<Author>> SearchAuthorsAsync(string loweredTerm);
+
     Task<Author?> GetAuthorByIdAsync(Guid id);
 
     Task<bool> AuthorNameExistsAsync(string name, Guid? id = null);

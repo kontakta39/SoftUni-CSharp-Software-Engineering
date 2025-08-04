@@ -1,6 +1,7 @@
 ﻿using System.Globalization;
 using System.Text.Json;
 using BookWebStore.Data.Models;
+using BookWebStore.Services;
 using BookWebStore.Services.Interfaces;
 using BookWebStore.ViewModels;
 using Microsoft.AspNetCore.Authorization;
@@ -23,11 +24,32 @@ public class AuthorController : Controller
 
     [HttpGet]
     [Authorize(Roles = "Administrator")]
-    public async Task<IActionResult> Index()
+    public async Task<IActionResult> Index(string? searchTerm)
     {
-        List<Author> getAllAuthors = await _authorService.GetAllAuthorsAsync();
+        List<Author> authors = new List<Author>();
 
-        List<AuthorIndexViewModel> authors = getAllAuthors
+        if (string.IsNullOrWhiteSpace(searchTerm))
+        {
+            authors = await _authorService.GetAllAuthorsAsync();
+
+            if (Request.Query.ContainsKey("searchTerm"))
+            {
+                TempData["ErrorMessage"] = "Please enter a search term.";
+            }
+        }
+        else
+        {
+            string loweredTerm = searchTerm.ToLower();
+            authors = await _authorService.SearchAuthorsAsync(loweredTerm);
+            ViewData["SearchTerm"] = searchTerm;
+
+            if (!authors.Any())
+            {
+                ViewData["NoResultsMessage"] = $"No authors found matching \"{searchTerm}\".";
+            }
+        }
+
+        List<AuthorIndexViewModel> getAuthors = authors
             .Select(a => new AuthorIndexViewModel
             {
                 Id = a.Id,
@@ -37,7 +59,7 @@ public class AuthorController : Controller
             })
             .ToList();
 
-        return View(authors);
+        return View(getAuthors);
     }
 
     [HttpGet]

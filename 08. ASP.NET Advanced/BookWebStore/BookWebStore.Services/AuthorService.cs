@@ -19,6 +19,11 @@ public class AuthorService : IAuthorService
         return await _baseRepository.GetAllAsync<Author>();
     }
 
+    public async Task<List<Author>> SearchAuthorsAsync(string loweredTerm)
+    {
+        return await _baseRepository.SearchByPropertyAsync<Author>("Name", loweredTerm);
+    }
+
     public async Task<Author?> GetAuthorByIdAsync(Guid id)
     {
         return await _baseRepository.GetByIdAsync<Author>(id);
