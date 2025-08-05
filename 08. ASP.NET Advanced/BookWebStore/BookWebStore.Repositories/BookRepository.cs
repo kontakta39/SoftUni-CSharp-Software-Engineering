@@ -1,4 +1,5 @@
 ﻿using BookWebStore.Data;
+using BookWebStore.Data.Entities;
 using BookWebStore.Data.Models;
 using BookWebStore.Repositories.Interfaces;
 using Microsoft.EntityFrameworkCore;
@@ -20,6 +21,15 @@ public class BookRepository : IBookRepository
             .Include(b => b.Author)
             .Include(b => b.Genre)
             .Where(b => !b.IsDeleted && b.Stock > 0)
+            .ToListAsync();
+    }
+
+    public async Task<List<Book>> SearchByTitleAsync(string loweredTerm)
+    {
+        return await _context.Books
+            .Include(b => b.Author)
+            .Include(b => b.Genre)
+            .Where(b => b.Title.ToLower().Contains(loweredTerm) && !b.IsDeleted && b.Stock > 0)
             .ToListAsync();
     }
 

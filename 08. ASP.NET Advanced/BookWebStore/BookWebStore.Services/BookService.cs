@@ -21,6 +21,11 @@ public class BookService : IBookService
         return await _bookRepository.GetAllBooksAsync(); 
     }
 
+    public async Task<List<Book>> SearchByTitleAsync(string loweredTerm)
+    {
+        return await _bookRepository.SearchByTitleAsync(loweredTerm);
+    }
+
     public async Task<Book?> GetBookByIdAsync(Guid id)
     {
         return await _bookRepository.GetBookByIdAsync(id);

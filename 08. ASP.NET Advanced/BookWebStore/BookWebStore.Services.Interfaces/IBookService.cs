@@ -7,6 +7,8 @@ public interface IBookService
 {
     Task<List<Book>> GetAllBooksAsync();
 
+    Task<List<Book>> SearchByTitleAsync(string loweredTerm);
+
     Task<Book?> GetBookByIdAsync(Guid id);
 
     Task<bool> BookNameExistsAsync(string title, Guid? id = null);

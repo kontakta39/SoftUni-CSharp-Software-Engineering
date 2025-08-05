@@ -22,11 +22,32 @@ public class BookController : Controller
     }
 
     [HttpGet]
-    public async Task<IActionResult> Index()
+    public async Task<IActionResult> Index(string? searchTerm)
     {
-        List<Book> getAllBooks = await _bookService.GetAllBooksAsync();
+        List<Book> books = new List<Book>();
 
-        List<BookIndexViewModel> books = getAllBooks
+        if (string.IsNullOrWhiteSpace(searchTerm))
+        {
+            books = await _bookService.GetAllBooksAsync();
+
+            if (Request.Query.ContainsKey("searchTerm"))
+            {
+                TempData["ErrorMessage"] = "Please enter a search term.";
+            }
+        }
+        else
+        {
+            string loweredTerm = searchTerm.ToLower();
+            books = await _bookService.SearchByTitleAsync(loweredTerm);
+            ViewData["SearchTerm"] = searchTerm;
+
+            if (!books.Any())
+            {
+                ViewData["NoResultsMessage"] = $"No books found matching \"{searchTerm}\".";
+            }
+        }
+
+        List<BookIndexViewModel> getBooks = books
             .Select(b => new BookIndexViewModel()
             {
                 Id = b.Id,
@@ -37,7 +58,7 @@ public class BookController : Controller
             })
             .ToList();
 
-        return View(books);
+        return View(getBooks);
     }
 
     [HttpGet]
