@@ -3,6 +3,8 @@
 
 @{
     ViewData["Title"] = "Authors";
+    string? searchTerm = ViewData["SearchTerm"] as string;
+    bool isSearchWithNoResults = ViewData["NoResultsMessage"] != null;
 }
 
 @if (TempData["ErrorMessage"] != null)
@@ -22,45 +24,88 @@
 </div>
 <hr class="mb-4" />
 
-@if (!Model.Any())
+@if (!Model.Any() && !isSearchWithNoResults)
 {
     <h3 class="text-start">There are no created authors.</h3>
 }
 else
 {
-    List<IGrouping<string, AuthorIndexViewModel>> groupedAuthors = Model
-        .OrderBy(a => a.Name)
-        .GroupBy(a => a.Name.Substring(0, 1).ToUpper()) //group by first letter
-        .OrderBy(a => a.Key) //sorting groups by letter
-        .ToList();
+    <div class="d-flex justify-content-center mb-5">
+        <div class="col-md-7">
+            <div class="d-flex justify-content-center gap-3">
+                <form asp-controller="Author" asp-action="Index" method="get" class="d-flex align-items-center gap-2 w-100">
+                    <input type="text"
+                           name="searchTerm"
+                           class="form-control form-control-lg shadow-sm border-primary rounded-3"
+                           value="@searchTerm"
+                           placeholder="Search authors..." />
 
-    @foreach (var group in groupedAuthors)
-    {
-        <h3 class="text-start mt-5 text-dark">Authors starting with letter "<strong>@group.Key</strong>"</h3>
-        <hr class="mb-4 border-primary" />
+                    <button type="submit" class="btn btn-lg btn-primary shadow-sm rounded-3 px-4 d-flex align-items-center gap-2">
+                        <i class="fas fa-search me-1"></i> Search
+                    </button>
+                </form>
 
-        <div class="row g-4">
-            @foreach (var author in group.OrderBy(a => a.Name))
-            {
-                <div class="col-sm-6 col-md-4 col-lg-3 mb-5">
-                    <div class="card shadow-sm border-1 d-flex flex-column bg-secondary bg-opacity-10">
-                        <a asp-controller="Author" asp-action="Details" asp-route-id="@author.Id" class="text-decoration-none text-reset flex-grow-1 d-flex flex-column">
-                            <div class="p-3" style="padding-bottom: 0;">
-                                <img src="@(!string.IsNullOrEmpty(author.ImageUrl) ? author.ImageUrl : Url.Content("~/img/author-no-image-available.jpg"))"
-                                    class="img-fluid rounded mx-auto d-block"
-                                    style="max-height: 300px; object-fit: contain;"
-                                    alt="Author Image Not Available"
-                                    onerror="this.onerror=null; this.src='@Url.Content("~/img/author-no-image-available.jpg")';" />
-                            </div>
-
-                            <div class="card-body text-center" style="padding-top: 0.25rem; padding-bottom: 0;">
-                                <h5 class="card-title text-dark fw-semibold mb-2">@author.Name</h5>
-                                <h6 class="card-subtitle text-muted mb-3">@author.Nationality</h6>
-                            </div>
-                        </a>
-                    </div>
-                </div>
-            }
+                @if (!string.IsNullOrWhiteSpace(searchTerm))
+                {
+                    <a asp-controller="Author" asp-action="Index" class="btn btn-lg btn-danger shadow-sm rounded-3 px-4">
+                        <i class="fas fa-times me-1"></i> Clear
+                    </a>
+                }
+            </div>
         </div>
+    </div>
+
+    @if (isSearchWithNoResults)
+    {
+        <div class="row justify-content-center">
+            <div class="col-md-8">
+                <div class="alert alert-secondary text-center shadow-sm bg-light rounded-4 p-5">
+                    <i class="fas fa-search fa-3x text-primary mb-3"></i>
+                    <h4 class="mb-3">@ViewData["NoResultsMessage"]</h4>
+                    <h5 class="text-muted mb-4">No authors matched your search. You can try a new term or browse all authors.</h5>
+                    <a asp-controller="Author" asp-action="Index" class="btn btn-primary btn-lg rounded-pill">
+                        <i class="fas fa-arrow-left me-2"></i> Back to all authors
+                    </a>
+                </div>
+            </div>
+        </div>
+    }
+    else
+    {
+        List<IGrouping<string, AuthorIndexViewModel>> groupedAuthors = Model
+           .OrderBy(a => a.Name)
+           .GroupBy(a => a.Name.Substring(0, 1).ToUpper()) //group by first letter
+           .OrderBy(a => a.Key) //sorting groups by letter
+           .ToList();
+
+        foreach (var group in groupedAuthors)
+        {
+            <h3 class="text-start mt-5 text-dark">Authors starting with letter "<strong>@group.Key</strong>"</h3>
+            <hr class="mb-4 border-primary" />
+
+            <div class="row g-4">
+                @foreach (var author in group.OrderBy(a => a.Name))
+                {
+                    <div class="col-sm-6 col-md-4 col-lg-3 mb-5">
+                        <div class="card shadow-sm border-1 d-flex flex-column bg-secondary bg-opacity-10">
+                            <a asp-controller="Author" asp-action="Details" asp-route-id="@author.Id" class="text-decoration-none text-reset flex-grow-1 d-flex flex-column">
+                                <div class="p-3" style="padding-bottom: 0;">
+                                    <img src="@(!string.IsNullOrEmpty(author.ImageUrl) ? author.ImageUrl : Url.Content("~/img/author-no-image-available.jpg"))"
+                                         class="img-fluid rounded mx-auto d-block"
+                                         style="max-height: 300px; object-fit: contain;"
+                                         alt="Author Image Not Available"
+                                         onerror="this.onerror=null; this.src='@Url.Content("~/img/author-no-image-available.jpg")';" />
+                                </div>
+
+                                <div class="card-body text-center" style="padding-top: 0.25rem; padding-bottom: 0;">
+                                    <h5 class="card-title text-dark fw-semibold mb-2">@author.Name</h5>
+                                    <h6 class="card-subtitle text-muted mb-3">@author.Nationality</h6>
+                                </div>
+                            </a>
+                        </div>
+                    </div>
+                }
+            </div>
+        }
     }
 }

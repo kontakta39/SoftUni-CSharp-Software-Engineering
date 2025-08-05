@@ -51,6 +51,45 @@ public class AuthorServiceTests
     }
 
     [Test]
+    public async Task SearchAuthorsAsync_ReturnsMatchingAuthors_WhenTheyExist()
+    {
+        string loweredTerm = "dimitar";
+        List<Author> expectedAuthors = new List<Author>
+        {
+            new Author { Name = "Dimitar Dimov" },
+            new Author { Name = "Dimitar Talev" }
+        };
+
+        _mockRepository
+            .Setup(repo => repo.SearchByPropertyAsync<Author>("Name", loweredTerm))
+            .ReturnsAsync(expectedAuthors);
+
+        List<Author> result = await _authorService.SearchAuthorsAsync(loweredTerm);
+
+        Assert.Multiple(() =>
+        {
+            Assert.That(result.Count, Is.EqualTo(2));
+            Assert.That(result[0].Name, Is.EqualTo(expectedAuthors[0].Name));
+            Assert.That(result[1].Name, Is.EqualTo(expectedAuthors[1].Name));
+        });
+    }
+
+    [Test]
+    public async Task SearchAuthorsAsync_ReturnsEmptyList_WhenNoAuthorsMatch()
+    {
+        string searchTerm = "Nonexistent Author";
+        List<Author> expectedAuthors = new List<Author>();
+
+        _mockRepository
+            .Setup(r => r.SearchByPropertyAsync<Author>("Name", searchTerm))
+            .ReturnsAsync(expectedAuthors);
+
+        List<Author> result = await _authorService.SearchAuthorsAsync(searchTerm);
+
+        Assert.That(result.Count, Is.EqualTo(0));
+    }
+
+    [Test]
     public async Task GetAuthorByIdAsync_ReturnsCorrectAuthor()
     {
         Guid authorId = Guid.NewGuid();
