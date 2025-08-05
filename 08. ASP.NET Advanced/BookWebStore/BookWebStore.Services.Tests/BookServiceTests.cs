@@ -53,6 +53,45 @@ public class BookServiceTests
     }
 
     [Test]
+    public async Task SearchBooksAsync_ReturnsMatchingBooks_WhenTheyExist()
+    {
+        string loweredTerm = "shadow";
+        List<Book> expectedBooks = new List<Book>
+        {
+            new Book { Title = "Shadow and Bone" },
+            new Book { Title = "The Shadow of the Wind" }
+        };
+
+        _mockBookRepository
+            .Setup(repo => repo.SearchByTitleAsync(loweredTerm))
+            .ReturnsAsync(expectedBooks);
+
+        List<Book> result = await _bookService.SearchByTitleAsync(loweredTerm);
+
+        Assert.Multiple(() =>
+        {
+            Assert.That(result.Count, Is.EqualTo(2));
+            Assert.That(result[0].Title, Is.EqualTo(expectedBooks[0].Title));
+            Assert.That(result[1].Title, Is.EqualTo(expectedBooks[1].Title));
+        });
+    }
+
+    [Test]
+    public async Task SearchBooksAsync_ReturnsEmptyList_WhenNoBooksMatch()
+    {
+        string searchTerm = "Non‑Existing Book";
+        List<Book> expectedBooks = new List<Book>();
+
+        _mockBookRepository
+            .Setup(r => r.SearchByTitleAsync(searchTerm))
+            .ReturnsAsync(expectedBooks);
+
+        List<Book> result = await _bookService.SearchByTitleAsync(searchTerm);
+
+        Assert.That(result.Count, Is.EqualTo(0));
+    }
+
+    [Test]
     public async Task GetBookByIdAsync_ReturnsCorrectBook()
     {
         Guid bookId = Guid.NewGuid();
