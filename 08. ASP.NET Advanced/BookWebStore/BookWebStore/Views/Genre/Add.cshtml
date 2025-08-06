@@ -10,16 +10,28 @@
 </div>
 <hr class="mb-5" />
 
-<div class="d-flex flex-column justify-content-center align-items-center">
+<div class="d-flex justify-content-center">
     <div class="col-md-5">
-        <form asp-action="Add" method="post">
-            <div class="form-floating mb-3">
-                <input asp-for="Name" class="form-control" aria-required="true" placeholder="Please enter genre name." />
-                <label asp-for="Name">Genre Name*</label>
-                <span asp-validation-for="Name" class="text-danger"></span>
-            </div>
+        <div class="card shadow-lg rounded-4 border-0">
+            <div class="card-body p-4">
+                <h2 class="text-center mb-4">
+                    <i class="bi bi-bookmark-plus text-primary me-2"></i>Create a new genre
+                </h2>
 
-            <button id="add-genre" type="submit" class="w-100 btn btn-lg btn-primary">Add</button>
-        </form>
+                <form asp-action="Add" method="post">
+                    <div class="form-floating mb-4">
+                        <input asp-for="Name" class="form-control" aria-required="true" placeholder="Please enter genre name." />
+                        <label asp-for="Name">Genre Name*</label>
+                        <span asp-validation-for="Name" class="text-danger small"></span>
+                    </div>
+
+                    <div class="d-grid">
+                        <button id="add-genre" type="submit" class="btn btn-primary btn-lg rounded-pill">
+                            <i class="bi bi-plus-circle me-2"></i>Add
+                        </button>
+                    </div>
+                </form>
+            </div>
+        </div>
     </div>
 </div>

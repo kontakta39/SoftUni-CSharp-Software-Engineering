@@ -9,7 +9,7 @@
 
 @if (TempData["ErrorMessage"] != null)
 {
-    <div id="errorAlert" class="alert alert-danger text-center">
+    <div id="errorAlert" class="alert alert-danger text-center mx-auto w-75">
         <p class="m-0">@TempData["ErrorMessage"]</p>
     </div>
     <script>setTimeout(() => { const e=document.getElementById('errorAlert'); if(e){ e.style.transition='opacity 0.5s'; e.style.opacity='0'; setTimeout(() => e.remove(), 500); } }, 3000);</script>
@@ -19,13 +19,13 @@
     <h1>@ViewData["Title"]</h1>
     @if (User.IsInRole("Administrator"))
     {
-        <a asp-controller="Genre" asp-action="Add" class="btn btn-primary">
+        <a asp-controller="Genre" asp-action="Add" class="btn btn-primary rounded-pill">
             <i class="fas fa-plus me-1"></i> Add genre
         </a>
     }
 </div>
 
-<hr class="mb-4" />
+<hr class="mb-5" />
 
 @if (!Model.Any() && !isSearchWithNoResults)
 {
@@ -35,7 +35,7 @@ else
 {
     <div class="d-flex justify-content-center mb-5">
         <div class="col-md-7">
-            <div class="d-flex justify-content-center gap-3">
+            <div class="d-flex justify-content-center gap-2">
                 <form asp-controller="Genre" asp-action="Index" method="get" class="d-flex align-items-center gap-2 w-100">
                     <input type="text"
                            name="searchTerm"
@@ -43,14 +43,15 @@ else
                            value="@searchTerm"
                            placeholder="Search genres..." />
 
-                    <button type="submit" class="btn btn-lg btn-primary shadow-sm rounded-3 px-4 d-flex align-items-center gap-2">
+                    <button type="submit" class="btn btn-lg btn-primary shadow-sm rounded-pill px-4 d-flex align-items-center gap-2">
                         <i class="fas fa-search me-1"></i> Search
                     </button>
                 </form>
 
                 @if (!string.IsNullOrWhiteSpace(searchTerm))
                 {
-                    <a asp-controller="Genre" asp-action="Index" class="btn btn-lg btn-danger shadow-sm rounded-3 px-4">
+                    <a asp-controller="Genre" asp-action="Index"
+                       class="btn btn-lg btn-danger shadow-sm rounded-pill px-4 d-flex align-items-center gap-1">
                         <i class="fas fa-times me-1"></i> Clear
                     </a>
                 }
@@ -67,7 +68,7 @@ else
                     <h4 class="mb-3">@ViewData["NoResultsMessage"]</h4>
                     <h5 class="text-muted mb-4">No genres matched your search. You can try a new term or browse all genres.</h5>
                     <a asp-controller="Genre" asp-action="Index" class="btn btn-primary btn-lg rounded-pill">
-                        <i class="fas fa-arrow-left me-2"></i> Back to all genres
+                        <i class="fas fa-arrow-left me-1"></i> Back to all genres
                     </a>
                 </div>
             </div>
@@ -86,12 +87,12 @@ else
             <h3 class="text-start mt-5 text-dark">
                 Genres starting with letter "<strong>@group.Key</strong>"
             </h3>
-            <hr class="mb-4 border-primary" />
+            <hr class="mb-4" />
 
             <div class="row g-4">
                 @foreach (var genre in group.OrderBy(g => g.Name))
                 {
-                    <div class="col-md-3 mb-4">
+                    <div class="col-md-3">
                         <div class="card h-100 shadow rounded-4 border-0 bg-light">
                             <div class="card-header bg-primary text-white text-center rounded-top-4">
                                 <h5 class="card-title mb-0 fw-semibold fs-4">@genre.Name</h5>
@@ -102,10 +103,14 @@ else
                                 {
                                     <div class="d-flex justify-content-center gap-2 mt-auto">
                                         <a asp-controller="Genre" asp-action="Edit" asp-route-id="@genre.Id"
-                                            class="btn btn-outline-primary w-50 rounded-pill">Edit</a>
+                                            class="btn btn-outline-primary w-50 rounded-pill">
+                                            <i class="bi bi-pencil-square me-1"></i> Edit
+                                        </a>
 
                                         <a asp-controller="Genre" asp-action="Delete" asp-route-id="@genre.Id"
-                                            class="btn btn-outline-danger w-50 rounded-pill">Delete</a>
+                                            class="btn btn-outline-danger w-50 rounded-pill">
+                                            <i class="fas fa-trash-alt me-1"></i> Delete
+                                        </a>
                                     </div>
                                 }
                             </div>
