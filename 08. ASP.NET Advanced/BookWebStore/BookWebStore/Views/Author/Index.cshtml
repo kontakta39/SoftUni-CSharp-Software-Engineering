@@ -9,7 +9,7 @@
 
 @if (TempData["ErrorMessage"] != null)
 {
-    <div id="errorAlert" class="alert alert-danger text-center">
+    <div id="errorAlert" class="alert alert-danger text-center mx-auto w-75">
         <p class="m-0">@TempData["ErrorMessage"]</p>
     </div>
     <script>setTimeout(() => { const e=document.getElementById('errorAlert'); if(e){ e.style.transition='opacity 0.5s'; e.style.opacity='0'; setTimeout(() => e.remove(), 500); } }, 3000);</script>
@@ -19,10 +19,12 @@
     <h1>@ViewData["Title"]</h1>
     @if (User.IsInRole("Administrator"))
     {
-        <a asp-controller="Author" asp-action="Add" class="btn btn-primary"><i class="fas fa-plus"></i>Add author</a>
+        <a asp-controller="Author" asp-action="Add" class="btn btn-primary rounded-pill">
+            <i class="fas fa-plus me-1"></i> Add author
+        </a>
     }
 </div>
-<hr class="mb-4" />
+<hr class="mb-5" />
 
 @if (!Model.Any() && !isSearchWithNoResults)
 {
@@ -32,7 +34,7 @@ else
 {
     <div class="d-flex justify-content-center mb-5">
         <div class="col-md-7">
-            <div class="d-flex justify-content-center gap-3">
+            <div class="d-flex justify-content-center gap-2">
                 <form asp-controller="Author" asp-action="Index" method="get" class="d-flex align-items-center gap-2 w-100">
                     <input type="text"
                            name="searchTerm"
@@ -40,14 +42,15 @@ else
                            value="@searchTerm"
                            placeholder="Search authors..." />
 
-                    <button type="submit" class="btn btn-lg btn-primary shadow-sm rounded-3 px-4 d-flex align-items-center gap-2">
+                    <button type="submit" class="btn btn-lg btn-primary shadow-sm rounded-pill px-4 d-flex align-items-center gap-2">
                         <i class="fas fa-search me-1"></i> Search
                     </button>
                 </form>
 
                 @if (!string.IsNullOrWhiteSpace(searchTerm))
                 {
-                    <a asp-controller="Author" asp-action="Index" class="btn btn-lg btn-danger shadow-sm rounded-3 px-4">
+                    <a asp-controller="Author" asp-action="Index" asp-area="Admin"
+                       class="btn btn-lg btn-danger shadow-sm rounded-pill px-4 d-flex align-items-center gap-1">
                         <i class="fas fa-times me-1"></i> Clear
                     </a>
                 }
@@ -63,8 +66,8 @@ else
                     <i class="fas fa-search fa-3x text-primary mb-3"></i>
                     <h4 class="mb-3">@ViewData["NoResultsMessage"]</h4>
                     <h5 class="text-muted mb-4">No authors matched your search. You can try a new term or browse all authors.</h5>
-                    <a asp-controller="Author" asp-action="Index" class="btn btn-primary btn-lg rounded-pill">
-                        <i class="fas fa-arrow-left me-2"></i> Back to all authors
+                    <a asp-controller="Author" asp-action="Index" asp-area="Admin" class="btn btn-primary btn-lg rounded-pill">
+                        <i class="fas fa-arrow-left me-1"></i> Back to all authors
                     </a>
                 </div>
             </div>
@@ -81,20 +84,20 @@ else
         foreach (var group in groupedAuthors)
         {
             <h3 class="text-start mt-5 text-dark">Authors starting with letter "<strong>@group.Key</strong>"</h3>
-            <hr class="mb-4 border-primary" />
+            <hr class="mb-4" />
 
             <div class="row g-4">
                 @foreach (var author in group.OrderBy(a => a.Name))
                 {
-                    <div class="col-sm-6 col-md-4 col-lg-3 mb-5">
+                    <div class="col-sm-6 col-md-4 col-lg-3">
                         <div class="card shadow-sm border-1 d-flex flex-column bg-secondary bg-opacity-10">
                             <a asp-controller="Author" asp-action="Details" asp-route-id="@author.Id" class="text-decoration-none text-reset flex-grow-1 d-flex flex-column">
-                                <div class="p-3" style="padding-bottom: 0;">
+                                <div class="pt-3 px-3 pb-2">
                                     <img src="@(!string.IsNullOrEmpty(author.ImageUrl) ? author.ImageUrl : Url.Content("~/img/author-no-image-available.jpg"))"
-                                         class="img-fluid rounded mx-auto d-block"
-                                         style="max-height: 300px; object-fit: contain;"
-                                         alt="Author Image Not Available"
-                                         onerror="this.onerror=null; this.src='@Url.Content("~/img/author-no-image-available.jpg")';" />
+                                        class="img-fluid rounded mx-auto d-block"
+                                        style="max-height: 300px; object-fit: contain;"
+                                        alt="Author Image Not Available"
+                                        onerror="this.onerror=null; this.src='@Url.Content("~/img/author-no-image-available.jpg")';" />
                                 </div>
 
                                 <div class="card-body text-center" style="padding-top: 0.25rem; padding-bottom: 0;">

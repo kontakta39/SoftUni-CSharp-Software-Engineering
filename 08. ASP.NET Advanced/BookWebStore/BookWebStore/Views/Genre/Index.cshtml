@@ -50,7 +50,7 @@ else
 
                 @if (!string.IsNullOrWhiteSpace(searchTerm))
                 {
-                    <a asp-controller="Genre" asp-action="Index"
+                    <a asp-controller="Genre" asp-action="Index" asp-area="Admin"
                        class="btn btn-lg btn-danger shadow-sm rounded-pill px-4 d-flex align-items-center gap-1">
                         <i class="fas fa-times me-1"></i> Clear
                     </a>
@@ -67,7 +67,7 @@ else
                     <i class="fas fa-search fa-3x text-primary mb-3"></i>
                     <h4 class="mb-3">@ViewData["NoResultsMessage"]</h4>
                     <h5 class="text-muted mb-4">No genres matched your search. You can try a new term or browse all genres.</h5>
-                    <a asp-controller="Genre" asp-action="Index" class="btn btn-primary btn-lg rounded-pill">
+                    <a asp-controller="Genre" asp-action="Index" asp-area="Admin" class="btn btn-primary btn-lg rounded-pill">
                         <i class="fas fa-arrow-left me-1"></i> Back to all genres
                     </a>
                 </div>
