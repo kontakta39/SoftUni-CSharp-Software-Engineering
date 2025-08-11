@@ -34,7 +34,7 @@ public static class RoleInitializer
         string? adminPassword = configuration["AdminPassword"]
             ?? throw new InvalidOperationException("Admin password not found in configuration.");
 
-        ApplicationUser? adminUser = await userManager.FindByEmailAsync(adminEmail);
+        ApplicationUser? adminUser = await userManager.FindByEmailAsync(adminEmail!);
 
         if (adminUser == null)
         {

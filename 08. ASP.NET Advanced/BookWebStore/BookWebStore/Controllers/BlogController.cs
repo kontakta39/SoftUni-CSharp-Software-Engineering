@@ -79,6 +79,7 @@ public class BlogController : Controller
         BlogDetailsViewModel blogDetails = new BlogDetailsViewModel()
         {
             Id = blog.Id,
+            PublisherId = blog.PublisherId,
             Title = blog.Title,
             Publisher = $"{blog.Publisher.FirstName} {blog.Publisher.LastName}",
             PublishDate = blog.PublishDate,
@@ -106,6 +107,16 @@ public class BlogController : Controller
         {
             TempData["ErrorMessage"] = "The blog you want to edit does not exist.";
             return RedirectToAction("Index", "Blog");
+        }
+
+        bool isAdmin = User.IsInRole("Administrator");
+        bool isModerator = User.IsInRole("Moderator");
+        bool isMasterAdmin = publisher.Email == "kontakta39@mail.bg";
+        bool isOwner = blog.PublisherId == publisher.Id;
+
+        if (!(isMasterAdmin || (isAdmin && isOwner) || isModerator))
+        {
+            return RedirectToAction("AccessDenied", "Home");
         }
 
         BlogEditViewModel editBlog = new BlogEditViewModel()
@@ -144,6 +155,16 @@ public class BlogController : Controller
             return RedirectToAction("Index", "Blog");
         }
 
+        bool isAdmin = User.IsInRole("Administrator");
+        bool isModerator = User.IsInRole("Moderator");
+        bool isMasterAdmin = publisher.Email == "kontakta39@mail.bg";
+        bool isOwner = blog.PublisherId == publisher.Id;
+
+        if (!(isMasterAdmin || (isAdmin && isOwner) || isModerator))
+        {
+            return RedirectToAction("AccessDenied", "Home");
+        }
+
         await _blogService.EditBlogAsync(editBlog, blog);
 
         return RedirectToAction("Index", "Blog");
@@ -170,8 +191,9 @@ public class BlogController : Controller
 
         //Check if the user is Master Admin
         bool isMasterAdmin = publisher.Email == "kontakta39@mail.bg";
+        bool isOwner = blog.PublisherId == publisher.Id;
 
-        if (!isMasterAdmin)
+        if (!isMasterAdmin && !isOwner)
         {
             return RedirectToAction("AccessDenied", "Home");
         }
@@ -207,8 +229,9 @@ public class BlogController : Controller
 
         //Check if the user is Master Admin
         bool isMasterAdmin = publisher.Email == "kontakta39@mail.bg";
+        bool isOwner = blog.PublisherId == publisher.Id;
 
-        if (!isMasterAdmin)
+        if (!isMasterAdmin && !isOwner)
         {
             return RedirectToAction("AccessDenied", "Home");
         }

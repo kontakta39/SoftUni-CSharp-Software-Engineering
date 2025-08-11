@@ -6,6 +6,8 @@ public class BlogDetailsViewModel
 {
     public Guid Id { get; set; }
 
+    public string PublisherId { get; set; } = null!;
+
     public string Title { get; set; } = null!;
 
     public string? ImageUrl { get; set; } 

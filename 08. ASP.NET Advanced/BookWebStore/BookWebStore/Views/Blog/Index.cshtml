@@ -17,7 +17,9 @@
     <h1>@ViewData["Title"]</h1>
     @if (User.IsInRole("Administrator"))
     {
-        <a asp-controller="Blog" asp-action="Add" class="btn btn-primary">Add blog</a>
+        <a asp-controller="Blog" asp-action="Add" class="btn btn-primary">
+            <i class="fas fa-plus me-1"></i> Add blog
+        </a>
     }
 </div>
 <hr class="mb-4" />
@@ -28,7 +30,7 @@
 }
 else
 {
-    var groupedBlogs = Model
+    List<IGrouping<string, BlogIndexViewModel>> groupedBlogs = Model
         .OrderBy(b => b.Title)
         .GroupBy(b => b.Title.Substring(0, 1).ToUpper())
         .OrderBy(g => g.Key)
@@ -36,25 +38,30 @@ else
 
     foreach (var group in groupedBlogs)
     {
-        <h3 class="text-start mt-5">Blogs with "@group.Key" letter</h3>
-        <hr class="mb-4" />
+        <h3 class="text-start mt-5 text-dark">Blogs starting with letter "<strong>@group.Key</strong>"</h3>
+        <hr class="mb-4 border-primary" />
 
-        <div class="row row-cols-1 row-cols-sm-2 row-cols-md-3 row-cols-lg-4 g-4 mb-5">
-            @foreach (var blog in group)
+        <div class="row g-4">
+            @foreach (var blog in group.OrderBy(b => b.Title))
             {
-                <div class="col">
-                    <a asp-controller="Blog" asp-action="Details" asp-route-id="@blog.Id" class="text-decoration-none text-dark">
-                        <div class="card h-100 border-0 shadow-sm">
-                            <img src="@(!string.IsNullOrEmpty(blog.ImageUrl) ? blog.ImageUrl : Url.Content("~/img/blog-no-image-available.jpg"))"
-                                class="card-img-top img-fluid"
-                                alt="Blog Image Not Available"
-                                onerror="this.onerror=null; this.src='@Url.Content("~/img/blog-no-image-available.jpg")';" />
-                            <div class="card-body">
-                                <h5 class="card-title">@blog.Title</h5>
-                                <p class="card-text text-muted mb-0">Publisher: @blog.Publisher</p>
+                <div class="col-sm-6 col-md-4 col-lg-3 mb-5">
+                    <div class="card h-100 shadow-sm border border-1 border-secondary rounded-4 overflow-hidden bg-light bg-opacity-75">
+                        <a asp-controller="Blog" asp-action="Details" asp-route-id="@blog.Id" class="text-decoration-none text-dark">
+                            <div class="position-relative overflow-hidden" style="height: 200px;">
+                                <img src="@(!string.IsNullOrEmpty(blog.ImageUrl) ? blog.ImageUrl : Url.Content("~/img/blog-no-image-available.jpg"))"
+                                        class="card-img-top w-100 h-100 object-fit-cover"
+                                        alt="Blog Image Not Available"
+                                        onerror="this.onerror=null; this.src='@Url.Content("~/img/blog-no-image-available.jpg")';" />
+                                <div class="position-absolute top-0 start-0 bg-secondary bg-opacity-75 text-white px-2 py-1 rounded-bottom-end">
+                                    <small class="fw-semibold">@blog.Publisher</small>
+                                </div>
                             </div>
-                        </div>
-                    </a>
+                            <div class="card-body text-center">
+                                <h5 class="card-title fw-bold">@blog.Title</h5>
+                                <p class="card-text text-muted fst-italic mb-0">Read more &rarr;</p>
+                            </div>
+                        </a>
+                    </div>
                 </div>
             }
         </div>

@@ -10,11 +10,15 @@
 </div>
 <hr class="mb-5" />
 
-<div class="d-flex flex-column justify-content-center align-items-center mb-5">
-    <div class="col-md-5">
-        <form asp-action="Add" method="post">
+<div class="d-flex justify-content-center align-items-center mb-5">
+    <div class="card col-md-5 p-4 shadow-lg rounded-4 border-0">
+        <h2 class="text-center mb-4">
+            <i class="bi bi-pencil-square text-primary me-2"></i>Create a new blog
+        </h2>
+
+        <form asp-action="Add" method="post" novalidate>
             <div class="form-floating mb-3">
-                <textarea asp-for="Title" class="form-control h-auto" rows="2" placeholder="Please enter blog name."></textarea>
+                <textarea asp-for="Title" class="form-control h-auto" rows="2" placeholder="Please enter blog title."></textarea>
                 <label asp-for="Title">Title*</label>
                 <span asp-validation-for="Title" class="text-danger"></span>
             </div>
@@ -30,7 +34,9 @@
                 <span asp-validation-for="Content" class="text-danger"></span>
             </div>
 
-            <button id="add-blog" type="submit" class="w-100 btn btn-lg btn-primary">Add</button>
+            <button id="add-blog" type="submit" class="w-100 btn btn-lg btn-primary rounded-pill">
+                <i class="bi bi-plus-circle me-2"></i>Add
+            </button>
         </form>
     </div>
 </div>
