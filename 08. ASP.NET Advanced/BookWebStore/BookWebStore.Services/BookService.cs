@@ -47,8 +47,8 @@ public class BookService : IBookService
             ImageUrl = addBook.ImageUrl,
             Price = addBook.Price,
             Stock = addBook.Stock,
-            AuthorId = addBook.AuthorId,
-            GenreId = addBook.GenreId
+            AuthorId = addBook.AuthorId!.Value,
+            GenreId = addBook.GenreId!.Value
         };
 
         await _baseRepository.AddAsync(book);
@@ -64,8 +64,8 @@ public class BookService : IBookService
         book.ImageUrl = editBook.ImageUrl;
         book.Price = editBook.Price;
         book.Stock = editBook.Stock;
-        book.AuthorId = editBook.AuthorId;
-        book.GenreId = editBook.GenreId;
+        book.AuthorId = editBook.AuthorId!.Value;
+        book.GenreId = editBook.GenreId!.Value;
 
         await _baseRepository.SaveChangesAsync();
     }

@@ -17,8 +17,8 @@ public class Order
     public DateOnly OrderDate { get; set; } = DateOnly.FromDateTime(DateTime.UtcNow);
 
     [Required]
-    [Column(TypeName = "decimal(18,2)")]
     [Range(OrderMinPrice, double.MaxValue)]
+    [Column(TypeName = "decimal(18,2)")]
     public decimal TotalPrice { get; set; }
 
     [Required]

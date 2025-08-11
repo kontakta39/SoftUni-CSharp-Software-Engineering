@@ -19,7 +19,7 @@ public class ReviewIndexViewModel
 
     public string ReviewText { get; set; } = null!;
 
-    public int? Rating { get; set; }
+    public int Rating { get; set; }
 
     public bool IsEdited { get; set; } = false;
 }

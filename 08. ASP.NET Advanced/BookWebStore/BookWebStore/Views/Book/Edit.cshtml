@@ -12,10 +12,15 @@
 </div>
 <hr class="mb-5" />
 
-<div class="d-flex flex-column justify-content-center align-items-center mb-5">
-    <div class="col-md-5">
-        <form asp-action="Edit" method="post">
+<div class="d-flex justify-content-center align-items-center mb-5">
+    <div class="card col-md-5 p-4 shadow-lg rounded-4 border-0">
+        <h2 class="text-center mb-4">
+            <i class="bi bi-pencil-square text-primary me-2"></i>Update existing book
+        </h2>
+
+        <form asp-action="Edit" method="post" novalidate>
             <input type="hidden" asp-for="Id" />
+
             @if (User.IsInRole("Administrator"))
             {
                 <div class="form-floating mb-3">
@@ -56,7 +61,7 @@
             @if (User.IsInRole("Administrator"))
             {
                 <div class="form-floating mb-3">
-                    <select asp-for="GenreId" class="form-select" aria-required="true" 
+                    <select asp-for="GenreId" class="form-select" aria-required="true"
                             asp-items="@(new SelectList(Model.Genres, "Id", "Name", Model.GenreId))">
                     </select>
                     <label asp-for="GenreId">Genre*</label>
@@ -67,8 +72,8 @@
             {
                 <div class="form-floating mb-3">
                     <input type="hidden" asp-for="GenreId" />
-                    <input type="text" class="form-control" 
-                    value="@Model.Genres.FirstOrDefault(g => g.Id == Model.GenreId)?.Name" disabled />
+                    <input type="text" class="form-control"
+                           value="@Model.Genres.FirstOrDefault(g => g.Id == Model.GenreId)?.Name" disabled />
                     <label asp-for="GenreId">Genre</label>
                 </div>
             }
@@ -88,8 +93,8 @@
             {
                 <div class="form-floating mb-3">
                     <input asp-for="ReleaseYear"
-                       class="form-control" type="number" step="1" min="1000" max="2024"
-                       value="@(Model.ReleaseYear < 1000 ? 1000 : (Model.ReleaseYear > 2024 ? 2024 : Model.ReleaseYear))" />
+                           class="form-control" type="number" step="1" min="1000" max="2024"
+                           value="@(Model.ReleaseYear < 1000 ? 1000 : (Model.ReleaseYear > 2024 ? 2024 : Model.ReleaseYear))" />
                     <label asp-for="ReleaseYear">Release Year*</label>
                     <span asp-validation-for="ReleaseYear" class="text-danger"></span>
                 </div>
@@ -107,8 +112,8 @@
             {
                 <div class="form-floating mb-3">
                     <input asp-for="PagesNumber"
-                            class="form-control" type="number" step="1" min="50" max="1000"
-                            value="@(Model.PagesNumber < 50 ? 50 : (Model.PagesNumber > 1000 ? 1000 : Model.PagesNumber))" />
+                           class="form-control" type="number" step="1" min="50" max="1000"
+                           value="@(Model.PagesNumber < 50 ? 50 : (Model.PagesNumber > 1000 ? 1000 : Model.PagesNumber))" />
                     <label asp-for="PagesNumber">Pages Number*</label>
                     <span asp-validation-for="PagesNumber" class="text-danger"></span>
                 </div>
@@ -137,7 +142,9 @@
                 <span asp-validation-for="Stock" class="text-danger"></span>
             </div>
 
-            <button id="edit-book" type="submit" class="w-100 btn btn-lg btn-primary">Edit</button>
+            <button id="edit-book" type="submit" class="w-100 btn btn-lg btn-primary rounded-pill">
+                <i class="bi bi-save me-2"></i>Edit
+            </button>
         </form>
     </div>
 </div>

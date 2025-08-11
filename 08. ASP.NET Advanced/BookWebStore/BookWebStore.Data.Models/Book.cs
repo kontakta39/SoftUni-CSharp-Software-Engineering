@@ -18,7 +18,7 @@ public class Book : IEntity
     [StringLength(BookPublisherMaxLength, MinimumLength = BookPublisherMinLength)]
     public string Publisher { get; set; } = null!;
 
-    [Required(ErrorMessage = "You have to enter release year between 1000 and 2025.")]
+    [Required(ErrorMessage = "You have to enter release year between 1000 and 2024.")]
     [Range(BookMinReleaseYear, BookMaxReleaseYear)]
     public int ReleaseYear { get; set; }
 
@@ -28,8 +28,9 @@ public class Book : IEntity
 
     public string? ImageUrl { get; set; }
 
-    [Required(ErrorMessage = "You have to enter price between 1 and 200.")]
+    [Required(ErrorMessage = "You have to enter price between 1,00 lv and 200,00 lv.")]
     [Range(BookMinPrice, BookMaxPrice)]
+    [Column(TypeName = "decimal(18,2)")]
     public decimal Price { get; set; }
 
     [Required(ErrorMessage = "You have to enter stock quantity between 1 and 100.")]

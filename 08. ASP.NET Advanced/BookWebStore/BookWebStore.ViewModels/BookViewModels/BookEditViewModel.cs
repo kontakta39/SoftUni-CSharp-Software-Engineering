@@ -17,7 +17,7 @@ public class BookEditViewModel
     [StringLength(BookPublisherMaxLength, MinimumLength = BookPublisherMinLength)]
     public string Publisher { get; set; } = null!;
 
-    [Required(ErrorMessage = "You have to enter release year between 1000 and 2025.")]
+    [Required(ErrorMessage = "You have to enter release year between 1000 and 2024.")]
     [Range(BookMinReleaseYear, BookMaxReleaseYear)]
     public int ReleaseYear { get; set; }
 
@@ -27,7 +27,7 @@ public class BookEditViewModel
 
     public string? ImageUrl { get; set; } = null!;
 
-    [Required(ErrorMessage = "You have to enter price between 1 and 200.")]
+    [Required(ErrorMessage = "You have to enter price between 1,00 lv and 200,00 lv.")]
     [Range(BookMinPrice, BookMaxPrice)]
     public decimal Price { get; set; }
 
@@ -36,10 +36,10 @@ public class BookEditViewModel
     public int Stock { get; set; }
 
     [Required(ErrorMessage = "Please select a genre.")]
-    public Guid GenreId { get; set; }
+    public Guid? GenreId { get; set; }
 
     [Required(ErrorMessage = "Please select an author.")]
-    public Guid AuthorId { get; set; }
+    public Guid? AuthorId { get; set; }
 
     public ICollection<Author> Authors { get; set; } = new List<Author>();
 

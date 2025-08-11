@@ -59,7 +59,12 @@ public class Program
             options.AccessDeniedPath = "/Home/AccessDenied";
         });
 
-        builder.Services.AddControllersWithViews();
+        builder.Services.AddControllersWithViews(options =>
+        {
+            options.ModelBindingMessageProvider.SetValueMustNotBeNullAccessor(
+                _ => "This field cannot be empty."); 
+        });
+
         builder.Services.AddRazorPages();
 
         builder.Services.AddScoped<IAccountService, AccountService>();
