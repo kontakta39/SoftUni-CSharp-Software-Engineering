@@ -10,19 +10,36 @@
 </div>
 <hr class="mb-5" />
 
-<div class="d-flex flex-column justify-content-center align-items-center mb-5">
-    <div class="card col-md-6 p-4 mx-auto">
-        <h3 class="text-center mb-4">
-            Are you sure you want to return book @Model.Title from order @Model.OrderNumber?
-        </h3>
+<div class="d-flex flex-column justify-content-center align-items-center my-5">
+    <div class="card col-md-8 p-5 shadow-lg rounded-4 border-0">
+        <div class="text-center mb-3">
+            <i class="bi bi-book-half d-block display-4 mb-2 "></i>
+            <h3 class="fw-bold text-dark mb-4">Confirm Return</h3>
+            <h5 class="text-dark mb-3">
+                Are you sure you want to return the book
+                <span class="text-primary fw-semibold">"@Model.Title"</span><br />
+                from order <span class="fw-semibold">@Model.OrderNumber</span>?
+            </h5>
+        </div>
 
-        <form asp-action="ReturnBook" method="post">
-            <div class="text-center">
-                <input type="hidden" asp-for="OrderId" />
-                <input type="hidden" asp-for="BookId" />
-                <input type="hidden" asp-for="OrderDate" />
-                <button id="delete-author" type="submit" class="w-50 btn btn-lg btn-danger">Return book</button>
+        <div class="row justify-content-center gx-3">
+            <div class="col-md-4 text-center">
+                <form asp-action="ReturnBook" method="post">
+                    <input type="hidden" asp-for="OrderId" />
+                    <input type="hidden" asp-for="BookId" />
+                    <input type="hidden" asp-for="OrderDate" />
+                    <button type="submit" class="btn btn-danger rounded-pill shadow-sm w-100">
+                        <i class="bi bi-arrow-counterclockwise me-1"></i> Return Book
+                    </button>
+                </form>
             </div>
-        </form>
+
+            <div class="col-md-4 text-center">
+                <a asp-controller="Account" asp-action="Manage" asp-route-page="Orders"
+                   class="btn btn-outline-dark rounded-pill shadow-sm w-100">
+                    <i class="bi bi-x-lg me-1"></i> Cancel
+                </a>
+            </div>
+        </div>
     </div>
 </div>

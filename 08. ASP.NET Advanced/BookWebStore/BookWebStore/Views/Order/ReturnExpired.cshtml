@@ -7,10 +7,17 @@
 </div>
 <hr class="mb-5" />
 
-<div class="d-flex flex-column justify-content-center align-items-center mb-5">
-    <div class="col-md-11 text-center">
-        <h2 class="mb-4">This book cannot be returned because the return period has ended.</h2>
-        <a asp-controller="Order" asp-action="OrdersList" class="btn btn-primary btn-lg">Orders List</a>
-        <a asp-controller="Account" asp-action="Manage" asp-route-page="Orders" class="btn btn-primary btn-lg">Orders List</a>
+<div class="d-flex flex-column justify-content-center align-items-center my-5">
+    <div class="card col-md-7 p-5 shadow-lg rounded-4 border-0 text-center">
+        <i class="bi bi-exclamation-circle-fill text-danger d-block display-5 mb-3"></i>
+
+        <h3 class="fw-semibold text-danger mb-4">
+            This book cannot be returned because the return period has ended.
+        </h3>
+
+        <a asp-controller="Account" asp-action="Manage" asp-route-page="Orders"
+           class="btn btn-outline-danger px-5 rounded-pill fw-semibold shadow-sm w-50 mx-auto">
+            View Orders
+        </a>
     </div>
 </div>

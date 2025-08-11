@@ -27,10 +27,14 @@ else
 
 @if (!Model.Any())
 {
-    <div class="d-flex justify-content-center mt-5">
-        <div class="alert alert-info text-center col-md-7" role="alert">
-            <h4 class="alert-heading">Your shopping cart is empty.</h4>
-            <p class="mb-0">Browse our collection and add some books to your cart!</p>
+    <div class="d-flex justify-content-center">
+        <div class="alert alert-info text-center col-md-7 py-4" role="alert">
+            <h4 class="alert-heading mb-2">Your shopping cart is empty.</h4>
+            <h5 class="mb-3">Browse our collection and add some books to your cart!</h5>
+            <a asp-controller="Book" asp-action="Index"
+               class="btn btn-primary btn-lg shadow-sm rounded-pill px-4">
+                <i class="bi bi-book me-1"></i> Book Store
+            </a>
         </div>
     </div>
 }
@@ -48,8 +52,8 @@ else
                         <div class="col-md-2">
                             <a asp-controller="Book" asp-action="Details" asp-route-id="@order.BookId" target="_blank">
                                 <img src="@(string.IsNullOrEmpty(order.ImageUrl) ? Url.Content("~/img/book-no-cover-available.jpg") : order.ImageUrl)"
-                                    class="img-thumbnail shadow-sm"
-                                    style="max-width: 100px; height: auto;" alt="Book Image Not Available"
+                                    class="img-fluid img-thumbnail shadow-sm"
+                                    style="max-width: 100px;" alt="Book Image Not Available"
                                     onerror="this.onerror=null; this.src='@Url.Content("~/img/book-no-cover-available.jpg")';" />
                             </a>
                         </div>
@@ -61,12 +65,12 @@ else
                         </div>
 
                         <div class="col-md-2 text-center">
-                            <small class="text-dark d-block mb-2">Quantity:</small>
+                            <h6 class="text-dark d-block mb-2">Quantity:</h6>
                             <input type="number"
-                                   class="form-control quantity-input text-center"
+                                   class="form-control quantity-input text-center mx-auto"
+                                   style="max-width: 70px;"
                                    value="@order.Quantity"
-                                   min="1" step="1"
-                                   style="width: 70px; margin: 0 auto;" />
+                                   min="1" step="1" />
                         </div>
 
                         <div class="col-md-2">
@@ -75,7 +79,7 @@ else
 
                         <div class="col-md-3">
                             <form asp-controller="Order" asp-action="RemoveFromCart" asp-route-orderId="@order.OrderId" asp-route-bookId="@order.BookId" method="post">
-                                <button type="submit" class="btn btn-outline-danger">
+                                <button type="submit" class="btn btn-outline-danger rounded-pill">
                                     <i class="bi bi-trash"></i> Remove
                                 </button>
                             </form>
@@ -90,14 +94,13 @@ else
                 <div class="row justify-content-end align-items-center">
                     <div class="col-md-4 text-end">
                         <h4 class="fw-bold total-price mb-0">
-                            <i class="bi bi-cash-coin me-1"></i>
-                            Total Price:
+                            <i class="bi bi-cash-coin me-1"></i> Total Price:
                             <span class="text-primary">@($"{Model.Sum(p => p.ItemTotal):F2} lv.")</span>
                         </h4>
                     </div>
                     <div class="col-md-3 text-end">
                         <form asp-controller="Order" asp-action="CompleteOrder" asp-route-orderId="@orderId" method="post">
-                            <button type="submit" class="btn btn-success w-75 me-5">
+                            <button type="submit" class="btn btn-success rounded-pill w-75 me-5">
                                 <i class="bi bi-check-circle-fill me-1"></i> Complete Order
                             </button>
                         </form>

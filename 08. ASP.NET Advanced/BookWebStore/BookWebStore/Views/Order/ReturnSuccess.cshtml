@@ -7,10 +7,25 @@
 </div>
 <hr class="mb-5" />
 
-<div class="d-flex flex-column justify-content-center align-items-center mb-5">
-    <div class="col-md-11 text-center">
-        <h2>You have returned the book @TempData["BookTitle"] from order @TempData["OrderNumber"].</h2>
-        <h2>Feel free to browse the book store and place a new order.</h2>
-        <a asp-controller="Book" asp-action="Index" class="btn btn-primary btn-lg">Books Store</a>
+<div class="d-flex flex-column justify-content-center align-items-center my-5">
+    <div class="card col-md-8 p-5 shadow-lg rounded-4 border-0">
+        <div class="text-center mb-3">
+            <i class="bi bi-check-circle-fill text-success d-block display-5 mb-3"></i>
+
+            <h3 class="fw-semibold text-success mb-4">
+                You have returned the book <strong>"@TempData["BookTitle"]"</strong> from order <strong>@TempData["OrderNumber"]</strong>.
+            </h3>
+
+            <h4 class="fw-normal text-success mb-4">
+                Feel free to browse the book store and place a new order.
+            </h4>
+        </div>
+
+        <div class="text-center">
+            <a asp-controller="Book" asp-action="Index"
+               class="btn btn-outline-success btn-lg px-5 rounded-pill fw-semibold shadow-sm mx-auto">
+                Book Store
+            </a>
+        </div>
     </div>
 </div>
