@@ -24,16 +24,17 @@ public class BookController : Controller
     [HttpGet]
     public async Task<IActionResult> Index(string? searchTerm)
     {
+        if (Request.Query.ContainsKey("searchTerm") && string.IsNullOrWhiteSpace(searchTerm))
+        {
+            TempData["ErrorMessage"] = "Please enter a search term.";
+            return RedirectToAction("Index", "Book");
+        }
+
         List<Book> books = new List<Book>();
 
         if (string.IsNullOrWhiteSpace(searchTerm))
         {
             books = await _bookService.GetAllBooksAsync();
-
-            if (Request.Query.ContainsKey("searchTerm"))
-            {
-                TempData["ErrorMessage"] = "Please enter a search term.";
-            }
         }
         else
         {

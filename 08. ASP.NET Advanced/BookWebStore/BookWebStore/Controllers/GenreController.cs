@@ -1,4 +1,5 @@
 ﻿using BookWebStore.Data.Models;
+using BookWebStore.Services;
 using BookWebStore.Services.Interfaces;
 using BookWebStore.ViewModels;
 using Microsoft.AspNetCore.Authorization;
@@ -21,26 +22,24 @@ public class GenreController : Controller
     [Authorize(Roles = "Administrator")]
     public async Task<IActionResult> Index(string? searchTerm)
     {
+        if (Request.Query.ContainsKey("searchTerm") && string.IsNullOrWhiteSpace(searchTerm))
+        {
+            TempData["ErrorMessage"] = "Please enter a search term.";
+            return RedirectToAction("Index", "Genre", new { area = "Admin" });
+        }
+
         List<Genre> genres = new List<Genre>();
 
         if (string.IsNullOrWhiteSpace(searchTerm))
         {
             genres = await _genreService.GetAllGenresAsync();
-
-            //Search with empty field
-            if (Request.Query.ContainsKey("searchTerm"))
-            {
-                TempData["ErrorMessage"] = "Please enter a search term.";
-            }
         }
         else
         {
-            //Valid search
             string loweredTerm = searchTerm.ToLower();
             genres = await _genreService.SearchGenresAsync(loweredTerm);
             ViewData["SearchTerm"] = searchTerm;
 
-            //Valid search with no results
             if (!genres.Any())
             {
                 ViewData["NoResultsMessage"] = $"No genres found matching \"{searchTerm}\".";

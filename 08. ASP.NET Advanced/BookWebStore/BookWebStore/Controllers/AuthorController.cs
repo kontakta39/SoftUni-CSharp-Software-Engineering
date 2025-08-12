@@ -26,16 +26,17 @@ public class AuthorController : Controller
     [Authorize(Roles = "Administrator")]
     public async Task<IActionResult> Index(string? searchTerm)
     {
+        if (Request.Query.ContainsKey("searchTerm") && string.IsNullOrWhiteSpace(searchTerm))
+        {
+            TempData["ErrorMessage"] = "Please enter a search term.";
+            return RedirectToAction("Index", "Author", new { area = "Admin" });
+        }
+
         List<Author> authors = new List<Author>();
 
         if (string.IsNullOrWhiteSpace(searchTerm))
         {
             authors = await _authorService.GetAllAuthorsAsync();
-
-            if (Request.Query.ContainsKey("searchTerm"))
-            {
-                TempData["ErrorMessage"] = "Please enter a search term.";
-            }
         }
         else
         {
@@ -49,7 +50,7 @@ public class AuthorController : Controller
             }
         }
 
-        List<AuthorIndexViewModel> getAuthors = authors
+        List<AuthorIndexViewModel>? getAuthors = authors
             .Select(a => new AuthorIndexViewModel
             {
                 Id = a.Id,
