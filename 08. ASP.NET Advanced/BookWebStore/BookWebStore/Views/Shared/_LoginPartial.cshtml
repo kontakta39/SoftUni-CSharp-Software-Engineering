@@ -6,30 +6,57 @@
     @if (SignInManager.IsSignedIn(User))
     {
         ApplicationUser? user = await UserManager.GetUserAsync(User);
-        bool isMasterAdmin = User.IsInRole("Administrator") && user.Email == "kontakta39@mail.bg" && user.UserName == "kontakta39";
+        bool isMasterAdmin = User.IsInRole("Administrator") && user?.Email == "kontakta39@mail.bg";
 
-        <li class="nav-item dropdown d-flex align-items-center">
-            <a class="nav-link px-0 text-dark dropdown-toggle" href="#" data-bs-toggle="dropdown"></a>
-            <a class="nav-link px-1 text-dark" href="#" data-bs-toggle="dropdown">Logged in as @user?.FirstName @user?.LastName</a>
-            <ul class="dropdown-menu">
+        <li class="nav-item dropdown position-relative">
+            <a class="nav-link px-2 d-flex align-items-center text-dark fs-5 fw-semibold gap-1"
+               href="#" role="button"
+               data-bs-toggle="dropdown" aria-expanded="false">
+               <i class="bi bi-person-circle fs-5 me-1"></i> Your Account
+            </a>
+            <ul class="dropdown-menu border rounded shadow-sm fs-5 position-absolute start-50 translate-middle-x mt-2" aria-labelledby="accountMenu">
                 @if (isMasterAdmin)
                 {
                     <li>
-                        <a class="dropdown-item" href="@Url.Action("Manage", "Account", new { page = "ManageUsers" })">Manage users</a>
+                        <a class="dropdown-item d-flex justify-content-center gap-2" href="@Url.Action("Manage", "Account", new { page = "ManageUsers" })">
+                            <i class="bi bi-people fs-5"></i> Manage users
+                        </a>
                     </li>
                 }
-                <li><a class="dropdown-item" href="@Url.Action("Manage", "Account", new { page = "Profile" })">Profile</a></li>
-                <li><a class="dropdown-item" href="@Url.Action("Manage", "Account", new { page = "Orders" })">Orders</a></li>
-                <li><a class="dropdown-item" href="@Url.Action("Manage", "Account", new { page = "Email" })">Email</a></li>
-                <li><a class="dropdown-item" href="@Url.Action("Manage", "Account", new { page = "ChangePassword" })">Change password</a></li>
+                <li>
+                    <a class="dropdown-item d-flex justify-content-center gap-2" href="@Url.Action("Manage", "Account", new { page = "Profile" })">
+                        <i class="bi bi-person fs-5"></i> Profile
+                    </a>
+                </li>
+                <li>
+                    <a class="dropdown-item d-flex justify-content-center gap-2" href="@Url.Action("Manage", "Account", new { page = "Orders" })">
+                        <i class="bi bi-bag-check fs-5"></i> Orders
+                    </a>
+                </li>
+                <li>
+                    <a class="dropdown-item d-flex justify-content-center gap-2" href="@Url.Action("Manage", "Account", new { page = "Email" })">
+                        <i class="bi bi-envelope fs-5"></i> Email
+                    </a>
+                </li>
+                <li>
+                    <a class="dropdown-item d-flex justify-content-center gap-2" href="@Url.Action("Manage", "Account", new { page = "ChangePassword" })">
+                        <i class="bi bi-key fs-5"></i> Change password
+                    </a>
+                </li>
                 @if (!isMasterAdmin)
                 {
-                   <li><a class="dropdown-item" href="@Url.Action("Manage", "Account", new { page = "DeleteAccount" })">Delete account</a></li>
+                    <li>
+                        <a class="dropdown-item d-flex justify-content-center gap-2 text-danger" href="@Url.Action("Manage", "Account", new { page = "DeleteAccount" })">
+                            <i class="bi bi-trash fs-5"></i> Delete account
+                        </a>
+                    </li>
                 }
                 <li><hr class="dropdown-divider" /></li>
                 <li>
-                    <form asp-controller="Account" asp-action="LogOut" method="post" style="display:inline;">
-                        <button type="submit" class="dropdown-item">Log Out</button>
+                    <form asp-controller="Account" asp-action="LogOut" method="post" class="d-inline">
+                        <button type="submit" class="dropdown-item d-flex justify-content-center gap-2">
+                            <i class="bi bi-box-arrow-right fs-5"></i> Log Out
+                        </button>
                     </form>
                 </li>
             </ul>
@@ -38,10 +65,10 @@
     else
     {
         <li class="nav-item">
-            <a class="nav-link text-dark" asp-controller="Account" asp-action="Register">Register</a>
+            <a class="nav-link text-dark px-2 fs-5 fw-semibold" asp-controller="Account" asp-action="Register">Register</a>
         </li>
         <li class="nav-item">
-            <a class="nav-link text-dark" asp-controller="Account" asp-action="LogIn">Log In</a>
+            <a class="nav-link text-dark px-2 fs-5 fw-semibold" asp-controller="Account" asp-action="LogIn">Log in</a>
         </li>
     }
 </ul>

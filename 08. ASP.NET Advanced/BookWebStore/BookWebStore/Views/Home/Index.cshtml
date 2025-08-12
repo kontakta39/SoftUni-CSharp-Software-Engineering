@@ -1,8 +1,60 @@
 ﻿@{
-    ViewData["Title"] = "Home Page";
+    ViewData["Title"] = "Home";
 }
 
-<div class="text-center">
-    <h1 class="display-4">Welcome</h1>
-    <h4>Learn about building Web apps with ASP.NET Core.</h4>
+<div class="d-flex flex-column justify-content-center align-items-center py-4 mb-4">
+    <h2 class="fs-1 fw-bold mb-2">Welcome to the Book Web Store</h2>
+    <hr class="w-50 border-2 border-primary" />
+    <h3 class=" text-primary mb-3">The place to discover your next favorite book.</h3>
+    <p class="fs-4 mb-5">
+        Explore our exclusive collection, featuring both timeless classics and exciting new releases.
+    </p>
+    <a asp-controller="Book" asp-action="Index"
+       class="btn btn-lg btn-primary rounded-pill px-4 shadow">
+        <i class="bi bi-book me-2"></i> Book Store
+    </a>
 </div>
+
+<!-- Carousel -->
+<div id="bookCarousel" class="carousel slide" data-bs-ride="carousel" data-bs-wrap="true" data-bs-interval="3000">
+    <div class="carousel-inner">
+        <div class="carousel-item active text-center">
+            <img src="https://png.pngtree.com/background/20211216/original/pngtree-bookstore-reading-day-book-book-reading-photography-picture-with-picture-picture-image_1513100.jpg"
+                 class="w-50"
+                 style="height: 400px; object-fit: cover;"
+                 alt="Carousel Image 1">
+        </div>
+        <div class="carousel-item text-center">
+            <img src="https://thumbs.dreamstime.com/b/modern-spacious-bookshop-natural-color-29821239.jpg"
+                 class="w-50"
+                 style="height: 400px; object-fit: cover;"
+                 alt="Carousel Image 2">
+        </div>
+        <div class="carousel-item text-center">
+            <img src="https://png.pngtree.com/background/20211217/original/pngtree-bookstore-bestseller-photography-picture-image_1557096.jpg"
+                 class="w-50"
+                 style="height: 400px; object-fit: cover;"
+                 alt="Carousel Image 3">
+        </div>
+    </div>
+
+    <!-- Indicators with inline style -->
+    <div class="carousel-indicators" style="position: static !important; margin-top: 20px;">
+        <button type="button" data-bs-target="#bookCarousel" data-bs-slide-to="0" class="active bg-dark border border-dark" aria-current="true" aria-label="Slide 1" style="opacity: 1; width: 9px; height: 9px; border-radius: 50%;"></button>
+        <button type="button" data-bs-target="#bookCarousel" data-bs-slide-to="1" class="bg-dark border border-dark" aria-label="Slide 2" style="opacity: 0.5; width: 9px; height: 9px; border-radius: 50%;"></button>
+        <button type="button" data-bs-target="#bookCarousel" data-bs-slide-to="2" class="bg-dark border border-dark" aria-label="Slide 3" style="opacity: 0.5; width: 9px; height: 9px; border-radius: 50%;"></button>
+    </div>
+
+    <!-- Hidden arrows -->
+    <button class="carousel-control-prev d-none" type="button" data-bs-target="#bookCarousel" data-bs-slide="prev">
+        <span class="carousel-control-prev-icon" aria-hidden="true"></span>
+        <span class="visually-hidden">Previous</span>
+    </button>
+    <button class="carousel-control-next d-none" type="button" data-bs-target="#bookCarousel" data-bs-slide="next">
+        <span class="carousel-control-next-icon" aria-hidden="true"></span>
+        <span class="visually-hidden">Next</span>
+    </button>
+</div>
+
+<!-- Link to external JavaScript file -->
+<script src="~/js/carousel-indicators.js"></script>

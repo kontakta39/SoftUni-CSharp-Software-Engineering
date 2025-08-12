@@ -1,5 +1,20 @@
-﻿@{
+﻿@using Microsoft.AspNetCore.Identity
+@inject UserManager<ApplicationUser> UserManager
+@inject BookWebStore.Services.Interfaces.IOrderService OrderService
+
+@{
     int currentYear = DateTime.Now.Year;
+    int cartCount = 0;
+    ApplicationUser? user = await UserManager.GetUserAsync(User);
+
+    if (User?.Identity?.IsAuthenticated == true)
+    {
+        if (user != null)
+        {
+            List<OrderBook> orderBooks = await OrderService.GetCartItemsAsync(user.Id);
+            cartCount = orderBooks.Sum(x => x.Quantity);
+        }
+    }
 }
 
 <!DOCTYPE html>
@@ -15,48 +30,58 @@
     <link rel="stylesheet" href="https://cdnjs.cloudflare.com/ajax/libs/font-awesome/6.4.0/css/all.min.css" integrity="..." crossorigin="anonymous" />
 </head>
 <body class="d-flex flex-column min-vh-100 m-0">
-    <header>
-        <nav class="navbar navbar-expand-sm navbar-toggleable-sm navbar-light bg-white border-bottom box-shadow mb-3">
-            <div class="container-fluid">
-                <div class="navbar-collapse collapse d-sm-inline-flex justify-content-between ms-2">
-                    <a class="navbar-brand" asp-area="" asp-controller="Home" asp-action="Index">Book Web Store</a>
-                    <button class="navbar-toggler" type="button" data-bs-toggle="collapse" data-bs-target=".navbar-collapse" aria-controls="navbarSupportedContent"
-                            aria-expanded="false" aria-label="Toggle navigation">
-                        <span class="navbar-toggler-icon"></span>
-                    </button>
-              
-                    <ul class="navbar-nav flex-grow-1">
+    <header class="mb-4">
+        <nav class="navbar navbar-expand-md navbar-light bg-light py-3 border-bottom border-1 shadow-sm">
+            <div class="container">
+                <a class="navbar-brand d-flex align-items-center fw-semibold fs-4" asp-controller="Home" asp-action="Index">
+                    <i class="bi bi-book-half fs-3 text-primary me-2"></i> Book Web Store
+                </a>
+
+                <div class="collapse navbar-collapse">
+                    <ul class="navbar-nav mx-auto mb-2 mb-md-0 fw-semibold fs-5 gap-3">
                         <li class="nav-item">
-                            <a class="nav-link text-dark" asp-area="" asp-controller="Home" asp-action="Index">Home</a>
+                            <a class="nav-link text-dark" asp-controller="Home" asp-action="Index">Home</a>
                         </li>
-                        @if (User.IsInRole("Administrator"))
+
+                        @if (User?.Identity?.IsAuthenticated == true && User.IsInRole("Administrator"))
                         {
                             <li class="nav-item dropdown d-flex align-items-center">
                                 <a class="nav-link px-0 text-dark dropdown-toggle" href="#" data-bs-toggle="dropdown"></a>
                                 <a class="nav-link px-1 text-dark" href="#" data-bs-toggle="dropdown">Admin</a>
 
-                                <ul class="dropdown-menu">
+                                <ul class="dropdown-menu border rounded shadow-sm fs-5 position-absolute start-50 translate-middle-x mt-2">
                                     <li>
-                                        <a class="dropdown-item" asp-area="Admin" asp-controller="Genre" asp-action="Index">Genres</a>
+                                        <a class="dropdown-item d-flex justify-content-center" asp-area="Admin" asp-controller="Genre" asp-action="Index">
+                                            <i class="bi bi-tags me-2"></i>Genres
+                                        </a>
                                     </li>
                                     <li>
-                                        <a class="dropdown-item" asp-area="Admin" asp-controller="Author" asp-action="Index">Authors</a>
+                                        <a class="dropdown-item d-flex justify-content-center" asp-area="Admin" asp-controller="Author" asp-action="Index">
+                                            <i class="bi bi-person-badge me-2"></i>Authors
+                                        </a>
                                     </li>
                                 </ul>
                             </li>
                         }
+
                         <li class="nav-item">
-                            <a class="nav-link text-dark" asp-area="" asp-controller="Book" asp-action="Index">Books</a>
+                            <a class="nav-link text-dark" asp-controller="Book" asp-action="Index">Books</a>
                         </li>
                         <li class="nav-item">
-                            <a class="nav-link text-dark" asp-area="" asp-controller="Blog" asp-action="Index">Blogs</a>
+                            <a class="nav-link text-dark" asp-controller="Blog" asp-action="Index">Blogs</a>
                         </li>
                     </ul>
+
+                    <a class="btn btn-primary rounded-pill fs-5 me-3 py-2 px-3" asp-controller="Order" asp-action="Cart">
+                        <i class="bi bi-cart"></i> Cart
+                        @if (cartCount > 0)
+                        {
+                            <span class="badge bg-light rounded-pill text-dark ms-1">@cartCount</span>
+                        }
+                    </a>
+
+                    <partial name="_LoginPartial" />
                 </div>
-                <a class="btn btn-outline-primary me-3" asp-area="" asp-controller="Order" asp-action="Cart">
-                    <i class="bi bi-cart me-1"></i>Cart
-                </a>
-                <partial name="_LoginPartial" />
             </div>
         </nav>
     </header>
@@ -65,8 +90,19 @@
         @RenderBody()
     </main>
 
-    <footer class="border-top footer text-muted py-3">
-        <p class="ms-4">&copy; @currentYear Book Web Store</p>
+    <footer class="border-top bg-light text-center text-dark py-4 mt-5">
+        <div class="container">
+            <h5 class="mb-2 fw-semibold">
+                <i class="bi bi-book-half text-primary"></i> Book Web Store
+            </h5>
+            <h6 class="mb-2">&copy; @currentYear All Rights Reserved.</h6>
+            <h6 class="mb-0">
+                Designed and developed by
+                <a href="https://github.com/kontakta39" target="_blank" rel="noopener noreferrer" class="fw-semibold text-decoration-none">
+                    <i class="bi bi-github me-1"></i>Ivan Angelov
+                </a>
+            </h6>
+        </div>
     </footer>
 
     <script src="~/lib/jquery/dist/jquery.min.js"></script>
