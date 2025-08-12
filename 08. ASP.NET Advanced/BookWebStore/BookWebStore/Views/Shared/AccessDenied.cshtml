@@ -7,9 +7,15 @@
 </div>
 <hr class="mb-5" />
 
-<div class="d-flex flex-column justify-content-center align-items-center mb-5">
-    <div class="col-md-7 text-center">
-        <h2 class="text-danger mb-4">You do not have access to this resource.</h2>
-        <a asp-controller="Home" asp-action="Index" class="btn btn-primary btn-lg">Back to homepage</a>
+<div class="container d-flex flex-column justify-content-center align-items-center">
+    <div class="text-center p-5 shadow-lg rounded-4 bg-white border border-1">
+        <div class="mb-4">
+            <i class="bi bi-x-octagon-fill display-3 text-danger"></i>
+        </div>
+        <h2 class="text-danger mb-4">Access Forbidden</h2>
+        <h4 class="mb-4">You don't have the necessary permissions to view this page.</h4>
+        <a asp-controller="Home" asp-action="Index" class="btn btn-primary btn-lg px-4 rounded-pill mt-2">
+            <i class="fas fa-arrow-left me-1"></i> Back to homepage
+        </a>
     </div>
 </div>
