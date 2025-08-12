@@ -5,31 +5,36 @@
     ViewData["Title"] = "Profile";
 }
 
-<h2>@ViewData["Title"]</h2>
-<hr />
+<h2 class="text-center">@ViewData["Title"]</h2>
+<hr class="mx-auto w-75" />
 
-<div class="row">
-    <div class="col-md-7">
-        <form asp-action="UpdateProfile" method="post">
+<div class="d-flex justify-content-center align-items-center mb-5">
+    <div class="card col-md-7 p-4 shadow-lg rounded-4 border-0">
+        <form asp-action="UpdateProfile" method="post" novalidate>
             <div class="form-floating mb-3">
-                <input asp-for="@Model.Username" class="form-control" disabled />
-                <label asp-for="@Model.Username" class="form-label">Username</label>
+                <input asp-for="Username" class="form-control" disabled />
+                <label asp-for="Username">Username</label>
                 <input type="hidden" name="Username" value="@Model.Username" />
             </div>
+
             @if (!string.IsNullOrEmpty(Model.CurrentPhoneNumber))
             {
                 <div class="form-floating mb-3">
-                    <input asp-for="@Model.CurrentPhoneNumber" class="form-control" disabled />
-                    <label asp-for="@Model.CurrentPhoneNumber" class="form-label">Current phone number</label>
+                    <input asp-for="CurrentPhoneNumber" class="form-control" disabled />
+                    <label asp-for="CurrentPhoneNumber">Current phone number</label>
                     <input type="hidden" name="CurrentPhoneNumber" value="@Model.CurrentPhoneNumber" />
                 </div>
             }
+
             <div class="form-floating mb-3">
-                <input asp-for="@Model.NewPhoneNumber" class="form-control" placeholder="Please enter new phone number." />
-                <label asp-for="@Model.NewPhoneNumber" class="form-label">New phone number</label>
-                <span asp-validation-for="@Model.NewPhoneNumber" class="text-danger"></span>
+                <input asp-for="NewPhoneNumber" class="form-control" placeholder="Please enter new phone number." />
+                <label asp-for="NewPhoneNumber">New phone number</label>
+                <span asp-validation-for="NewPhoneNumber" class="text-danger"></span>
             </div>
-            <button type="submit" class="w-100 btn btn-lg btn-primary">Save</button>
+
+            <button type="submit" class="w-100 btn btn-lg btn-primary rounded-pill">
+                <i class="bi bi-save2 me-1"></i> Save
+            </button>
         </form>
     </div>
 </div>

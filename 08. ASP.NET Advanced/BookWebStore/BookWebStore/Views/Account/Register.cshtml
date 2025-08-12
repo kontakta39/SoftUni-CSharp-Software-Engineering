@@ -14,15 +14,15 @@
 <div class="row justify-content-center">
     <div class="col-lg-6">
         @{
-            List<ModelError> еrrors = ViewData.ModelState
+            List<ModelError> errors = ViewData.ModelState
             .Where(e => string.IsNullOrEmpty(e.Key))
-            .SelectMany(e => e.Value!.Errors)
+            .SelectMany(e => e.Value?.Errors ?? Enumerable.Empty<ModelError>())
             .ToList();
         }
-        @if (еrrors.Any())
+        @if (errors.Any())
         {
             <div id="errorAlert" class="alert alert-danger text-center">
-                @foreach (var error in еrrors)
+                @foreach (var error in errors)
                 {
                     <p class="m-0">@error.ErrorMessage</p>
                 }
@@ -81,7 +81,7 @@
                 </form>
 
                 <div class="text-center mt-3">
-                    <small class="text-muted">Already have an account? <a href="/Account/Login">Login here</a>.</small>
+                    <small class="text-muted">Already have an account? <a asp-controller="Account" asp-action="LogIn">Login here</a>.</small>
                 </div>
             </div>
         </div>

@@ -11,41 +11,57 @@
 </div>
 <hr class="mb-5" />
 
-<div class="d-flex flex-column justify-content-center align-items-center mb-5">
+<div class="d-flex justify-content-center mb-5">
     <div class="col-md-6">
-        <h3 class="text-center mb-4 text-danger">
-            Your account will be permanently deleted and this action cannot be undone.
-        </h3>
-        @{
-            List<ModelError> еrrors = ViewData.ModelState
-            .Where(e => string.IsNullOrEmpty(e.Key))
-            .SelectMany(e => e.Value!.Errors)
-            .ToList();
-        }
-        @if (еrrors.Any())
-        {
-            <div id="errorAlert" class="alert alert-danger text-center">
-                @foreach (var error in еrrors)
-                {
-                    <p class="m-0">@error.ErrorMessage</p>
+        <div class="card shadow-lg rounded-4 border-0">
+            <div class="card-body p-4">
+                @{
+                    List<ModelError> errors = ViewData.ModelState
+                    .Where(e => string.IsNullOrEmpty(e.Key))
+                    .SelectMany(e => e.Value?.Errors ?? Enumerable.Empty<ModelError>())
+                    .ToList();
                 }
-            </div>
-            <script>setTimeout(() => { const e=document.getElementById('errorAlert'); if(e){ e.style.transition='opacity 0.5s'; e.style.opacity='0'; setTimeout(() => e.remove(), 500); } }, 3000);</script>
-        }
+                @if (errors.Any())
+                {
+                    <div id="errorAlert" class="alert alert-danger text-center">
+                        @foreach (var error in errors)
+                        {
+                            <p class="m-0">@error.ErrorMessage</p>
+                        }
+                    </div>
+                    <script>setTimeout(() => { const e=document.getElementById('errorAlert'); if(e){ e.style.transition='opacity 0.5s'; e.style.opacity='0'; setTimeout(() => e.remove(), 500); } }, 3000);</script>
+                }
 
-        <form asp-action="DeletePersonalData" method="post">
-            <div class="form-floating mb-3">
-                <input asp-for="@Model.Email" class="form-control" autocomplete="current-password" aria-required="true" placeholder="Please enter your password." />
-                <label asp-for="@Model.Email" class="form-label">Email</label>
-                <span asp-validation-for="@Model.Email" class="text-danger"></span>
+                <h2 class="text-center mb-4 text-danger">
+                    <i class="bi bi-exclamation-triangle-fill me-2 text-danger"></i>
+                    Permanent Account Removal
+                </h2>
+
+                <h4 class="text-center text-danger mb-4 fw-semibold">
+                    Your account will be permanently deleted and this action cannot be undone.
+                </h4>
+
+                <form asp-action="DeletePersonalData" method="post">
+                    <div class="form-floating mb-3">
+                        <input asp-for="@Model.Email" class="form-control" autocomplete="current-password" aria-required="true" placeholder="Please enter your email." />
+                        <label asp-for="@Model.Email">Email</label>
+                        <span asp-validation-for="@Model.Email" class="text-danger small"></span>
+                    </div>
+
+                    <div class="form-floating mb-4">
+                        <input asp-for="@Model.Password" class="form-control" autocomplete="current-password" aria-required="true" placeholder="Please enter your password." />
+                        <label asp-for="@Model.Password">Password</label>
+                        <span asp-validation-for="@Model.Password" class="text-danger small"></span>
+                    </div>
+
+                    <div class="d-grid">
+                        <button class="btn btn-danger btn-lg rounded-pill" type="submit">
+                            <i class="bi bi-trash-fill me-2"></i>Delete account
+                        </button>
+                    </div>
+                </form>
             </div>
-            <div class="form-floating mb-3">
-                <input asp-for="@Model.Password" class="form-control" autocomplete="current-password" aria-required="true" placeholder="Please enter your password." />
-                <label asp-for="@Model.Password" class="form-label">Password</label>
-                <span asp-validation-for="@Model.Password" class="text-danger"></span>
-            </div>
-            <button class="w-100 btn btn-lg btn-danger" type="submit">Delete account</button>
-        </form>
+        </div>
     </div>
 </div>
 

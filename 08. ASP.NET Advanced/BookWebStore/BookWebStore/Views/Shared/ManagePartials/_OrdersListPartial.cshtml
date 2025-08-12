@@ -16,19 +16,19 @@
     <script>setTimeout(() => { const e=document.getElementById('errorAlert'); if(e){ e.style.transition='opacity 0.5s'; e.style.opacity='0'; setTimeout(() => e.remove(), 500); } }, 3000);</script>
 }
 
-<h2>@ViewData["Title"]</h2>
-<hr />
+<h2 class="text-center">@ViewData["Title"]</h2>
+<hr class="mx-auto w-75" />
 
 @if (!ordersGrouped.Any())
 {
-    <div class="text-center mt-5">
+    <div class="text-center mt-4">
         <h3 class="text-muted">You have not created any orders yet.</h3>
     </div>
 }
 else
 {
-    <div class="alert alert-info d-flex align-items-center shadow-sm rounded-3 p-3 mb-4" role="alert">
-        <i class="bi bi-info-circle-fill fs-4 me-3 text-primary"></i>
+    <div class="alert alert-info d-flex align-items-center justify-content-center mx-auto col-md-9 py-3 px-2 my-4 shadow-sm rounded-3" role="alert">
+        <i class="bi bi-info-circle-fill fs-5 text-primary me-2"></i>
         <div class="fs-5">
             You have the right to return any purchased book within <span class="fw-bold text-danger">30 days</span>.
         </div>
@@ -42,7 +42,7 @@ else
             bool hasDateExpired = currentDate > orderBookInfo.OrderDate.AddDays(30);
             decimal totalPrice = orderGroup.Sum(ob => ob.UnitPrice);
 
-            <div class="card shadow-sm mb-5 border-1">
+            <div class="card shadow-sm mb-4 border-1">
                 <div class="card-header bg-light border-bottom">
                     <h5 class="mb-0">
                     <strong>
@@ -59,16 +59,16 @@ else
                         <input type="hidden" asp-for="@orderBook.BookId" />
 
                         <div class="row align-items-center py-3 border-bottom">
-                            <div class="col-md-3 text-center">
+                            <div class="col-md-2 ms-4 me-4 text-center">
                                 <a asp-controller="Book" asp-action="Details" asp-route-id="@orderBook.BookId">
                                     <img src="@(!string.IsNullOrEmpty(orderBook.ImageUrl) ? orderBook.ImageUrl : Url.Content("~/img/book-no-cover-available.jpg"))"
-                                        class="img-fluid rounded shadow-sm"
-                                        style="max-height: 100px;"
-                                        alt="Book Image Not Available"
-                                        onerror="this.onerror=null; this.src='@Url.Content("~/img/book-no-image-available.jpg")';" />
+                                         class="img-fluid rounded shadow-sm"
+                                         style="max-height: 100px;"
+                                         alt="Book Image Not Available"
+                                         onerror="this.onerror=null; this.src='@Url.Content("~/img/book-no-image-available.jpg")';" />
                                 </a>
                             </div>
-                            <div class="col-md-3">
+                            <div class="col-md-3 text-start">
                                 <h5 class="mb-1">
                                     <a asp-controller="Book" asp-action="Details" asp-route-id="@orderBook.BookId"
                                        class="text-dark text-decoration-none">
@@ -77,18 +77,18 @@ else
                                 </h5>
                                 <small class="text-muted">Quantity: <strong>@orderBook.Quantity</strong></small>
                             </div>
-                            <div class="col-md-3 text-center">
+                            <div class="col-md-2 me-5 text-center">
                                 <span class="fw-semibold fs-5 bg-secondary text-white rounded-pill px-3 py-1 d-inline-block">
                                     @($"{orderBook.UnitPrice:F2} lv.")
                                 </span>
                             </div>
-                            <div class="col-md-2 text-end">
+                            <div class="col-md-3 text-center">
                                 @if (!hasDateExpired && !orderBook.IsReturned)
                                 {
                                     <a asp-controller="Order" asp-action="ReturnBook"
                                        asp-route-orderId="@orderBook.OrderId"
                                        asp-route-bookId="@orderBook.BookId"
-                                       class="btn btn-outline-primary">
+                                       class="btn btn-outline-primary rounded-pill">
                                         <i class="bi bi-arrow-counterclockwise me-1"></i>Return
                                     </a>
                                 }
@@ -96,7 +96,7 @@ else
                                 {
                                     if (orderBook.IsDeleted)
                                     {
-                                        <span class="text-danger bg-light border border-danger rounded fw-semibold p-2">
+                                        <span class="text-danger bg-light border border-danger rounded-pill fw-semibold py-2 px-3 text-nowrap">
                                             <i class="bi bi-x-circle me-1"></i> Out of stock
                                         </span>
                                     }
@@ -104,8 +104,8 @@ else
                                     {
                                         <a asp-controller="Order" asp-action="AddToCart"
                                            asp-route-bookId="@orderBook.BookId"
-                                           class="btn btn-outline-success">
-                                            <i class="bi bi-cart-plus me-1"></i>Buy again
+                                           class="btn btn-outline-success rounded-pill">
+                                            <i class="bi bi-cart-plus"></i> Buy again
                                         </a>
                                     }
                                 }
@@ -114,8 +114,11 @@ else
                     }
 
                     <div class="row mt-4">
-                        <div class="col-md-11 ms-4 text-end">
-                            <h4 class="fw-bold">Total: <span class="text-primary">@($"{totalPrice:F2} lv.")</span></h4>
+                        <div class="d-flex justify-content-end">
+                            <div class="fs-5 fw-bold me-4">
+                                <i class="bi bi-cash-coin me-1"></i> Total Price: 
+                                <span class="text-primary">@($"{totalPrice:F2} lv.")</span>
+                            </div>
                         </div>
                     </div>
                 </div>

@@ -4,18 +4,18 @@
     ViewData["Title"] = "Manage users";
 }
 
-<h2>@ViewData["Title"]</h2>
-<hr />
+<h2 class="text-center">@ViewData["Title"]</h2>
+<hr class="mx-auto w-75" />
 
 @if (!Model.Any())
 {
-    <h4 class="text-start">There are no registered users.</h4>
+    <h4 class="text-center">There are no registered users.</h4>
 }
 else
 {
-    <div class="mt-4">
-        <div class="table-responsive">
-            <table class="table table-bordered text-center align-middle shadow-sm rounded-3 overflow-hidden">
+    <div class="mt-2">
+        <div class="table-responsive rounded-3 overflow-hidden shadow-sm border">
+            <table class="table table-bordered text-center align-middle mb-0">
                 <thead class="table-light">
                     <tr>
                         <th scope="col">Username</th>
@@ -34,14 +34,26 @@ else
                             <td>@($"{userRole.User.FirstName} {userRole.User.LastName}")</td>
                             <td>
                                 @{
-                                    var badgeClass = userRole.Role == "Administrator" ? "bg-primary text-white"
+                                    string badgeClass = userRole.Role == "Administrator" ? "bg-primary text-white"
                                     : userRole.Role == "Moderator" ? "bg-secondary text-white"
                                     : userRole.Role == "Guest" ? "bg-warning text-dark"
                                     : "";
                                 }
                                 @if (!string.IsNullOrEmpty(userRole.Role))
                                 {
-                                    <span class="@badgeClass btn btn-sm fw-semibold px-3 rounded-pill shadow-sm">
+                                    <span class="@badgeClass btn btn-sm fw-semibold px-3 rounded-pill shadow-sm" style="cursor: default;">
+                                        @if (userRole.Role == "Administrator")
+                                        {
+                                            <i class="bi bi-shield-lock"></i>
+                                        }
+                                        else if (userRole.Role == "Moderator")
+                                        {
+                                            <i class="bi bi-person-badge"></i>
+                                        }
+                                        else if (userRole.Role == "Guest")
+                                        {
+                                            <i class="bi bi-person"></i>
+                                        }
                                         @userRole.Role
                                     </span>
                                 }

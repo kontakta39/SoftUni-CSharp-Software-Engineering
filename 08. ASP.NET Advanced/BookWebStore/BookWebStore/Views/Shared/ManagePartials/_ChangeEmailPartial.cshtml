@@ -5,23 +5,27 @@
     ViewData["Title"] = "Manage еmail";
 }
 
-<h2>@ViewData["Title"]</h2>
-<hr />
+<h2 class="text-center">@ViewData["Title"]</h2>
+<hr class="mx-auto w-75" />
 
-<div class="row">
-    <div class="col-md-6">
-        <form asp-action="ChangeEmail" method="post">
-            <div class="form-floating mb-3 input-group">
+<div class="d-flex justify-content-center align-items-center mb-5">
+    <div class="card col-md-6 p-4 shadow-lg rounded-4 border-0">
+        <form asp-action="ChangeEmail" method="post" novalidate>
+            <div class="form-floating mb-3">
                 <input asp-for="@Model.CurrentEmail" class="form-control" disabled />
                 <label asp-for="@Model.CurrentEmail" class="form-label">Current email</label>
                 <input type="hidden" name="CurrentEmail" value="@Model.CurrentEmail" />
             </div>
+
             <div class="form-floating mb-3">
                 <input asp-for="@Model.NewEmail" class="form-control" autocomplete="email" aria-required="true" placeholder="Please enter new email." />
-                <label asp-for="@Model.NewEmail" class="form-label">New еmail</label>
+                <label asp-for="@Model.NewEmail" class="form-label">New email</label>
                 <span asp-validation-for="@Model.NewEmail" class="text-danger"></span>
             </div>
-            <button type="submit" class="w-100 btn btn-lg btn-primary">Change email</button>
+
+            <button type="submit" class="w-100 btn btn-lg btn-primary rounded-pill">
+                <i class="bi bi-envelope me-2"></i>Change email
+            </button>
         </form>
     </div>
 </div>

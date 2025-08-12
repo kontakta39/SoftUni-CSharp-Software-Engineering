@@ -5,57 +5,69 @@
 @{
     ViewData["Title"] = "Manage Account";
     ApplicationUser? user = await UserManager.GetUserAsync(User);
-    IList<string> roles = await UserManager.GetRolesAsync(user!);
+    IList<string> roles = user != null ? await UserManager.GetRolesAsync(user) : new List<string>();
     string? role = roles.FirstOrDefault();
-    bool isMasterAdmin = User.IsInRole("Administrator") && user!.Email == "kontakta39@mail.bg" && user.UserName == "kontakta39";
-    string? activePage = ViewData["ActivePage"]?.ToString();
-    
+    bool isMasterAdmin = User.IsInRole("Administrator") && user?.Email == "kontakta39@mail.bg";
+    string? activePage = ViewData["ActivePage"]?.ToString();   
 }
 
 @if (SignInManager.IsSignedIn(User))
 {
     <div class="d-flex justify-content-center align-items-center mb-3 mt-3">
-        <h1>Hello, @role!.ToLower() @user!.FirstName @user.LastName</h1>
+        <h2 class="fs-1">Hello, @role?.ToLower() @user?.FirstName @user?.LastName</h2>
     </div>
     <hr class="mb-5" />
 
-    <div class="row g-5" style="margin-bottom: 200px;">
-        <div class="col-md-3">
-            <!-- Sidebar -->
-            <ul class="nav nav-pills flex-column">
+    <div class="d-flex justify-content-center align-items-start gap-4 mb-5">
+        <!-- Sidebar -->
+        <nav class="d-flex flex-column bg-white shadow rounded-4 py-3 px-3 flex-shrink-1" aria-label="Sidebar navigation">
+            <ul class="nav nav-pills flex-column mb-auto gap-3">
                 @if (isMasterAdmin)
                 {
                     <li class="nav-item">
-                        <a class="nav-link fs-5 @(activePage == "ManageUsers" ? "active" : "")"
-                           href="@Url.Action("Manage", "Account", new { page = "ManageUsers" })">Users list</a>
+                        <a class="nav-link d-flex justify-content-center align-items-center gap-2 fs-5 @(activePage == "ManageUsers" ? "active rounded-4" : "text-muted")"
+                            href="@Url.Action("Manage", "Account", new { page = "ManageUsers" })">
+                            <i class="bi bi-people-fill"></i> Users list
+                        </a>
                     </li>
                 }
                 <li class="nav-item">
-                    <a class="nav-link fs-5 @(activePage == "Profile" ? "active" : "")"
-                       href="@Url.Action("Manage", "Account", new { page = "Profile" })">Profile</a>
+                    <a class="nav-link d-flex justify-content-center align-items-center gap-2 fs-5 @(activePage == "Profile" ? "active rounded-4" : "text-muted")"
+                        href="@Url.Action("Manage", "Account", new { page = "Profile" })">
+                        <i class="bi bi-person-fill"></i> Profile
+                    </a>
                 </li>
                 <li class="nav-item">
-                    <a class="nav-link fs-5 @(activePage == "Orders" ? "active" : "")"
-                       href="@Url.Action("Manage", "Account", new { page = "Orders" })">Orders</a>
+                    <a class="nav-link d-flex justify-content-center align-items-center gap-2 fs-5 @(activePage == "Orders" ? "active rounded-4" : "text-muted")"
+                        href="@Url.Action("Manage", "Account", new { page = "Orders" })">
+                        <i class="bi bi-bag-check-fill"></i> Orders
+                    </a>
                 </li>
                 <li class="nav-item">
-                    <a class="nav-link fs-5 @(activePage == "Email" ? "active" : "")"
-                       href="@Url.Action("Manage", "Account", new { page = "Email" })">Email</a>
+                    <a class="nav-link d-flex justify-content-center align-items-center gap-2 fs-5 @(activePage == "Email" ? "active rounded-4" : "text-muted")"
+                        href="@Url.Action("Manage", "Account", new { page = "Email" })">
+                        <i class="bi bi-envelope-fill"></i> Email
+                    </a>
                 </li>
                 <li class="nav-item">
-                    <a class="nav-link fs-5 @(activePage == "ChangePassword" ? "active" : "")"
-                       href="@Url.Action("Manage", "Account", new { page = "ChangePassword" })">Change password</a>
+                    <a class="nav-link d-flex justify-content-center align-items-center gap-2 fs-5 @(activePage == "ChangePassword" ? "active rounded-4" : "text-muted")"
+                        href="@Url.Action("Manage", "Account", new { page = "ChangePassword" })">
+                        <i class="bi bi-key-fill"></i> Change password
+                    </a>
                 </li>
                 @if (!isMasterAdmin)
                 {
-                <li class="nav-item">
-                    <a class="nav-link fs-5 @(activePage == "DeleteAccount" ? "active" : "")"
-                       href="@Url.Action("Manage", "Account", new { page = "DeleteAccount" })">Delete account</a>
-                </li>
+                    <li class="nav-item">
+                        <a class="nav-link d-flex justify-content-center align-items-center gap-2 fs-5 @(activePage == "DeleteAccount" ? "active rounded-4" : "text-danger")"
+                            href="@Url.Action("Manage", "Account", new { page = "DeleteAccount" })">
+                            <i class="bi bi-trash-fill"></i> Delete account
+                        </a>
+                    </li>
                 }
             </ul>
-        </div>
+        </nav>
 
+        <!-- Main Content -->
         <div class="col-md-9">
             @if (activePage == "ManageUsers" && isMasterAdmin)
             {

@@ -3,32 +3,18 @@
     ViewData["Title"] = "Delete account";
 }
 
-<h2>@ViewData["Title"]</h2>
-<hr />
+<h2 class="text-center">@ViewData["Title"]</h2>
+<hr class="mx-auto w-75 mb-4" />
 
-<div class="row">
-    <div class="col-md-10">
-        @{
-            List<ModelError> еrrors = ViewData.ModelState
-            .Where(e => string.IsNullOrEmpty(e.Key))
-            .SelectMany(e => e.Value!.Errors)
-            .ToList();
-        }
-        @if (еrrors.Any())
-        {
-            <div id="errorAlert" class="alert alert-danger text-center">
-                @foreach (var error in еrrors)
-                {
-                    <p class="m-0">@error.ErrorMessage</p>
-                }
-            </div>
-            <script>setTimeout(() => { const e=document.getElementById('errorAlert'); if(e){ e.style.transition='opacity 0.5s'; e.style.opacity='0'; setTimeout(() => e.remove(), 500); } }, 3000);</script>
-        }
-
-        <p>This page allows you to permanently delete your account and all associated personal data.<br /> 
+<div class="d-flex justify-content-center align-items-center mb-5">
+    <div class="card col-md-8 p-4 shadow-lg rounded-4 border-0">
+        <h4 class="mb-4 fw-semibold text-danger text-center">
+            This page allows you to permanently delete your account and all associated personal data.<br />
             Once deleted, this action cannot be undone.
-        </p>
-        <a id="delete" asp-action="DeletePersonalData" asp-controller="Account" class="btn btn-danger">Delete</a>
+        </h4>
+        <a asp-action="DeletePersonalData" asp-controller="Account" class="btn btn-danger btn-lg rounded-pill w-100">
+            <i class="bi bi-trash me-2"></i>Delete
+        </a>
     </div>
 </div>
 

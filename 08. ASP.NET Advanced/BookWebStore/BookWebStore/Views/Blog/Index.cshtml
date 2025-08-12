@@ -17,7 +17,7 @@
     <h1>@ViewData["Title"]</h1>
     @if (User.IsInRole("Administrator"))
     {
-        <a asp-controller="Blog" asp-action="Add" class="btn btn-primary">
+        <a asp-controller="Blog" asp-action="Add" class="btn btn-primary rounded-pill">
             <i class="fas fa-plus me-1"></i> Add blog
         </a>
     }
@@ -39,12 +39,12 @@ else
     foreach (var group in groupedBlogs)
     {
         <h3 class="text-start mt-5 text-dark">Blogs starting with letter "<strong>@group.Key</strong>"</h3>
-        <hr class="mb-4 border-primary" />
+        <hr class="mb-4" />
 
         <div class="row g-4">
             @foreach (var blog in group.OrderBy(b => b.Title))
             {
-                <div class="col-sm-6 col-md-4 col-lg-3 mb-5">
+                <div class="col-sm-6 col-md-3 me-3">
                     <div class="card h-100 shadow-sm border border-1 border-secondary rounded-4 overflow-hidden bg-light bg-opacity-75">
                         <a asp-controller="Blog" asp-action="Details" asp-route-id="@blog.Id" class="text-decoration-none text-dark">
                             <div class="position-relative overflow-hidden" style="height: 200px;">
@@ -58,7 +58,7 @@ else
                             </div>
                             <div class="card-body text-center">
                                 <h5 class="card-title fw-bold">@blog.Title</h5>
-                                <p class="card-text text-muted fst-italic mb-0">Read more &rarr;</p>
+                                <h6 class="card-text text-muted fst-italic mb-0">Read more &rarr;</h6>
                             </div>
                         </a>
                     </div>
