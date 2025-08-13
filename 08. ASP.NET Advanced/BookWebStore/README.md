@@ -1,5 +1,5 @@
 # BookWebStore 📖
-📚 Reference for my ASP.NET Advanced project [*C# Web - September 2025 @ SoftUni*](https://softuni.bg/trainings/4954/asp-net-advanced-june-2025), prepared for an assessment.  
+📚 Reference for my ASP.NET Advanced project [*C# Web - June 2025 @ SoftUni*](https://softuni.bg/trainings/4954/asp-net-advanced-june-2025), prepared for an assessment.  
 Welcome to **BookWebStore** – a web application designed to demonstrate my core web development skills through an online bookstore system.
 
 ---
