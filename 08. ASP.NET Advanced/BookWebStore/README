@@ -1,0 +1,106 @@
+# BookWebStore 📖
+📚 Reference for my ASP.NET Advanced project ([course link](https://softuni.bg/trainings/4954/asp-net-advanced-june-2025)), prepared for an assessment.  
+Welcome to **BookWebStore** – a web application designed to demonstrate my core web development skills through an online bookstore system.
+
+---
+
+## ✨ Features
+- 🔐 User registration and login (ASP.NET Identity)
+- 📖 Browse books by genre and author
+- 🔍 Search across books, genres, and authors
+- 🛒 Shopping cart with a dynamic book count
+- ✍️ Blog section with role-based permissions
+- ⭐ Book ratings and reviews
+- 📦 Order creation and management
+
+---
+
+## 👥 Roles & Permissions
+
+### User Roles
+- **Guest**: All newly registered users are assigned the Guest role by default. Can write and edit reviews, and place orders.  
+- **Moderator**: Can edit certain fields of Books and Blogs. Can also write reviews and place orders.  
+- **Administrator**: Can create Genres, Authors, Books, and Blogs. Can edit and delete Blogs and Books. Can also write reviews and place orders.  
+- **Master Admin (kontakta39)**: Has all administrator privileges. Can additionally change roles of other users. Stored in the database as an Administrator.  
+
+---
+
+### Blog Permissions
+
+| Role                  | Create | Edit | Delete |
+|-----------------------|--------|------|--------|
+| Master Admin          | ✅      | ✅    | ✅      |
+| Administrator (Owner) | ✅      | ✅    | ✅      |
+| Administrator (Not Owner) | ❌      | ❌    | ❌      |
+| Moderator             | ❌      | ✅    | ❌      |
+| Guest                 | ❌      | ❌    | ❌      |
+
+---
+
+### Summary of Actions by Role
+
+| Action                                  | Guest | Moderator | Administrator | Master Admin |
+|----------------------------------------|-------|-----------|---------------|--------------|
+| Write & Edit Reviews                    | ✅    | ✅        | ✅            | ✅           |
+| Place Orders                            | ✅    | ✅        | ✅            | ✅           |
+| Create Genres, Authors, Books, Blogs   | ❌    | ❌        | ✅            | ✅           |
+| Edit Books (some fields)                | ❌    | ✅        | ✅            | ✅           |
+| Edit Blogs (some fields)                | ❌    | ✅        | ✅            | ✅           |
+| Delete Blogs                            | ❌    | ❌        | ✅            | ✅           |
+| Change User Roles                        | ❌    | ❌        | ❌            | ✅           |
+
+---
+
+## 🛠️ Technologies Used
+
+### Backend
+- **ASP.NET Core MVC**: Robust and scalable web framework.  
+- **Entity Framework Core**: Efficient database interactions using LINQ and migrations.  
+- **SQL Server**: Relational database used for storing all application data.  
+- **ASP.NET Identity**: Secure authentication and authorization system using **custom `ApplicationUser` and `ApplicationRole` classes**. Business logic for user and role operations is implemented manually, not scaffolded.  
+
+### Frontend
+- **Bootstrap 5**: Responsive and modern UI components.
+
+### Testing
+- **NUnit**: Unit testing framework.  
+- **Moq**: Mocking framework for unit testing.
+
+---
+
+## 🚀 How to Clone and Run the Project
+
+1. Clone only the `BookWebStore` folder using sparse checkout:
+```bash
+git clone --no-checkout https://github.com/kontakta39/SoftUni-CSharp-Software-Engineering.git
+cd SoftUni-CSharp-Software-Engineering
+git sparse-checkout init --cone
+git sparse-checkout set "08. ASP.NET Advanced/BookWebStore"
+git checkout main
+```
+
+2. Enter the project folder:
+```bash
+cd "08. ASP.NET Advanced/BookWebStore"
+```
+
+3. Restore dependencies, apply migrations, and run:
+```bash
+dotnet restore
+dotnet ef database update
+dotnet run
+```
+
+4. Open in your browser:
+```bash
+https://localhost:7031
+```
+
+---
+
+📜 License
+This project is licensed under the MIT License. See the LICENSE file for details.
+
+---
+
+Enjoy exploring the BookWebStore project! 📖🛒
