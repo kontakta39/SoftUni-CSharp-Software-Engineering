@@ -6,7 +6,6 @@ Welcome to **BookWebStore** – a web application designed to demonstrate my cor
 
 ## ✨ Features
 - 🔐 User registration and login (ASP.NET Identity)
-- 📖 Browse books by genre and author
 - 🔍 Search across books, genres, and authors
 - 🛒 Shopping cart with a dynamic book count
 - ✍️ Blog section with role-based permissions
