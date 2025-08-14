@@ -117,7 +117,7 @@ https://localhost:7031
 
 ## 🔑 Default Admin Account
 
-**Note:** By deafult, the project comes with pre-configured administrator credentials for local use:
+**Note:** By default, the project comes with pre-configured administrator credentials for local use:
 
 - **Username:** Admin
 - **Email:** admin@example.com
