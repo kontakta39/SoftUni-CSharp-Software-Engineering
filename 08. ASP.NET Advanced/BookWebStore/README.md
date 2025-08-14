@@ -94,20 +94,38 @@ git checkout main
 
 **3. Enter the project folder:**
 ```bash
-cd "08. ASP.NET Advanced/BookWebStore"
+cd "08. ASP.NET Advanced/BookWebStore/BookWebStore"
 ```
 
-**4. Restore dependencies, apply migrations, and run:**
+**4. Set the connection string with your PC name locally using user secrets:**
+```bash
+dotnet user-secrets set "ConnectionStrings:BookStoreConnectionString" "Server=(PC_NAME)\SQLEXPRESS;Database=BookStoreDb;Trusted_Connection=True;TrustServerCertificate=True;"
+```
+
+**5. Restore dependencies, apply migrations, and run:**
 ```bash
 dotnet restore
-dotnet ef database update
 dotnet run
 ```
 
-**5. Open in your browser:**
+**6. Open in your browser:**
 ```bash
 https://localhost:7031
 ```
+
+---
+
+🔑 Default Admin Account
+
+**Note:** By deafult, the project comes with pre-configured administrator credentials for local use:
+
+**Username:** Admin
+
+**Email:** admin@example.com
+
+**Password:** Admin123!
+
+This allows you to log in immediately without needing to configure secrets.
 
 ---
 
