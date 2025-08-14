@@ -72,11 +72,11 @@ Welcome to **BookWebStore** – a web application designed to demonstrate my cor
 
 1. Install Git
    
-If you don't have Git installed, download it from: [https://git-scm.com/download/win](https://git-scm.com/download/win)
+If you don't have Git installed, download it from: [*https://git-scm.com/download/win*](https://git-scm.com/download/win)
 
 During the installation, choose:
 
-Git from the command line and also from 3rd-party software
+**Git from the command line and also from 3rd-party software**
 
 After the installation, verify in CMD or PowerShell:
 ```bash
@@ -113,7 +113,7 @@ https://localhost:7031
 
 ## 📜 License
 
-This project is licensed under the MIT License. See the [LICENSE](LICENSE) file for details.
+This project is licensed under the MIT License. See the [*LICENSE*](LICENSE) file for details.
 
 ---
 
