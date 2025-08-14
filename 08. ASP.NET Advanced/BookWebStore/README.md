@@ -115,15 +115,13 @@ https://localhost:7031
 
 ---
 
-🔑 Default Admin Account
+## 🔑 Default Admin Account
 
 **Note:** By deafult, the project comes with pre-configured administrator credentials for local use:
 
-**Username:** Admin
-
-**Email:** admin@example.com
-
-**Password:** Admin123!
+- **Username:** Admin
+- **Email:** admin@example.com
+- **Password:** Admin123!
 
 This allows you to log in immediately without needing to configure secrets.
 
