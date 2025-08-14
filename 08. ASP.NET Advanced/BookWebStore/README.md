@@ -70,7 +70,19 @@ Welcome to **BookWebStore** – a web application designed to demonstrate my cor
 
 ## 🚀 How to Clone and Run the Project
 
-1. Clone only the BookWebStore folder using sparse checkout:
+1. Install Git
+```bash
+If you don't have Git installed, download it from:
+[https://git-scm.com/download/win](https://git-scm.com/download/win)
+
+During installation, choose: Git from the command line and also from 3rd-party software
+
+After installation, verify in CMD or PowerShell:
+git --version
+```
+
+
+2. Clone only the BookWebStore folder using sparse checkout:
 ```bash
 git clone --no-checkout https://github.com/kontakta39/SoftUni-CSharp-Software-Engineering.git
 cd SoftUni-CSharp-Software-Engineering
@@ -79,19 +91,19 @@ git sparse-checkout set "08. ASP.NET Advanced/BookWebStore"
 git checkout main
 ```
 
-2. Enter the project folder:
+3. Enter the project folder:
 ```bash
 cd "08. ASP.NET Advanced/BookWebStore"
 ```
 
-3. Restore dependencies, apply migrations, and run:
+4. Restore dependencies, apply migrations, and run:
 ```bash
 dotnet restore
 dotnet ef database update
 dotnet run
 ```
 
-4. Open in your browser:
+5. Open in your browser:
 ```bash
 https://localhost:7031
 ```
