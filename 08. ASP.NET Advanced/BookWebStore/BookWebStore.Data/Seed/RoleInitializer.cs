@@ -29,10 +29,9 @@ public static class RoleInitializer
         }
 
         //Retrieve admin password from appsettings.json
-        string? adminUsername = configuration["AdminUsername"];
-        string? adminEmail = configuration["AdminEmail"];
-        string? adminPassword = configuration["AdminPassword"]
-            ?? throw new InvalidOperationException("Admin password not found in configuration.");
+        string adminUsername = configuration["AdminUsername"] ?? "Admin";
+        string adminEmail = configuration["AdminEmail"] ?? "admin@example.com";
+        string adminPassword = configuration["AdminPassword"] ?? "Admin123!";
 
         ApplicationUser? adminUser = await userManager.FindByEmailAsync(adminEmail!);
 
