@@ -97,7 +97,10 @@ git checkout main
 cd "08. ASP.NET Advanced/BookWebStore/BookWebStore"
 ```
 
-**4. Set the connection string with your PC name locally using user secrets:**
+**4. Set the connection string locally using user secrets:**
+
+Replace (PC_NAME) with your local SQL Server instance name."
+
 ```bash
 dotnet user-secrets set "ConnectionStrings:BookStoreConnectionString" "Server=(PC_NAME)\SQLEXPRESS;Database=BookStoreDb;Trusted_Connection=True;TrustServerCertificate=True;"
 ```
