@@ -74,9 +74,9 @@ Welcome to **BookWebStore** – a web application designed to demonstrate my cor
    
 If you don't have Git installed, download it from: [https://git-scm.com/download/win](https://git-scm.com/download/win)
 
-During installation, choose: Git from the command line and also from 3rd-party software
+During the installation, choose: Git from the command line and also from 3rd-party software
 
-After installation, verify in CMD or PowerShell:
+After the installation, verify in CMD or PowerShell:
 ```bash
 git --version
 ```
