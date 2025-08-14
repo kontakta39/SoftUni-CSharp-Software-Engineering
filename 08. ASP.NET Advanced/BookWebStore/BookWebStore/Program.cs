@@ -6,6 +6,7 @@ using BookWebStore.Services;
 using BookWebStore.Services.Interfaces;
 using Microsoft.AspNetCore.Identity;
 using Microsoft.EntityFrameworkCore;
+using Microsoft.EntityFrameworkCore.Infrastructure;
 
 namespace BookWebStore;
 
@@ -117,6 +118,11 @@ public class Program
         using (IServiceScope? scope = app.Services.CreateScope())
         {
             IServiceProvider? serviceProvider = scope.ServiceProvider;
+            BookStoreDbContext? db = serviceProvider.GetRequiredService<BookStoreDbContext>();
+
+            //If the database does not exist, it will be created
+            db.Database.EnsureCreated();
+
             await RoleInitializer.InitializeRolesAsync(serviceProvider);
 
             string genreJsonPath = Path.GetFullPath(
